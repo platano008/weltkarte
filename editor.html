@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Lagekarte bearbeiten</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/milsymbol@2.2.0/dist/milsymbol.js"></script>
+<script src="karte.js"></script>
+<style>
+.panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
+.panel>*{flex:none}
+.panel .list{overflow:visible;min-height:auto}
+.ed-h{display:flex;align-items:center;gap:10px}
+.ed-h h1{flex:1;font-size:26px}
+.status{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--muted)}
+.status.dirty{color:var(--volt)}
+.status.err{color:var(--danger)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 14px;font-weight:600;font-size:14px;border:1px solid var(--line-2)}
+.btn:hover{border-color:var(--fg)}
+.btn.volt{background:var(--volt);color:var(--ink);border-color:var(--volt)}
+.btn.volt:hover{background:#fff;border-color:#fff}
+.btn.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,transparent)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.sm{min-height:32px;font-size:13px;padding:0 10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tools{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--line-2)}
+.tools button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;font-size:11px;font-weight:600;color:var(--muted);border-right:1px solid var(--line-2)}
+.tools button:last-child{border-right:0}
+.tools button svg{width:18px;height:18px}
+.tools button:hover{color:var(--fg)}
+.tools button.on{background:var(--volt);color:var(--ink)}
+.opts{padding:14px 18px;border-bottom:1px solid var(--line-2);display:flex;flex-direction:column;gap:12px}
+.opts:empty{display:none}
+.lbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px}
+.f{width:100%;background:var(--bg);border:1px solid var(--line-2);padding:8px 10px;font-size:14px}
+.f:focus{border-color:var(--volt);outline:none}
+textarea.f{min-height:64px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sides{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line-2)}
+.sides button{padding:7px 2px;font-size:12px;font-weight:600;border-right:1px solid var(--line-2);color:var(--muted)}
+.sides button:last-child{border-right:0}
+.sides button.on{color:var(--ink)}
+.swatches{display:flex;gap:6px;flex-wrap:wrap}
+.swatches button{width:28px;height:28px;border:2px solid transparent;outline:1px solid var(--line-2)}
+.swatches button.on{border-color:var(--bg);outline:2px solid #fff}
+.check{display:flex;align-items:center;gap:8px;font-size:14px}
+.check input{accent-color:var(--volt);width:16px;height:16px}
+.preview{display:flex;align-items:center;justify-content:center;min-height:70px;background:var(--surface-2);border:1px solid var(--line)}
+.hint{font-size:13px;color:var(--muted)}
+.hint b{color:var(--fg);font-weight:600}
+.confirm{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--danger)}
+details.gh{border-top:1px solid var(--line-2)}
+details.gh summary{cursor:pointer;padding:10px 18px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);list-style:none}
+details.gh summary::-webkit-details-marker{display:none}
+details.gh[open] summary{color:var(--fg)}
+.ghb{padding:0 18px 14px;display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--muted)}
+.ghb a{color:var(--volt)}
+.ghb ol{margin:0;padding-left:18px}
+.drawing #map canvas{cursor:crosshair!important}
+.toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:50;background:var(--fg);color:var(--bg);font-weight:600;font-size:14px;padding:10px 16px;transition:.2s;pointer-events:none;box-shadow:inset 3px 0 0 var(--volt);max-width:calc(100% - 32px)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (max-width:720px){ .panel{max-height:58%;width:auto} }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<a class="mt-logo" id="mtLogo" href="https://www.maptiler.com" target="_blank" rel="noopener"><img src="https://api.maptiler.com/resources/logo.svg" alt="MapTiler logo"></a>
+
+<div class="switches">
+  <div class="seg" id="base"></div>
+  <div class="seg" id="view"><button data-v="globe">Globus</button><button data-v="flat" class="on">Flach</button></div>
+</div>
+
+<section class="panel" id="panel">
+  <div class="ph">
+    <div class="ed-h"><h1>Bearbeiten</h1><button class="toggle" id="toggle" aria-label="Werkzeuge ein- oder ausklappen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M6 9l6 6 6-6"/></svg></button></div>
+    <div class="status" id="status">Lädt …</div>
+    <div class="row"><button class="btn volt" id="save" disabled>Speichern</button><a class="btn" href="./" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Ansicht öffnen</a></div>
+    <div class="tools" id="tools">
+      <button data-t="select"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M5 3l14 8-6 2-2 6z"/></svg>Auswahl</button>
+      <button data-t="symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"><path d="M3 6h18v12H3zM3 6l18 12M21 6L3 18"/></svg>Symbol</button>
+      <button data-t="linie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M3 18l6-8 5 4 7-9"/></svg>Linie</button>
+      <button data-t="pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M3 19L19 5M10 5h9v9"/></svg>Pfeil</button>
+      <button data-t="flaeche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M4 7l9-4 8 7-3 10-12-2z"/></svg>Fläche</button>
+    </div>
+  </div>
+  <div class="opts" id="opts"></div>
+  <div class="list" id="list"></div>
+  <details class="gh" id="ghBox">
+    <summary>GitHub-Schlüssel</summary>
+    <div class="ghb">
+      <div id="ghState"></div>
+      <input class="f" id="ghToken" type="password" placeholder="github_pat_…" autocomplete="off">
+      <div class="row"><button class="btn sm volt" id="ghSave">Schlüssel speichern</button><button class="btn sm" id="ghClear">Entfernen</button></div>
+      <ol>
+        <li>Öffne <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a>.</li>
+        <li>Name z. B. „Lagekarte“, Ablaufdatum wählen.</li>
+        <li>Repository access: <b>Only select repositories</b> → <b>weltkarte</b>.</li>
+        <li>Permissions → Repository → <b>Contents: Read and write</b>.</li>
+        <li>„Generate token“, kopieren und hier einfügen.</li>
+      </ol>
+      <div>Der Schlüssel bleibt nur in diesem Browser gespeichert.</div>
+    </div>
+  </details>
+</section>
+
+<div class="card" id="card" hidden></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const K = Karte, $ = id => document.getElementById(id), esc = K.esc;
+const GH = {owner:"platano008", repo:"weltkarte", path:"karte.json", branch:"main"};
+const API = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${GH.path}`;
+const COLORS = [["#f2ff1a","Gelb"],["#ff3b30","Rot"],["#2f80ff","Blau"],["#ffffff","Weiß"],["#ff8a3d","Orange"],["#3ddc84","Grün"]];
+const DRAW = ["linie","pfeil","flaeche"];
+const LS = {token:"lage-gh-token", draft:"lage-draft", prefs:"lage-prefs"};
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+
+let DATA = K.emptyData(), sha = null, dirty = false, tool = "select", sel = null, markers = [];
+let draft = null; /* {typ, pts:[], replaceId} */
+let prefs = Object.assign({farbe:"#ff3b30", stil:"durchgezogen", seite:"H", einheit:"inf", groesse:"F", hq:false, geplant:false}, JSON.parse(store.get(LS.prefs)||"{}"));
+const savePrefs = ()=>store.set(LS.prefs, JSON.stringify(prefs));
+const uid = ()=>"e"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("on"); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("on"),2600); }
+
+/* ---------- map ---------- */
+$("base").innerHTML = Object.entries(K.STYLES).map(([k,s])=>`<button data-b="${k}" class="${k==="sat"?"on":""}">${s.name}</button>`).join("");
+$("base").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("base").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setBase(b.dataset.b); });
+$("view").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("view").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setGlobe(b.dataset.v==="globe"); });
+
+const map = K.createMap({container:"map", style:"sat", globe:false, doubleClickZoom:false, onStyle: m=>{
+  K.addDataLayers(m, "lage", K.toFeatures(DATA.elemente));
+  m.addSource("draft", {type:"geojson", data:{type:"FeatureCollection", features:[]}});
+  m.addLayer({id:"draft-fill", type:"fill", source:"draft", filter:["==",["geometry-type"],"Polygon"], paint:{"fill-color":"#ffffff","fill-opacity":0.12}});
+  m.addLayer({id:"draft-line", type:"line", source:"draft", filter:["==",["geometry-type"],"LineString"], paint:{"line-color":"#ffffff","line-width":2.5,"line-dasharray":[2,1]}});
+  m.addLayer({id:"draft-pts", type:"circle", source:"draft", filter:["==",["geometry-type"],"Point"], paint:{"circle-radius":5,"circle-color":"#0b0b0a","circle-stroke-color":"#ffffff","circle-stroke-width":2}});
+  m.on("click","lage-hit", onHit); m.on("click","lage-area-fill", onHit);
+  updateDraft(); highlight();
+}});
+let hitAt = 0;
+function onHit(e){
+  if(tool!=="select") return;
+  if(Date.now()-hitAt < 50) return; hitAt = Date.now();
+  const id = e.features[0].properties.id; select(DATA.elemente.find(x=>x.id===id));
+}
+map.on("click", e=>{
+  if(DRAW.includes(tool)){
+    draft.pts.push([+e.lngLat.lng.toFixed(5), +e.lngLat.lat.toFixed(5)]); updateDraft(); renderOpts(); return;
+  }
+  if(tool==="symbol"){ placeSymbol([+e.lngLat.lng.toFixed(5), +e.lngLat.lat.toFixed(5)]); return; }
+  if(!map.getLayer("lage-hit")) return;
+  if(!map.queryRenderedFeatures(e.point,{layers:["lage-hit","lage-area-fill"]}).length) select(null);
+});
+map.on("dblclick", e=>{ if(DRAW.includes(tool)){ e.preventDefault(); finishDraft(); } });
+document.addEventListener("keydown", e=>{
+  if(e.target.matches("input,textarea,select")) return;
+  if(!DRAW.includes(tool)) { if(e.key==="Escape") select(null); return; }
+  if(e.key==="Enter") finishDraft();
+  if(e.key==="Escape") setTool("select");
+  if(e.key==="Backspace"){ draft.pts.pop(); updateDraft(); renderOpts(); }
+});
+
+/* ---------- data load / save ---------- */
+function b64ToText(b){ const bin = atob(b.replace(/\n/g,"")); return new TextDecoder().decode(Uint8Array.from(bin, c=>c.charCodeAt(0))); }
+function textToB64(t){ const bytes = new TextEncoder().encode(t); let s=""; for(let i=0;i<bytes.length;i+=0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i,i+0x8000)); return btoa(s); }
+async function ghGet(token){
+  const r = await fetch(API+"?ref="+GH.branch, {headers:{Authorization:"Bearer "+token, Accept:"application/vnd.github+json"}, cache:"no-store"});
+  if(r.status===404) return {sha:null, data:K.emptyData()};
+  if(!r.ok) throw {status:r.status};
+  const j = await r.json();
+  return {sha:j.sha, data:JSON.parse(b64ToText(j.content))};
+}
+async function ghPut(token, data, sha){
+  const body = {message:"Lagekarte aktualisiert", content:textToB64(JSON.stringify(data,null,2)+"\n"), branch:GH.branch};
+  if(sha) body.sha = sha;
+  const r = await fetch(API, {method:"PUT", headers:{Authorization:"Bearer "+token, Accept:"application/vnd.github+json", "Content-Type":"application/json"}, body:JSON.stringify(body)});
+  if(!r.ok) throw {status:r.status};
+  return (await r.json()).content.sha;
+}
+function setStatus(t, cls){ const s=$("status"); s.textContent=t; s.className="status"+(cls?" "+cls:""); }
+function token(){ return store.get(LS.token); }
+function refreshStatus(){
+  if(!token()){ setStatus("Nur lesen: kein GitHub-Schlüssel. Unten eintragen, um zu speichern.", "err"); $("save").disabled = true; return; }
+  $("save").disabled = !dirty;
+  setStatus(dirty ? "Ungespeicherte Änderungen" : "Alles gespeichert", dirty ? "dirty" : "");
+}
+async function load(){
+  const t = token();
+  try{
+    if(t){ const r = await ghGet(t); DATA = r.data; sha = r.sha; }
+    else { const r = await fetch("karte.json",{cache:"no-cache"}); DATA = r.ok ? await r.json() : K.emptyData(); }
+  }catch(e){
+    setStatus(e.status===401 ? "GitHub-Schlüssel ungültig oder abgelaufen." : e.status===403||e.status===404 ? "Schlüssel hat keinen Zugriff auf weltkarte." : "Laden fehlgeschlagen. Internet prüfen.", "err");
+    try{ const r = await fetch("karte.json",{cache:"no-cache"}); if(r.ok) DATA = await r.json(); }catch(_){}
+  }
+  if(!DATA.elemente) DATA = K.emptyData();
+  const d = JSON.parse(store.get(LS.draft)||"null");
+  if(d && d.data && d.data.elemente){ DATA = d.data; dirty = true; toast("Ungespeicherter Entwurf wiederhergestellt"); }
+  render(); if(!$("status").classList.contains("err")) refreshStatus(); else $("save").disabled = !token() || !dirty;
+}
+function change(){
+  dirty = true; store.set(LS.draft, JSON.stringify({data:DATA, at:Date.now()}));
+  render(); refreshStatus();
+}
+$("save").onclick = async ()=>{
+  const t = token(); if(!t) return;
+  $("save").disabled = true; setStatus("Speichert …");
+  DATA.aktualisiert = new Date().toISOString();
+  try{
+    try{ sha = await ghPut(t, DATA, sha); }
+    catch(e){ if(e.status===409 || e.status===422){ const r = await ghGet(t); sha = await ghPut(t, DATA, r.sha); } else throw e; }
+    dirty = false; store.del(LS.draft); refreshStatus();
+    toast("Gespeichert. In etwa einer Minute ist es online.");
+  }catch(e){
+    setStatus(e.status===401 ? "Schlüssel ungültig oder abgelaufen." : e.status===403||e.status===404 ? "Schlüssel darf nicht schreiben (Contents: Read and write?)." : "Speichern fehlgeschlagen. Nochmal versuchen.", "err");
+    $("save").disabled = false;
+  }
+};
+
+/* GitHub token box */
+function renderGh(){
+  $("ghState").innerHTML = token() ? "Ein Schlüssel ist in diesem Browser gespeichert." : "Noch kein Schlüssel gespeichert.";
+  if(!token()) $("ghBox").open = true;
+}
+$("ghSave").onclick = ()=>{ const v = $("ghToken").value.trim(); if(!v) return; store.set(LS.token, v); $("ghToken").value=""; renderGh(); toast("Schlüssel gespeichert"); dirty ? refreshStatus() : load(); };
+$("ghClear").onclick = ()=>{ store.del(LS.token); renderGh(); refreshStatus(); toast("Schlüssel entfernt"); };
+
+/* ---------- rendering ---------- */
+function render(){
+  let src = null; try{ src = map.getSource("lage"); }catch(e){}
+  if(src) src.setData(K.toFeatures(DATA.elemente));
+  markers.forEach(m=>m.remove());
+  markers = DATA.elemente.filter(el=>el.typ==="symbol").map(el=>{
+    const m = K.symbolMarker(map, el, {draggable:true, onClick:x=>{ if(tool==="select") select(x); }, onDragEnd:(x,ll)=>{ x.koordinaten = ll; change(); }});
+    m._id = el.id; return m;
+  });
+  renderList(); highlight();
+}
+function measure(el){
+  if(el.typ==="linie"||el.typ==="pfeil") return Math.round(K.lineKm(el.koordinaten)).toLocaleString("de-DE")+" km";
+  if(el.typ==="flaeche") return Math.round(K.areaKm2(el.koordinaten)).toLocaleString("de-DE")+" km²";
+  return "";
+}
+function icon(el){
+  if(el.typ==="symbol") return `<span class="ic">${K.symbolSVG(el,18).svg}</span>`;
+  return `<span class="ic"><i class="sw${el.typ==="flaeche"?" area":""}" style="background:${esc(el.farbe)}"></i></span>`;
+}
+function renderList(){
+  $("list").innerHTML = DATA.elemente.slice().reverse().map(el=>`<button class="item${sel&&sel.id===el.id?" sel":""}" data-id="${esc(el.id)}">${icon(el)}<span><b>${esc(el.name||K.describe(el))}</b>${el.name?`<span class="c">${esc(K.describe(el))}</span>`:""}</span><span class="km">${measure(el)}</span></button>`).join("")
+    || `<div class="empty">Noch nichts auf der Karte. Wähle oben ein Werkzeug.</div>`;
+  $("list").querySelectorAll(".item[data-id]").forEach(b=>b.onclick=()=>{ setTool("select"); select(DATA.elemente.find(x=>x.id===b.dataset.id), true); });
+}
+function highlight(){
+  if(map.getLayer && map.getLayer("lage-sel")) map.setFilter("lage-sel",["==",["get","id"], sel && sel.typ!=="symbol" ? sel.id : "__none"]);
+  markers.forEach(m=>m.getElement().classList.toggle("sel", !!sel && sel.id===m._id));
+}
+function updateDraft(){
+  let src = null; try{ src = map.getSource("draft"); }catch(e){} if(!src) return;
+  const f = [];
+  if(draft){
+    const p = draft.pts;
+    p.forEach(c=>f.push({type:"Feature", properties:{}, geometry:{type:"Point", coordinates:c}}));
+    if(draft.typ==="flaeche" && p.length>2) f.push({type:"Feature", properties:{}, geometry:{type:"Polygon", coordinates:[p.concat([p[0]])]}});
+    if(p.length>1) f.push({type:"Feature", properties:{}, geometry:{type:"LineString", coordinates: draft.typ==="flaeche" && p.length>2 ? p.concat([p[0]]) : p}});
+  }
+  src.setData({type:"FeatureCollection", features:f});
+}
+
+/* ---------- tools ---------- */
+function setTool(t, opt){
+  tool = t; draft = DRAW.includes(t) ? {typ:t, pts:[], replaceId:opt&&opt.replaceId} : null;
+  document.body.classList.toggle("drawing", DRAW.includes(t) || t==="symbol");
+  $("tools").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.t===t));
+  if(t!=="select") select(null, false, true);
+  updateDraft(); renderOpts();
+}
+$("tools").querySelectorAll("button").forEach(b=>b.onclick=()=>setTool(b.dataset.t));
+
+function finishDraft(){
+  if(!draft) return;
+  const pts = draft.pts.filter((p,i,a)=>i===0 || Math.abs(p[0]-a[i-1][0])>1e-6 || Math.abs(p[1]-a[i-1][1])>1e-6);
+  const min = draft.typ==="flaeche" ? 3 : 2;
+  if(pts.length < min){ toast(draft.typ==="flaeche" ? "Eine Fläche braucht mindestens 3 Punkte." : "Eine Linie braucht mindestens 2 Punkte."); return; }
+  let el;
+  if(draft.replaceId){ el = DATA.elemente.find(x=>x.id===draft.replaceId); if(el) el.koordinaten = pts; }
+  if(!el){
+    el = {id:uid(), typ:draft.typ, name:"", text:"", farbe:prefs.farbe, koordinaten:pts};
+    if(draft.typ!=="flaeche") el.stil = prefs.stil;
+    DATA.elemente.push(el);
+  }
+  draft = null; tool = "select"; change(); setTool("select"); select(el);
+}
+function placeSymbol(ll){
+  const el = {id:uid(), typ:"symbol", name:"", text:"", seite:prefs.seite, einheit:prefs.einheit, groesse:prefs.groesse, hq:prefs.hq, geplant:prefs.geplant, zusatz:"", koordinaten:ll};
+  DATA.elemente.push(el); change(); setTool("select"); select(el);
+  toast("Symbol gesetzt. Zum Verschieben einfach ziehen.");
+}
+
+/* ---------- options panel ---------- */
+function swatches(cur){ return `<div class="swatches">${COLORS.map(([c,n])=>`<button data-c="${c}" class="${c===cur?"on":""}" style="background:${c}" title="${n}" aria-label="${n}"></button>`).join("")}</div>`; }
+function symbolFields(s){
+  return `<div><span class="lbl">Seite</span><div class="sides">${Object.entries(K.SIDES).map(([k,v])=>`<button data-side="${k}" class="${s.seite===k?"on":""}" style="${s.seite===k?`background:${v.color}`:""}">${v.short}</button>`).join("")}</div></div>
+  <div class="grid2">
+    <div><label class="lbl" for="fUnit">Truppengattung</label><select class="f" id="fUnit">${Object.entries(K.UNITS).map(([k,v])=>`<option value="${k}" ${s.einheit===k?"selected":""}>${v.name}</option>`).join("")}</select></div>
+    <div><label class="lbl" for="fEch">Größe</label><select class="f" id="fEch">${Object.entries(K.ECHELONS).map(([k,v])=>`<option value="${k}" ${(s.groesse||"-")===k?"selected":""}>${v}</option>`).join("")}</select></div>
+  </div>
+  <div class="row"><label class="check"><input type="checkbox" id="fHq" ${s.hq?"checked":""}> Stab / Hauptquartier</label><label class="check"><input type="checkbox" id="fPlan" ${s.geplant?"checked":""}> Vermutet</label></div>
+  <div class="preview" id="pv">${K.symbolSVG(s,34).svg}</div>`;
+}
+function wireSymbolFields(s, onChange){
+  const o = $("opts");
+  o.querySelectorAll("[data-side]").forEach(b=>b.onclick=()=>{ s.seite=b.dataset.side; onChange(true); });
+  $("fUnit").onchange = e=>{ s.einheit=e.target.value; onChange(); };
+  $("fEch").onchange = e=>{ s.groesse=e.target.value; onChange(); };
+  $("fHq").onchange = e=>{ s.hq=e.target.checked; onChange(); };
+  $("fPlan").onchange = e=>{ s.geplant=e.target.checked; onChange(); };
+}
+function renderOpts(){
+  const o = $("opts");
+  if(tool==="symbol"){
+    o.innerHTML = symbolFields(prefs) + `<div class="hint"><b>Tippe auf die Karte</b>, um das Symbol zu setzen.</div>`;
+    wireSymbolFields(prefs, full=>{ savePrefs(); if(full) renderOpts(); else $("pv").innerHTML = K.symbolSVG(prefs,34).svg; });
+    return;
+  }
+  if(DRAW.includes(tool)){
+    const n = draft ? draft.pts.length : 0, what = {linie:"Linie", pfeil:"Pfeil", flaeche:"Fläche"}[tool];
+    o.innerHTML = `${draft&&draft.replaceId?"":`<div><span class="lbl">Farbe</span>${swatches(prefs.farbe)}</div>`}
+      ${tool!=="flaeche" && !(draft&&draft.replaceId) ? `<div><span class="lbl">Stil</span><div class="sides" style="grid-template-columns:1fr 1fr"><button data-st="durchgezogen" class="${prefs.stil!=="gestrichelt"?"on":""}" style="${prefs.stil!=="gestrichelt"?"background:var(--volt)":""}">Durchgezogen</button><button data-st="gestrichelt" class="${prefs.stil==="gestrichelt"?"on":""}" style="${prefs.stil==="gestrichelt"?"background:var(--volt)":""}">Gestrichelt</button></div></div>`:""}
+      <div class="hint"><b>Tippe Punkte auf die Karte.</b> ${tool==="pfeil"?"Der letzte Punkt wird die Pfeilspitze. ":""}Fertig mit Doppeltipp, Enter oder „Fertig“. ${n} Punkt${n===1?"":"e"} gesetzt.</div>
+      <div class="row"><button class="btn sm volt" id="dDone" ${n<(tool==="flaeche"?3:2)?"disabled":""}>${what} fertig</button><button class="btn sm" id="dUndo" ${n?"":"disabled"}>Letzten Punkt weg</button><button class="btn sm" id="dCancel">Abbrechen</button></div>`;
+    o.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{ prefs.farbe=b.dataset.c; savePrefs(); renderOpts(); });
+    o.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>{ prefs.stil=b.dataset.st; savePrefs(); renderOpts(); });
+    $("dDone").onclick = finishDraft;
+    $("dUndo").onclick = ()=>{ draft.pts.pop(); updateDraft(); renderOpts(); };
+    $("dCancel").onclick = ()=>setTool("select");
+    return;
+  }
+  /* select tool */
+  if(!sel){ o.innerHTML = `<div class="hint">Wähle oben ein Werkzeug oder tippe ein Element auf der Karte bzw. in der Liste an, um es zu bearbeiten.</div>`; return; }
+  const el = sel;
+  o.innerHTML = `<div><label class="lbl" for="fName">Name</label><input class="f" id="fName" value="${esc(el.name)}" placeholder="${esc(K.describe(el))}" maxlength="80"></div>
+    ${el.typ==="symbol" ? `<div><label class="lbl" for="fZus">Bezeichnung am Symbol</label><input class="f" id="fZus" value="${esc(el.zusatz)}" placeholder="z. B. 93" maxlength="20"></div>` + symbolFields(el) : `<div><span class="lbl">Farbe</span>${swatches(el.farbe)}</div>`}
+    ${el.typ==="linie"||el.typ==="pfeil" ? `<div><span class="lbl">Stil</span><div class="sides" style="grid-template-columns:1fr 1fr"><button data-st="durchgezogen" style="${el.stil!=="gestrichelt"?"background:var(--volt);color:var(--ink)":""}">Durchgezogen</button><button data-st="gestrichelt" style="${el.stil==="gestrichelt"?"background:var(--volt);color:var(--ink)":""}">Gestrichelt</button></div></div>`:""}
+    <div><label class="lbl" for="fText">Beschreibung</label><textarea class="f" id="fText" maxlength="2000">${esc(el.text)}</textarea></div>
+    <div><label class="lbl" for="fDate">Datum</label><input class="f" id="fDate" type="date" value="${esc(el.datum||"")}"></div>
+    <div class="row">${el.typ!=="symbol"?`<button class="btn sm" id="fRedraw">Form neu zeichnen</button>`:""}<button class="btn sm danger" id="fDel">Löschen</button></div>
+    <div id="delBox"></div>`;
+  $("fName").oninput = e=>{ el.name = e.target.value; changeQuiet(); };
+  $("fText").oninput = e=>{ el.text = e.target.value; changeQuiet(); };
+  $("fDate").onchange = e=>{ el.datum = e.target.value; changeQuiet(); };
+  if(el.typ==="symbol"){
+    $("fZus").oninput = e=>{ el.zusatz = e.target.value; changeQuiet(true); };
+    wireSymbolFields(el, full=>{ change(); if(full) renderOpts(); else $("pv").innerHTML = K.symbolSVG(el,34).svg; });
+  } else {
+    o.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{ el.farbe=b.dataset.c; change(); renderOpts(); });
+    o.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>{ el.stil=b.dataset.st; change(); renderOpts(); });
+    $("fRedraw").onclick = ()=>{ setTool(el.typ, {replaceId:el.id}); toast("Tippe die neuen Punkte. Die alte Form wird ersetzt."); };
+  }
+  $("fDel").onclick = ()=>{
+    $("delBox").innerHTML = `<div class="confirm"><div>„${esc(el.name||K.describe(el))}“ löschen?</div><div class="row"><button class="btn sm" id="dNo">Abbrechen</button><button class="btn sm danger" id="dYes">Löschen</button></div></div>`;
+    $("dNo").onclick = ()=>$("delBox").innerHTML = "";
+    $("dYes").onclick = ()=>{ DATA.elemente = DATA.elemente.filter(x=>x.id!==el.id); select(null); change(); toast("Gelöscht"); };
+  };
+}
+/* text edits: save without rebuilding the form (keeps focus) */
+let qt;
+function changeQuiet(redrawMarkers){
+  dirty = true; store.set(LS.draft, JSON.stringify({data:DATA, at:Date.now()})); refreshStatus();
+  clearTimeout(qt); qt = setTimeout(()=>{ if(redrawMarkers) render(); else renderList(); }, 400);
+}
+
+function select(el, fly, quiet){
+  sel = el || null; highlight(); renderList();
+  if(!quiet) renderOpts();
+  if(fly && sel){
+    const c = sel.typ==="symbol" ? [sel.koordinaten] : sel.koordinaten;
+    if(c.length===1) map.flyTo({center:c[0], zoom:Math.max(map.getZoom(),10), duration:900});
+    else map.fitBounds(c.reduce((b,p)=>b.extend(p), new maplibregl.LngLatBounds(c[0],c[0])), {padding:{top:120,bottom:80,left:window.innerWidth>720?400:40,right:60}, maxZoom:13, duration:900});
+  }
+}
+
+window.addEventListener("beforeunload", e=>{ if(dirty){ e.preventDefault(); e.returnValue=""; } });
+$("toggle").onclick = ()=>$("panel").classList.toggle("closed");
+const mq = window.matchMedia("(max-width:720px)");
+function panelOffset(){ document.documentElement.style.setProperty("--panel-h", mq.matches ? $("panel").offsetHeight+"px" : "0px"); }
+try{ new ResizeObserver(panelOffset).observe($("panel")); }catch(e){}
+mq.addEventListener ? mq.addEventListener("change", panelOffset) : mq.addListener(panelOffset);
+panelOffset();
+
+setTool("select"); renderGh(); load();
+</script>
+</body>
+</html>

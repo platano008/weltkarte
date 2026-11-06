@@ -1,32 +1,37 @@
-# Weltkarte
+# Lagekarte
 
-Satellitenkarte der ganzen Welt mit Orts- und Ländernamen und eigenen Strecken.
+Satellitenkarte mit Linien, Pfeilen, Flächen und NATO-Symbolen. Startet auf der Ukraine, zeigt aber die ganze Welt.
 
-**Live:** https://platano008.github.io/weltkarte/
+- **Ansicht für alle:** https://platano008.github.io/weltkarte/
+- **Bearbeiten (nur mit GitHub-Schlüssel):** https://platano008.github.io/weltkarte/editor.html
 
 ## Dateien
 
-- `index.html` – die Seite, die Besucher sehen (nur ansehen, nichts bearbeiten)
-- `linien.json` – deine Strecken und Kategorien. Wenn diese Datei geändert wird, ist die Änderung nach etwa einer Minute online.
+| Datei | Inhalt |
+|---|---|
+| `index.html` | Seite für Besucher, nur ansehen |
+| `editor.html` | Bearbeitungs-Seite: Linie, Pfeil, Fläche, NATO-Symbol, Speichern |
+| `karte.json` | Alle Einträge auf der Karte. Der Editor schreibt diese Datei. |
+| `karte.js` | Gemeinsamer Code: Kartenstile, Farbschema, Symbole |
+| `style.css` | Gemeinsames Design und Schrift |
 
-## So ist eine Linie aufgebaut
+## Bearbeiten
 
-```json
-{
-  "id": "l7",
-  "kategorie": "zug",
-  "name": "Hamburg – Kopenhagen",
-  "text": "Kurze Beschreibung für das Infofenster.",
-  "punkte": [[9.9937, 53.5511], [12.5683, 55.6761]]
-}
-```
+1. `editor.html` öffnen.
+2. Unten unter **GitHub-Schlüssel** einmalig einen Fine-grained Token eintragen
+   (nur Repository `weltkarte`, Berechtigung **Contents: Read and write**).
+3. Zeichnen, dann **Speichern**. Nach etwa einer Minute ist die Änderung auf der Ansicht-Seite.
 
-- `punkte`: Liste aus `[Längengrad, Breitengrad]`
-- `"bogen": true`: zeichnet die Strecke als Bogen über die Erdkugel (gut für Flüge mit zwei Punkten)
-- `kategorie`: muss oben unter `kategorien` stehen (dort stehen Name und Farbe)
+Der Schlüssel bleibt nur im eigenen Browser. Ohne Schlüssel kann die Editor-Seite nichts speichern.
+Ungespeicherte Änderungen bleiben als Entwurf im Browser erhalten.
+
+## NATO-Symbole
+
+Erzeugt mit [milsymbol](https://github.com/spatialillusions/milsymbol) nach MIL-STD-2525C / APP-6.
+Seite (Freund, Feind, Neutral, Unbekannt), Truppengattung, Größe, Stab und „vermutet“ sind einstellbar.
 
 ## Kartenquellen
 
-- Satellit mit Ortsnamen: [MapTiler](https://www.maptiler.com) Hybrid (Free-Plan, nicht-kommerziell). Der Schlüssel in `index.html` ist auf `platano008.github.io` beschränkt.
-- Ersatz ohne Schlüssel, falls MapTiler nicht antwortet: [Sentinel-2 cloudless](https://s2maps.eu) by EOX IT Services GmbH (Copernicus Sentinel data 2020) und [OpenFreeMap](https://openfreemap.org), Daten © OpenStreetMap-Mitwirkende
+- Satellit, Karte und Gelände: [MapTiler](https://www.maptiler.com) (Free-Plan, nicht-kommerziell, Logo und Quellenangabe Pflicht). Der Schlüssel ist auf `platano008.github.io` beschränkt.
+- Ersatz, falls MapTiler nicht antwortet: [OpenFreeMap](https://openfreemap.org), Daten © OpenStreetMap-Mitwirkende
 - Kartenbibliothek: [MapLibre GL JS](https://maplibre.org)

@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "aktualisiert": null,
+  "elemente": [
+    {
+      "id": "beispiel1",
+      "typ": "symbol",
+      "name": "Beispiel: Symbol",
+      "text": "Platzhalter, damit du siehst, wie ein Symbol aussieht. Im Editor löschen.",
+      "seite": "F",
+      "einheit": "mech",
+      "groesse": "H",
+      "zusatz": "",
+      "koordinaten": [35.05, 48.45]
+    },
+    {
+      "id": "beispiel2",
+      "typ": "pfeil",
+      "name": "Beispiel: Pfeil",
+      "text": "Platzhalter für eine Bewegungsrichtung. Im Editor löschen.",
+      "farbe": "#f2ff1a",
+      "stil": "durchgezogen",
+      "koordinaten": [[34.6, 48.2], [34.9, 48.32], [35.0, 48.4]]
+    },
+    {
+      "id": "beispiel3",
+      "typ": "flaeche",
+      "name": "Beispiel: Fläche",
+      "text": "Platzhalter für ein Gebiet. Im Editor löschen.",
+      "farbe": "#2f80ff",
+      "koordinaten": [[35.15, 48.38], [35.4, 48.4], [35.42, 48.55], [35.18, 48.56]]
+    }
+  ]
+}
