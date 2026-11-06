@@ -132,17 +132,36 @@ function km(c){ let d=0; const R=6371, r=Math.PI/180;
 const fmtKm = v => Math.round(v).toLocaleString("de-DE")+" km";
 
 /* ---------- Map ---------- */
+/* Satellit + Ortsnamen von MapTiler (Schlüssel gilt nur auf platano008.github.io).
+   Klappt das nicht, springt die Karte auf die kostenlose Variante ohne Schlüssel um. */
+const MAPTILER_KEY = "4TDQhzPsZwABTFDNshhB";
+const STYLE_SHARP = "https://api.maptiler.com/maps/hybrid-v4/style.json?key=" + MAPTILER_KEY;
+const STYLE_FREE  = "https://tiles.openfreemap.org/styles/liberty";
+let useFree = false;
+
 const map = new maplibregl.Map({
   container:"map",
-  style:"https://tiles.openfreemap.org/styles/liberty",
+  style:STYLE_SHARP,
   center:[10,35], zoom:1.6, attributionControl:false
 });
 map.addControl(new maplibregl.NavigationControl(), "top-right");
-map.addControl(new maplibregl.AttributionControl({compact:true, customAttribution:'Satellit: <a href="https://s2maps.eu" target="_blank">Sentinel-2 cloudless</a> by EOX IT Services GmbH (Copernicus Sentinel data 2020)'}), "bottom-right");
+map.addControl(new maplibregl.AttributionControl({compact:true}), "bottom-right");
+
+/* Fallback, wenn MapTiler nicht antwortet (z. B. Kontingent aufgebraucht oder Datei lokal geöffnet) */
+let sharpErrors = 0;
+map.on("error", e=>{
+  if(useFree) return;
+  const st = e && e.error && e.error.status;
+  if(st===401 || st===403 || st===429 || ++sharpErrors > 25){ useFree = true; map.setStyle(STYLE_FREE); }
+});
 
 const KEEP = /^(place|water_name|boundary|waterway_line_label|label_country|label_city|label_state)/;
 map.on("style.load", ()=>{
   try{ map.setProjection({type:"globe"}); }catch(e){}
+  if(!useFree){
+    dataReady.then(addLines).catch(()=>{ document.getElementById("list").innerHTML = '<div class="item"><span class="c">Linien konnten nicht geladen werden.</span></div>'; });
+    return;
+  }
   const layers = map.getStyle().layers;
   layers.forEach(l=>{
     const keepLabel = l.type==="symbol" && (KEEP.test(l.id) || /place|country|city|state|town/.test(l.id));
@@ -154,6 +173,7 @@ map.on("style.load", ()=>{
     if(keepBorder){ try{ map.setPaintProperty(l.id,"line-color","rgba(255,255,255,0.45)"); }catch(e){} }
   });
   map.addSource("sat",{type:"raster", tileSize:256, maxzoom:14,
+    attribution:'Satellit: <a href="https://s2maps.eu" target="_blank">Sentinel-2 cloudless</a> by EOX IT Services GmbH (Copernicus Sentinel data 2020)',
     tiles:["https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2020_3857/default/g/{z}/{y}/{x}.jpg"]});
   map.addLayer({id:"sat", type:"raster", source:"sat"}, layers[0].id);
 

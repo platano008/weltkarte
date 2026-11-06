@@ -27,6 +27,6 @@ Satellitenkarte der ganzen Welt mit Orts- und Ländernamen und eigenen Strecken.
 
 ## Kartenquellen
 
-- Satellit: [Sentinel-2 cloudless](https://s2maps.eu) by EOX IT Services GmbH (Copernicus Sentinel data 2020), frei für nicht-kommerzielle Nutzung
-- Ortsnamen und Grenzen: [OpenFreeMap](https://openfreemap.org), Daten © OpenStreetMap-Mitwirkende
+- Satellit mit Ortsnamen: [MapTiler](https://www.maptiler.com) Hybrid (Free-Plan, nicht-kommerziell). Der Schlüssel in `index.html` ist auf `platano008.github.io` beschränkt.
+- Ersatz ohne Schlüssel, falls MapTiler nicht antwortet: [Sentinel-2 cloudless](https://s2maps.eu) by EOX IT Services GmbH (Copernicus Sentinel data 2020) und [OpenFreeMap](https://openfreemap.org), Daten © OpenStreetMap-Mitwirkende
 - Kartenbibliothek: [MapLibre GL JS](https://maplibre.org)
