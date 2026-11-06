@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Weltkarte</title>
+<meta name="description" content="Satellitenkarte der Welt mit eigenen Strecken.">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script src="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
+<style>
+@font-face{font-family:"Setline Display";src:url(data:font/woff;base64,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) format("woff");font-weight:100 900;font-display:swap}
+:root{
+  --bg:#0b0b0a; --surface:#121211; --surface-2:#191917; --line:#252521; --line-2:#33332d;
+  --fg:#f1f0e8; --muted:#8a897e; --volt:#f2ff1a; --ink:#0b0b0a;
+  --display:"Setline Display","Archivo",Arial,sans-serif;
+  --body:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;border-radius:0!important}
+html,body{height:100%;margin:0;overflow:hidden}
+body{background:#000;color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+:focus-visible{outline:2px solid var(--volt);outline-offset:2px}
+#map{position:fixed;inset:0}
+
+.panel{position:fixed;z-index:5;left:max(16px,env(safe-area-inset-left));top:max(16px,env(safe-area-inset-top));width:340px;max-height:calc(100% - 32px);display:flex;flex-direction:column;background:rgba(11,11,10,.92);backdrop-filter:blur(8px);border:1px solid var(--line-2)}
+.ph{padding:16px 18px 14px;border-bottom:1px solid var(--line-2);display:flex;flex-direction:column;gap:10px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand::before{content:"";width:12px;height:12px;background:var(--volt)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+h1{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-height:1;letter-spacing:.02em}
+.toggle{display:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:5px 10px;border:1px solid var(--line-2);font-size:13px;font-weight:500;color:var(--fg)}
+.chip i{width:14px;height:3px;display:block}
+.chip:not(.on){opacity:.4}
+.list{overflow-y:auto;min-height:0}
+.item{display:flex;align-items:center;gap:12px;width:100%;padding:11px 18px;text-align:left;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item:hover{background:var(--surface-2)}
+.item.sel{background:var(--surface-2);box-shadow:inset 3px 0 0 var(--volt)}
+.item i{width:18px;height:4px;flex:none}
+.item b{display:block;font-weight:600;font-size:14px;line-height:1.3}
+.item span.c{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.item .km{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+.card{position:fixed;z-index:6;right:max(16px,env(safe-area-inset-right));bottom:max(40px,calc(env(safe-area-inset-bottom) + 40px));width:min(360px,calc(100% - 32px));background:var(--bg);border:1px solid var(--line-2);border-top:2px solid var(--volt);padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.card[hidden]{display:none}
+.card .row{display:flex;align-items:flex-start;gap:12px}
+.card h2{margin:0;flex:1;font-family:var(--display);font-weight:400;font-size:24px;line-height:1.05;letter-spacing:.02em}
+.card p{margin:0;color:#c9c8bd;font-size:14px}
+.meta{display:flex;flex-wrap:wrap;gap:6px}
+.meta span{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line-2);padding:2px 6px;color:var(--muted)}
+.x{width:32px;height:32px;border:1px solid var(--line-2);display:grid;place-items:center;color:var(--muted);flex:none}
+.x:hover{color:var(--fg);border-color:var(--fg)}
+.x svg{width:14px;height:14px}
+.view{position:fixed;z-index:5;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));display:flex;border:1px solid var(--line-2);background:rgba(11,11,10,.92)}
+.view button{padding:8px 12px;font-size:13px;font-weight:600;color:var(--muted);border-right:1px solid var(--line-2)}
+.view button:last-child{border-right:0}
+.view button.on{background:var(--volt);color:var(--ink)}
+.demo{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line-2);padding:2px 6px;color:var(--muted);align-self:flex-start}
+
+.maplibregl-ctrl-group{background:var(--bg)!important;border:1px solid var(--line-2);box-shadow:none!important}
+.maplibregl-ctrl-group button{border-color:var(--line-2)!important}
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon{filter:invert(1)}
+.maplibregl-ctrl-attrib{background:rgba(11,11,10,.8)!important;color:var(--muted)!important}
+.maplibregl-ctrl-attrib a{color:var(--fg)!important}
+.maplibregl-ctrl-attrib-button{filter:invert(1)}
+.maplibregl-ctrl-top-right{top:56px}
+
+@media (max-width:720px){
+  .panel{left:0;right:0;top:auto;bottom:0;width:auto;max-height:55%;border-left:0;border-right:0;border-bottom:0;padding-bottom:env(safe-area-inset-bottom)}
+  .panel.closed .list,.panel.closed .chips{display:none}
+  .toggle{display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--line-2);margin-left:auto}
+  .toggle svg{width:14px;height:14px;transition:transform .2s}
+  .panel.closed .toggle svg{transform:rotate(180deg)}
+  h1{font-size:24px}
+  .card{left:16px;right:16px;width:auto;top:max(64px,calc(env(safe-area-inset-top) + 64px));bottom:auto}
+}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div class="view" id="view">
+  <button data-v="globe" class="on">Globus</button>
+  <button data-v="flat">Flach</button>
+</div>
+
+<section class="panel" id="panel">
+  <div class="ph">
+    <div class="brand"><span class="eyebrow">Weltkarte</span><button class="toggle" id="toggle" aria-label="Liste ein- oder ausklappen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M6 9l6 6 6-6"/></svg></button></div>
+    <h1>Meine Strecken</h1>
+    <span class="demo">Beispiel-Linien</span>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="list" id="list"></div>
+</section>
+
+<div class="card" id="card" hidden></div>
+
+<script>
+/* ---------- Deine Linien (später aus einer Datei auf GitHub) ---------- */
+/* Linien und Kategorien kommen aus linien.json */
+const active = new Set();
+let CATS = {}, LINES = [];
+const dataReady = fetch("linien.json", {cache:"no-cache"}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); }).then(d=>{
+  CATS = Object.fromEntries(Object.entries(d.kategorien).map(([k,c])=>[k,{name:c.name, color:c.farbe}]));
+  LINES = d.linien.map(l=>({id:l.id, cat:l.kategorie, name:l.name, text:l.text||"", pts:l.punkte, gc:!!l.bogen}));
+  LINES.forEach(l=>{ l.coords = l.gc ? greatCircle(l.pts[0], l.pts[1]) : l.pts; l.km = km(l.coords); });
+  Object.keys(CATS).forEach(k=>active.add(k));
+});
+
+/* great-circle points so long lines curve correctly */
+function greatCircle(a, b, n=64){
+  const r = Math.PI/180, toV = ([lo,la])=>[Math.cos(la*r)*Math.cos(lo*r), Math.cos(la*r)*Math.sin(lo*r), Math.sin(la*r)];
+  const A = toV(a), B = toV(b), d = Math.acos(Math.min(1, A[0]*B[0]+A[1]*B[1]+A[2]*B[2])), out = [];
+  for(let i=0;i<=n;i++){
+    const f=i/n, s1=Math.sin((1-f)*d)/Math.sin(d), s2=Math.sin(f*d)/Math.sin(d);
+    const x=s1*A[0]+s2*B[0], y=s1*A[1]+s2*B[1], z=s1*A[2]+s2*B[2];
+    out.push([Math.atan2(y,x)/r, Math.atan2(z,Math.hypot(x,y))/r]);
+  }
+  for(let i=1;i<out.length;i++){ while(out[i][0]-out[i-1][0]>180) out[i][0]-=360; while(out[i][0]-out[i-1][0]<-180) out[i][0]+=360; }
+  return out;
+}
+function km(c){ let d=0; const R=6371, r=Math.PI/180;
+  for(let i=1;i<c.length;i++){ const [a,b]=c[i-1],[e,f]=c[i];
+    const h=Math.sin((f-b)*r/2)**2+Math.cos(b*r)*Math.cos(f*r)*Math.sin((e-a)*r/2)**2; d+=2*R*Math.asin(Math.sqrt(h)); }
+  return d; }
+const fmtKm = v => Math.round(v).toLocaleString("de-DE")+" km";
+
+/* ---------- Map ---------- */
+const map = new maplibregl.Map({
+  container:"map",
+  style:"https://tiles.openfreemap.org/styles/liberty",
+  center:[10,35], zoom:1.6, attributionControl:false
+});
+map.addControl(new maplibregl.NavigationControl(), "top-right");
+map.addControl(new maplibregl.AttributionControl({compact:true, customAttribution:'Satellit: <a href="https://s2maps.eu" target="_blank">Sentinel-2 cloudless</a> by EOX IT Services GmbH (Copernicus Sentinel data 2020)'}), "bottom-right");
+
+const KEEP = /^(place|water_name|boundary|waterway_line_label|label_country|label_city|label_state)/;
+map.on("style.load", ()=>{
+  try{ map.setProjection({type:"globe"}); }catch(e){}
+  const layers = map.getStyle().layers;
+  layers.forEach(l=>{
+    const keepLabel = l.type==="symbol" && (KEEP.test(l.id) || /place|country|city|state|town/.test(l.id));
+    const keepBorder = l.type==="line" && /boundary/.test(l.id);
+    if(!keepLabel && !keepBorder){ map.setLayoutProperty(l.id,"visibility","none"); return; }
+    if(keepLabel){
+      try{ map.setPaintProperty(l.id,"text-color","#ffffff"); map.setPaintProperty(l.id,"text-halo-color","rgba(0,0,0,0.85)"); map.setPaintProperty(l.id,"text-halo-width",1.4); }catch(e){}
+    }
+    if(keepBorder){ try{ map.setPaintProperty(l.id,"line-color","rgba(255,255,255,0.45)"); }catch(e){} }
+  });
+  map.addSource("sat",{type:"raster", tileSize:256, maxzoom:14,
+    tiles:["https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2020_3857/default/g/{z}/{y}/{x}.jpg"]});
+  map.addLayer({id:"sat", type:"raster", source:"sat"}, layers[0].id);
+
+  dataReady.then(addLines).catch(()=>{ document.getElementById("list").innerHTML = '<div class="item"><span class="c">Linien konnten nicht geladen werden.</span></div>'; });
+});
+function addLines(){
+  map.addSource("lines",{type:"geojson", data:{type:"FeatureCollection", features:LINES.map(l=>({type:"Feature", properties:{id:l.id, color:CATS[l.cat].color, cat:l.cat}, geometry:{type:"LineString", coordinates:l.coords}}))}});
+  map.addLayer({id:"lines-casing", type:"line", source:"lines", layout:{"line-join":"miter","line-cap":"square"}, paint:{"line-color":"#000","line-opacity":.6,"line-width":["interpolate",["linear"],["zoom"],1,4,10,9]}});
+  map.addLayer({id:"lines", type:"line", source:"lines", layout:{"line-join":"miter","line-cap":"square"}, paint:{"line-color":["get","color"],"line-width":["interpolate",["linear"],["zoom"],1,2,10,5]}});
+  map.addLayer({id:"lines-sel", type:"line", source:"lines", filter:["==",["get","id"],""], layout:{"line-join":"miter","line-cap":"square"}, paint:{"line-color":["get","color"],"line-width":["interpolate",["linear"],["zoom"],1,5,10,10]}});
+  map.addLayer({id:"lines-hit", type:"line", source:"lines", paint:{"line-color":"#000","line-opacity":0,"line-width":18}});
+  map.addSource("ends",{type:"geojson", data:{type:"FeatureCollection", features:LINES.flatMap(l=>[l.pts[0],l.pts[l.pts.length-1]].map(p=>({type:"Feature", properties:{id:l.id, color:CATS[l.cat].color, cat:l.cat}, geometry:{type:"Point", coordinates:p}})))}});
+  map.addLayer({id:"ends", type:"circle", source:"ends", paint:{"circle-radius":4,"circle-color":["get","color"],"circle-stroke-color":"#000","circle-stroke-width":2}});
+  map.on("click","lines-hit",e=>select(LINES.find(l=>l.id===e.features[0].properties.id)));
+  map.on("mouseenter","lines-hit",()=>map.getCanvas().style.cursor="pointer");
+  map.on("mouseleave","lines-hit",()=>map.getCanvas().style.cursor="");
+  renderChips(); applyFilter();
+}
+map.on("click", e=>{ if(map.getLayer("lines-hit") && !map.queryRenderedFeatures(e.point,{layers:["lines-hit"]}).length) select(null); });
+
+document.querySelectorAll("#view button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#view button").forEach(x=>x.classList.toggle("on",x===b));
+  try{ map.setProjection({type: b.dataset.v==="globe" ? "globe" : "mercator"}); }catch(e){}
+});
+
+/* ---------- UI ---------- */
+
+let sel = null;
+const $ = id => document.getElementById(id);
+function renderChips(){
+  $("chips").innerHTML = Object.entries(CATS).map(([k,c])=>`<button class="chip${active.has(k)?" on":""}" data-k="${k}"><i style="background:${c.color}"></i>${c.name}</button>`).join("");
+  $("chips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{ const k=b.dataset.k; active.has(k)?active.delete(k):active.add(k); renderChips(); applyFilter(); });
+}
+function applyFilter(){
+  const f = ["in",["get","cat"],["literal",[...active]]];
+  ["lines-casing","lines","lines-hit","ends"].forEach(id=>{ if(map.getLayer(id)) map.setFilter(id,f); });
+  if(sel && !active.has(sel.cat)) select(null);
+  renderList();
+}
+function renderList(){
+  const items = LINES.filter(l=>active.has(l.cat));
+  $("list").innerHTML = items.map(l=>`<button class="item${sel&&sel.id===l.id?" sel":""}" data-id="${l.id}"><i style="background:${CATS[l.cat].color}"></i><span><b>${l.name}</b><span class="c">${CATS[l.cat].name}</span></span><span class="km">${fmtKm(l.km)}</span></button>`).join("")
+    || `<div class="item"><span class="c">Keine Kategorie ausgewählt.</span></div>`;
+  $("list").querySelectorAll(".item[data-id]").forEach(b=>b.onclick=()=>select(LINES.find(l=>l.id===b.dataset.id), true));
+}
+function select(l, fly){
+  sel = l;
+  if(map.getLayer("lines-sel")) map.setFilter("lines-sel",["==",["get","id"], l?l.id:""]);
+  renderList();
+  const card = $("card");
+  if(!l){ card.hidden = true; return; }
+  card.innerHTML = `<div class="row"><h2>${l.name}</h2><button class="x" id="cx" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="meta"><span style="border-color:${CATS[l.cat].color};color:${CATS[l.cat].color}">${CATS[l.cat].name}</span><span>${fmtKm(l.km)}</span></div><p>${l.text}</p>`;
+  card.hidden = false;
+  $("cx").onclick = ()=>select(null);
+  if(fly){
+    const b = l.coords.reduce((bb,c)=>bb.extend(c), new maplibregl.LngLatBounds(l.coords[0], l.coords[0]));
+    map.fitBounds(b, {padding:{top:80,bottom:80,left:window.innerWidth>720?380:40,right:60}, maxZoom:11, duration:1400});
+  }
+}
+$("toggle").onclick = ()=>$("panel").classList.toggle("closed");
+renderChips(); renderList();
+</script>
+</body>
+</html>

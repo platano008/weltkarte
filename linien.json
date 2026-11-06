@@ -1,0 +1,172 @@
+{
+  "kategorien": {
+    "flug": {
+      "name": "Flug",
+      "farbe": "#f2ff1a"
+    },
+    "zug": {
+      "name": "Zug",
+      "farbe": "#ffffff"
+    },
+    "auto": {
+      "name": "Roadtrip",
+      "farbe": "#ff8a3d"
+    },
+    "wandern": {
+      "name": "Wandern",
+      "farbe": "#5ee6a8"
+    }
+  },
+  "linien": [
+    {
+      "id": "l1",
+      "kategorie": "flug",
+      "name": "Frankfurt – New York",
+      "text": "Direktflug über den Atlantik.",
+      "bogen": true,
+      "punkte": [
+        [
+          8.5706,
+          50.0333
+        ],
+        [
+          -73.7781,
+          40.6413
+        ]
+      ]
+    },
+    {
+      "id": "l2",
+      "kategorie": "flug",
+      "name": "München – Tokio",
+      "text": "Langstrecke nach Japan.",
+      "bogen": true,
+      "punkte": [
+        [
+          11.7861,
+          48.3538
+        ],
+        [
+          139.7798,
+          35.5494
+        ]
+      ]
+    },
+    {
+      "id": "l3",
+      "kategorie": "zug",
+      "name": "Paris – Barcelona",
+      "text": "Mit dem TGV in gut sechs Stunden.",
+      "punkte": [
+        [
+          2.3522,
+          48.8566
+        ],
+        [
+          3.8767,
+          43.6108
+        ],
+        [
+          2.8249,
+          41.9794
+        ],
+        [
+          2.1734,
+          41.3851
+        ]
+      ]
+    },
+    {
+      "id": "l4",
+      "kategorie": "auto",
+      "name": "Berlin – Rom",
+      "text": "Roadtrip über München, Verona und Florenz.",
+      "punkte": [
+        [
+          13.405,
+          52.52
+        ],
+        [
+          11.582,
+          48.1351
+        ],
+        [
+          11.3426,
+          46.4983
+        ],
+        [
+          10.9916,
+          45.4384
+        ],
+        [
+          11.2558,
+          43.7696
+        ],
+        [
+          12.4964,
+          41.9028
+        ]
+      ]
+    },
+    {
+      "id": "l5",
+      "kategorie": "auto",
+      "name": "Pacific Coast Highway",
+      "text": "San Francisco bis Los Angeles an der Küste entlang.",
+      "punkte": [
+        [
+          -122.4194,
+          37.7749
+        ],
+        [
+          -121.8947,
+          36.6002
+        ],
+        [
+          -121.301,
+          35.6869
+        ],
+        [
+          -120.6596,
+          35.2828
+        ],
+        [
+          -119.6982,
+          34.4208
+        ],
+        [
+          -118.2437,
+          34.0522
+        ]
+      ]
+    },
+    {
+      "id": "l6",
+      "kategorie": "wandern",
+      "name": "Kilimandscharo",
+      "text": "Machame-Route zum Uhuru Peak, 5.895 m.",
+      "punkte": [
+        [
+          37.239,
+          -3.172
+        ],
+        [
+          37.26,
+          -3.125
+        ],
+        [
+          37.305,
+          -3.095
+        ],
+        [
+          37.336,
+          -3.076
+        ],
+        [
+          37.353,
+          -3.0674
+        ]
+      ]
+    }
+  ]
+}
