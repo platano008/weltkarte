@@ -69,6 +69,12 @@ h1{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-heigh
 .maplibregl-ctrl-attrib a{color:var(--fg)!important}
 .maplibregl-ctrl-attrib-button{filter:invert(1)}
 .maplibregl-ctrl-top-right{top:56px}
+.maplibregl-ctrl-bottom-right{bottom:var(--panel-h,0px)}
+.maplibregl-ctrl-attrib.maplibregl-compact{min-height:0}
+.mt-logo{position:fixed;z-index:4;left:max(10px,env(safe-area-inset-left));bottom:calc(10px + var(--panel-h,0px));display:block;line-height:0}
+.mt-logo img{width:90px;height:auto;display:block}
+@media (min-width:721px){ .mt-logo{left:calc(max(16px,env(safe-area-inset-left)) + 356px)} }
+.mt-logo[hidden]{display:none}
 
 @media (max-width:720px){
   .panel{left:0;right:0;top:auto;bottom:0;width:auto;max-height:55%;border-left:0;border-right:0;border-bottom:0;padding-bottom:env(safe-area-inset-bottom)}
@@ -83,6 +89,7 @@ h1{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-heigh
 </head>
 <body>
 <div id="map"></div>
+<a class="mt-logo" id="mtLogo" href="https://www.maptiler.com" target="_blank" rel="noopener"><img src="https://api.maptiler.com/resources/logo.svg" alt="MapTiler logo"></a>
 
 <div class="view" id="view">
   <button data-v="globe" class="on">Globus</button>
@@ -145,14 +152,14 @@ const map = new maplibregl.Map({
   center:[10,35], zoom:1.6, attributionControl:false
 });
 map.addControl(new maplibregl.NavigationControl(), "top-right");
-map.addControl(new maplibregl.AttributionControl({compact:true}), "bottom-right");
+map.addControl(new maplibregl.AttributionControl({compact:false}), "bottom-right");
 
 /* Fallback, wenn MapTiler nicht antwortet (z. B. Kontingent aufgebraucht oder Datei lokal geöffnet) */
 let sharpErrors = 0;
 map.on("error", e=>{
   if(useFree) return;
   const st = e && e.error && e.error.status;
-  if(st===401 || st===403 || st===429 || ++sharpErrors > 25){ useFree = true; map.setStyle(STYLE_FREE); }
+  if(st===401 || st===403 || st===429 || ++sharpErrors > 25){ useFree = true; document.getElementById("mtLogo").hidden = true; map.setStyle(STYLE_FREE); }
 });
 
 const KEEP = /^(place|water_name|boundary|waterway_line_label|label_country|label_city|label_state)/;
@@ -235,6 +242,12 @@ function select(l, fly){
   }
 }
 $("toggle").onclick = ()=>$("panel").classList.toggle("closed");
+/* on phones the list sits at the bottom: keep logo and credits above it */
+const mq = window.matchMedia("(max-width:720px)");
+function panelOffset(){ document.documentElement.style.setProperty("--panel-h", mq.matches ? $("panel").offsetHeight + "px" : "0px"); }
+try{ new ResizeObserver(panelOffset).observe($("panel")); }catch(e){}
+mq.addEventListener ? mq.addEventListener("change", panelOffset) : mq.addListener(panelOffset);
+panelOffset();
 renderChips(); renderList();
 </script>
 </body>
