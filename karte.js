@@ -348,9 +348,15 @@ function importFilter(extra){
   if(importHidden.size) f.push(["!", ["in", ["get","ebene"], ["literal", [...importHidden]]]]);
   return f;
 }
-const IMP_LAYERS = ["imp-fill","imp-line","imp-sym","imp-sym-small"];
+const IMP_LAYERS = ["imp-fill","imp-line","imp-change-fill","imp-change-line","imp-change-label","imp-sym","imp-sym-small"];
+/* Veränderungen werden so lange kräftig gezeigt */
+const CHANGE_DAYS = 14;
+const CHANGE_COL = {ru:"#ff1f3d", ua:"#1f8bff", grau:"#e0e0e0"};
+const changeCutoff = ()=>new Date(Date.now() - CHANGE_DAYS*864e5).toISOString().slice(0,10);
+const isRecentChange = ()=>["all",["==",["get","art"],"aenderung"],[">=",["coalesce",["get","datum"],""],changeCutoff()]];
 function applyImportFilters(map){
   const base = {"imp-fill":["==",["get","art"],"flaeche"], "imp-line":["in",["get","art"],["literal",["flaeche","linie"]]],
+    "imp-change-fill":isRecentChange(), "imp-change-line":isRecentChange(), "imp-change-label":isRecentChange(),
     "imp-sym":["all",["==",["get","art"],"symbol"],["!=",["get","ebene"],"units-lower"]], "imp-sym-small":["all",["==",["get","art"],"symbol"],["==",["get","ebene"],"units-lower"]]};
   for(const id of IMP_LAYERS) if(map.getLayer(id)) map.setFilter(id, importFilter(base[id]));
 }
@@ -364,6 +370,11 @@ function addImportLayers(map){
   map.addSource("imp", {type:"geojson", data:importData, attribution: importData.meta && importData.meta.quelle ? "Lage: " + importData.meta.quelle : undefined});
   map.addLayer({id:"imp-fill", type:"fill", source:"imp", filter:["==",["get","art"],"flaeche"], paint:{"fill-color":["get","fuellung"], "fill-opacity":["case",["==",["get","ebene"],"ukraine-terr"],0.05,["min",["get","deckkraft"],0.18]]}}, before);
   map.addLayer({id:"imp-line", type:"line", source:"imp", filter:["in",["get","art"],["literal",["flaeche","linie"]]], paint:{"line-color":["get","linie"], "line-width":["interpolate",["linear"],["zoom"],4,0.8,10,2], "line-opacity":["case",["==",["get","ebene"],"ukraine-terr"],0.35,1]}}, before);
+  const chCol = ["match",["get","richtung"],"ru",CHANGE_COL.ru,"ua",CHANGE_COL.ua,CHANGE_COL.grau];
+  map.addLayer({id:"imp-change-fill", type:"fill", source:"imp", filter:isRecentChange(), paint:{"fill-color":chCol, "fill-opacity":0.55}}, before);
+  map.addLayer({id:"imp-change-line", type:"line", source:"imp", filter:isRecentChange(), layout:{"line-join":"round"}, paint:{"line-color":chCol, "line-width":["interpolate",["linear"],["zoom"],5,1.5,10,3]}}, before);
+  map.addLayer({id:"imp-change-label", type:"symbol", source:"imp", minzoom:8, filter:isRecentChange(), layout:{"text-field":["coalesce",["get","datum"],""], "text-font":font, "text-size":11, "symbol-placement":"point"},
+    paint:{"text-color":"#ffffff","text-halo-color":"rgba(0,0,0,0.9)","text-halo-width":1.5}}, before);
   const sym = (id, minzoom, size)=>({id, type:"symbol", source:"imp", minzoom, layout:{
       "icon-image":["concat","imp-",["get","sidc"]], "icon-size":["interpolate",["linear"],["zoom"],4,size*0.38,6,size*0.55,8,size*0.8,12,size],
       "icon-allow-overlap":false, "text-optional":true,
@@ -383,6 +394,13 @@ function importLegend(project, inView){
   const out = [];
   for(const L of (importData.meta && importData.meta.ebenen) || []){
     if(importHidden.has(L.id)) continue;
+    if(L.id==="aenderungen"){
+      const cut = changeCutoff();
+      const rec = importData.features.filter(f=>f.properties.art==="aenderung" && (f.properties.datum||"") >= cut && f.geometry.coordinates[0].some(inView));
+      const lab = {ru:"Neu russisch kontrolliert", ua:"Neu ukrainisch kontrolliert", grau:"Neu Grauzone"};
+      for(const k of ["ru","ua","grau"]) if(rec.some(f=>f.properties.richtung===k)) out.push({kind:"flaeche", color:CHANGE_COL[k], dash:false, label:lab[k]});
+      continue;
+    }
     const fs = importData.features.filter(f=>f.properties.ebene===L.id && (f.geometry.type==="Point" ? inView(f.geometry.coordinates) : f.geometry.coordinates[0].some ? (f.geometry.type==="Polygon" ? f.geometry.coordinates[0] : f.geometry.coordinates).some(inView) : false));
     if(!fs.length) continue;
     const areas = fs.filter(f=>f.properties.art==="flaeche");
@@ -396,6 +414,94 @@ function importLegend(project, inView){
   }
   return out;
 }
+
+/* ---------------- Frontlinie bearbeiten ---------------- */
+/* Ersetzt den Randabschnitt eines Rings zwischen den Ecken iA und iB durch einen neuen Verlauf.
+   ring: offener Ring (ohne doppelten Endpunkt), pts: neue Zwischenpunkte von A nach B.
+   Ersetzt wird der Abschnitt, der näher am neuen Verlauf liegt. */
+function pointInRing(pt, ring){
+  let inside = false;
+  for(let i=0, j=ring.length-1; i<ring.length; j=i++){
+    const [xi,yi] = ring[i], [xj,yj] = ring[j];
+    if(((yi>pt[1]) !== (yj>pt[1])) && (pt[0] < (xj-xi)*(pt[1]-yi)/((yj-yi)||1e-12) + xi)) inside = !inside;
+  }
+  return inside;
+}
+function ringArea(r){ let a=0; for(let i=0;i<r.length;i++){ const [x1,y1]=r[i],[x2,y2]=r[(i+1)%r.length]; a += x1*y2-x2*y1; } return a/2; }
+function replaceFront(ring, iA, iB, pts){
+  const n = ring.length;
+  if(iA===iB || n < 3) return null;
+  const fwd = [], bwd = [];
+  for(let i=iA;;i=(i+1)%n){ fwd.push(i); if(i===iB) break; }
+  for(let i=iA;;i=(i-1+n)%n){ bwd.push(i); if(i===iB) break; }
+  const k = Math.cos((ring[iA][1]||0)*Math.PI/180);
+  const dist = (p,q)=>Math.hypot((p[0]-q[0])*k, p[1]-q[1]);
+  const near = idx=>{
+    if(!pts.length) return idx.length;
+    let s = 0; for(const p of pts){ let m = Infinity; for(const i of idx) m = Math.min(m, dist(p, ring[i])); s += m; }
+    return s / pts.length;
+  };
+  /* Ersetzt wird der Abschnitt, bei dem die Änderungsfläche am kleinsten ist (Frontänderungen sind örtlich) */
+  const changeOf = idx => [...idx.map(i=>ring[i]), ...pts.slice().reverse()];
+  const aF = Math.abs(ringArea(changeOf(fwd).map(([x,y])=>[x*k,y]))), aB = Math.abs(ringArea(changeOf(bwd).map(([x,y])=>[x*k,y])));
+  const replaceFwd = aF === aB ? near(fwd) <= near(bwd) : aF < aB;
+  const replaced = replaceFwd ? fwd : bwd, kept = replaceFwd ? bwd : fwd;
+  /* neuer Ring: A → neue Punkte → B → behaltener Abschnitt zurück zu A */
+  const keptBack = kept.slice(1, -1).reverse().map(i=>ring[i]);
+  const newRing = [ring[iA], ...pts, ring[iB], ...keptBack];
+  /* Änderungsfläche: alter Abschnitt A→B und neuer Verlauf B→A */
+  const change = [...replaced.map(i=>ring[i]), ...pts.slice().reverse()];
+  /* Ist die Fläche gewachsen? Mittelpunkt des neuen Verlaufs außerhalb der alten Fläche → ja */
+  const probe = pts.length ? pts[Math.floor(pts.length/2)] : null;
+  const grew = probe ? !pointInRing(probe, ring) : Math.abs(ringArea(newRing)) > Math.abs(ringArea(ring));
+  return {newRing, change, grew};
+}
+const close = r => (r.length && (r[0][0]!==r[r.length-1][0] || r[0][1]!==r[r.length-1][1])) ? r.concat([r[0]]) : r;
+const open = r => (r.length>1 && r[0][0]===r[r.length-1][0] && r[0][1]===r[r.length-1][1]) ? r.slice(0,-1) : r;
+/* Nächste Randecke einer Fläche der gewählten Ebene, in Bildschirmpixeln */
+function nearestEdge(map, ebene, lngLat, onlyFeature){
+  if(!importData) return null;
+  const p = map.project(lngLat); let best = null;
+  for(const f of importData.features){
+    if(f.properties.ebene!==ebene || f.properties.art!=="flaeche" || f.geometry.type!=="Polygon") continue;
+    if(onlyFeature && f!==onlyFeature) continue;
+    const ring = open(f.geometry.coordinates[0]);
+    for(let i=0;i<ring.length;i++){
+      const q = map.project(ring[i]), d = Math.hypot(q.x-p.x, q.y-p.y);
+      if(!best || d < best.d) best = {f, i, d, pt:ring[i]};
+    }
+  }
+  return best;
+}
+function applyFrontEdit(f, iA, iB, pts, meta){
+  const ring = open(f.geometry.coordinates[0]);
+  const r = replaceFront(ring, iA, iB, pts);
+  if(!r) return null;
+  const before = f.geometry.coordinates;
+  f.geometry.coordinates = [close(r.newRing)].concat(before.slice(1));
+  const ebene = f.properties.ebene;
+  const gainSide = ebene==="ukraine-terr" ? "ua" : ebene==="gray-zone" ? "grau" : "ru";
+  const lossSide = ebene==="ukraine-terr" ? "ru" : ebene==="gray-zone" ? "grau" : "ua";
+  const change = {type:"Feature", properties:{art:"aenderung", ebene:"aenderungen", richtung: r.grew ? gainSide : lossSide, datum: meta.datum, von: ebene},
+    geometry:{type:"Polygon", coordinates:[close(r.change)]}};
+  importData.features.push(change);
+  const m = importData.meta = importData.meta || {ebenen:[]};
+  m.ebenen = m.ebenen || [];
+  if(!m.ebenen.some(e=>e.id==="aenderungen")) m.ebenen.push({id:"aenderungen", name:"Veränderungen", anzahl:0});
+  m.ebenen.find(e=>e.id==="aenderungen").anzahl = importData.features.filter(x=>x.properties.art==="aenderung").length;
+  return {f, before, change};
+}
+function undoFrontEdit(u){
+  u.f.geometry.coordinates = u.before;
+  const i = importData.features.indexOf(u.change); if(i>=0) importData.features.splice(i,1);
+}
+function setImportData(map, d){
+  importData = d; importPromise = Promise.resolve(d);
+  if(!map) return;
+  const src = map.getSource && map.getSource("imp");
+  if(src) src.setData(d); else if(map.isReady && map.isReady()){ try{ addImportLayers(map); }catch(e){ console.warn("Lagedaten:", e); } }
+}
+function refreshImport(map){ const src = map.getSource && map.getSource("imp"); if(src) src.setData(importData); }
 
 function createMap(opts){
   let current = opts.style || "sat", free = false, errs = 0, globe = opts.globe!==false;
@@ -431,6 +537,7 @@ function createMap(opts){
   map.setGlobe = g=>{ globe = g; try{ map.setProjection({type: g ? "globe" : "mercator"}); }catch(e){} };
   map.currentBase = ()=>current;
   map.isFree = ()=>free;
+  map.isReady = ()=>styleReady;
   map.on("styleimagemissing", e=>addImportIcon(map, e.id));
   map.setImportHidden = ids=>setImportHidden(map, ids);
   /* Lagedaten: sofort einfügen, wenn der Kartenstil schon steht (auch wenn noch Kacheln laden), sonst beim nächsten style.load */
@@ -773,5 +880,5 @@ function emptyData(){ return {version:1, aktualisiert:null, elemente:[]}; }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
 window.Karte = {STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
-  addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage, exportLayout, farbe, loadImport, importMeta: ()=>importData && importData.meta};
+  addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage, exportLayout, farbe, loadImport, replaceFront, nearestEdge, applyFrontEdit, undoFrontEdit, setImportData, refreshImport, importData: ()=>importData, importMeta: ()=>importData && importData.meta};
 })();

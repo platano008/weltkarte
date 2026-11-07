@@ -12,10 +12,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611071546">
+<link rel="stylesheet" href="style.css?v=202611071725">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611071546"></script>
+<script src="karte.js?v=202611071725"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -33,7 +33,7 @@
 .btn:disabled{opacity:.35;cursor:not-allowed}
 .btn.sm{min-height:32px;font-size:13px;padding:0 10px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.tools{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid var(--line-2)}
+.tools{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--line-2)}
 .frame{position:fixed;z-index:3;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,.5);outline:1px solid rgba(255,255,255,.9)}
 .frame i{position:absolute;width:18px;height:18px;border:0 solid var(--volt)}
 .frame i:nth-child(1){left:-3px;top:-3px;border-left-width:3px;border-top-width:3px}
@@ -107,6 +107,7 @@ details.gh[open] summary{color:var(--fg)}
       <button data-t="linie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M3 18l6-8 5 4 7-9"/></svg>Linie</button>
       <button data-t="pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M3 19L19 5M10 5h9v9"/></svg>Pfeil</button>
       <button data-t="flaeche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M4 7l9-4 8 7-3 10-12-2z"/></svg>Fläche</button>
+      <button data-t="front"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M3 20V9l5 3 4-6 4 5 5-4v13z" opacity=".35" fill="currentColor"/><path d="M3 9l5 3 4-6 4 5 5-4"/></svg>Front</button>
       <button data-t="bild"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M3 7h4l2-3h6l2 3h4v13H3zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg>Bild</button>
     </div>
   </div>
@@ -141,7 +142,7 @@ const GH = {owner:"platano008", repo:"weltkarte", path:"karte.json", branch:"mai
 const API = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${GH.path}`;
 const COLORS = [["#e5383b","Rot · Feind"],["#2f7cf6","Blau · Freund"],["#c9c9c9","Grau · Grauzone"],["#45c46b","Grün · Neutral"],["#ffb800","Bernstein · Hinweis"],["#ffffff","Weiß"]];
 const DRAW = ["linie","pfeil","flaeche"];
-const LS = {token:"lage-gh-token", draft:"lage-draft", prefs:"lage-prefs"};
+const LS = {token:"lage-gh-token", draft:"lage-draft", prefs:"lage-prefs", imp:"lage-imp-draft"};
 const store = {
   get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
   set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
@@ -149,6 +150,10 @@ const store = {
 };
 
 let DATA = K.emptyData(), sha = null, dirty = false, tool = "select", sel = null, markers = [];
+/* Frontlinie */
+let front = null, impSha = null, impDirty = false, undoStack = [], frontEbene = "russian-terr";
+let frontDatum = new Date().toISOString().slice(0,10);
+const IMP_PATH = "import/lage.geojson";
 let draft = null; /* {typ, pts:[], replaceId} */
 let prefs = Object.assign({farbe:"#e5383b", stil:"durchgezogen", seite:"H", einheit:"inf", groesse:"F", hq:false, geplant:false}, JSON.parse(store.get(LS.prefs)||"{}"));
 prefs.farbe = K.farbe(prefs.farbe);
@@ -165,7 +170,8 @@ $("view").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("view").queryS
 const impOff = new Set();
 function renderImp(d){
   const meta = d && d.meta; if(!meta || !meta.ebenen || !meta.ebenen.length) return;
-  const col = id=>{ const fs = d.features.filter(x=>x.properties.ebene===id); if(!fs.length) return "#888";
+  const col = id=>{ if(id==="aenderungen") return "linear-gradient(135deg,#ff1f3d 50%,#1f8bff 50%)";
+    const fs = d.features.filter(x=>x.properties.ebene===id); if(!fs.length) return "#888";
     const area = fs.find(x=>x.properties.art==="flaeche");
     if(area && fs.every(x=>x.properties.art!=="symbol")) return area.properties.fuellung;
     const sides = [...new Set(fs.filter(x=>x.properties.art==="symbol").map(x=>x.properties.sidc[1]))].map(k=>(K.SIDES[k]||K.SIDES.U).color);
@@ -175,7 +181,7 @@ function renderImp(d){
   $("impChips").innerHTML = meta.ebenen.map(l=>`<button class="chip${impOff.has(l.id)?"":" on"}" data-imp="${esc(l.id)}" aria-pressed="${!impOff.has(l.id)}"><i style="background:${esc(col(l.id))}"></i>${esc(l.name)}</button>`).join("");
   $("impChips").querySelectorAll("[data-imp]").forEach(b=>b.onclick=()=>{ const id=b.dataset.imp; impOff.has(id)?impOff.delete(id):impOff.add(id); map.setImportHidden([...impOff]); renderImp(d); });
 }
-const map = K.createMap({onImport: d=>renderImp(d), onNotice: t=>toast(t), container:"map", style:"sat", globe:false, doubleClickZoom:false, onStyle: m=>{
+const map = K.createMap({importLayers:false, onNotice: t=>toast(t), container:"map", style:"sat", globe:false, doubleClickZoom:false, onStyle: m=>{
   K.addDataLayers(m, "lage", K.toFeatures(DATA.elemente));
   m.addSource("draft", {type:"geojson", data:{type:"FeatureCollection", features:[]}});
   m.addLayer({id:"draft-fill", type:"fill", source:"draft", filter:["==",["geometry-type"],"Polygon"], paint:{"fill-color":"#ffffff","fill-opacity":0.12}});
@@ -196,12 +202,19 @@ map.on("click", e=>{
   }
   if(tool==="symbol"){ placeSymbol([+e.lngLat.lng.toFixed(5), +e.lngLat.lat.toFixed(5)]); return; }
   if(tool==="bild") return;
+  if(tool==="front"){ frontClick(e); return; }
   if(!map.getLayer("lage-hit")) return;
   if(!map.queryRenderedFeatures(e.point,{layers:["lage-hit","lage-area-fill"]}).length) select(null);
 });
-map.on("dblclick", e=>{ if(DRAW.includes(tool)){ e.preventDefault(); finishDraft(); } });
+map.on("dblclick", e=>{ if(DRAW.includes(tool)){ e.preventDefault(); finishDraft(); } else if(tool==="front"){ e.preventDefault(); finishFront(); } });
 document.addEventListener("keydown", e=>{
   if(e.target.matches("input,textarea,select")) return;
+  if(tool==="front"){
+    if(e.key==="Enter") finishFront();
+    if(e.key==="Escape"){ front = {start:null, pts:[]}; updateDraft(); renderOpts(); }
+    if(e.key==="Backspace" && front){ if(front.pts.length) front.pts.pop(); else front.start = null; updateDraft(); renderOpts(); }
+    return;
+  }
   if(!DRAW.includes(tool)) { if(e.key==="Escape") select(null); return; }
   if(e.key==="Enter") finishDraft();
   if(e.key==="Escape") setTool("select");
@@ -211,6 +224,23 @@ document.addEventListener("keydown", e=>{
 /* ---------- data load / save ---------- */
 function b64ToText(b){ const bin = atob(b.replace(/\n/g,"")); return new TextDecoder().decode(Uint8Array.from(bin, c=>c.charCodeAt(0))); }
 function textToB64(t){ const bytes = new TextEncoder().encode(t); let s=""; for(let i=0;i<bytes.length;i+=0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i,i+0x8000)); return btoa(s); }
+const apiOf = p => `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${p}`;
+async function ghGetPath(token, path){
+  const r = await fetch(apiOf(path)+"?ref="+GH.branch, {headers:{Authorization:"Bearer "+token, Accept:"application/vnd.github+json"}, cache:"no-store"});
+  if(r.status===404) return {sha:null, text:null};
+  if(!r.ok) throw {status:r.status};
+  const j = await r.json();
+  /* große Dateien (über 1 MB) liefert die API ohne Inhalt */
+  const text = j.content ? b64ToText(j.content) : await (await fetch(j.download_url, {cache:"no-store"})).text();
+  return {sha:j.sha, text};
+}
+async function ghPutPath(token, path, text, sha, msg){
+  const body = {message:msg, content:textToB64(text), branch:GH.branch};
+  if(sha) body.sha = sha;
+  const r = await fetch(apiOf(path), {method:"PUT", headers:{Authorization:"Bearer "+token, Accept:"application/vnd.github+json", "Content-Type":"application/json"}, body:JSON.stringify(body)});
+  if(!r.ok) throw {status:r.status};
+  return (await r.json()).content.sha;
+}
 async function ghGet(token){
   const r = await fetch(API+"?ref="+GH.branch, {headers:{Authorization:"Bearer "+token, Accept:"application/vnd.github+json"}, cache:"no-store"});
   if(r.status===404) return {sha:null, data:K.emptyData()};
@@ -229,8 +259,9 @@ function setStatus(t, cls){ const s=$("status"); s.textContent=t; s.className="s
 function token(){ return store.get(LS.token); }
 function refreshStatus(){
   if(!token()){ setStatus("Nur lesen: kein GitHub-Schlüssel. Unten eintragen, um zu speichern.", "err"); $("save").disabled = true; return; }
-  $("save").disabled = !dirty;
-  setStatus(dirty ? "Ungespeicherte Änderungen" : "Alles gespeichert", dirty ? "dirty" : "");
+  const any = dirty || impDirty;
+  $("save").disabled = !any;
+  setStatus(any ? "Ungespeicherte Änderungen" + (impDirty ? " (Frontlinie)" : "") : "Alles gespeichert", any ? "dirty" : "");
 }
 async function load(){
   const t = token();
@@ -244,7 +275,23 @@ async function load(){
   if(!DATA.elemente) DATA = K.emptyData();
   const d = JSON.parse(store.get(LS.draft)||"null");
   if(d && d.data && d.data.elemente){ DATA = d.data; dirty = true; toast("Ungespeicherter Entwurf wiederhergestellt"); }
-  render(); if(!$("status").classList.contains("err")) refreshStatus(); else $("save").disabled = !token() || !dirty;
+  await loadImp(t);
+  render(); if(!$("status").classList.contains("err")) refreshStatus(); else $("save").disabled = !token() || !(dirty || impDirty);
+}
+async function loadImp(t){
+  let d = null;
+  try{
+    if(t){ const r = await ghGetPath(t, IMP_PATH); impSha = r.sha; d = r.text ? JSON.parse(r.text) : null; }
+    else { const r = await fetch(IMP_PATH, {cache:"no-cache"}); d = r.ok ? await r.json() : null; }
+  }catch(e){ try{ const r = await fetch(IMP_PATH, {cache:"no-cache"}); d = r.ok ? await r.json() : null; }catch(_){} }
+  try{ const dr = JSON.parse(store.get(LS.imp)||"null"); if(dr && dr.features){ d = dr; impDirty = true; toast("Ungespeicherte Frontlinien-Änderungen wiederhergestellt"); } }catch(e){}
+  if(!d) return;
+  K.setImportData(map, d); renderImp(d); ensureFrontEdge();
+}
+function impChange(){
+  impDirty = true;
+  try{ store.set(LS.imp, JSON.stringify(K.importData())); }catch(e){}
+  K.refreshImport(map); renderImp(K.importData()); refreshStatus();
 }
 function change(){
   dirty = true; store.set(LS.draft, JSON.stringify({data:DATA, at:Date.now()}));
@@ -253,11 +300,21 @@ function change(){
 $("save").onclick = async ()=>{
   const t = token(); if(!t) return;
   $("save").disabled = true; setStatus("Speichert …");
-  DATA.aktualisiert = new Date().toISOString();
   try{
-    try{ sha = await ghPut(t, DATA, sha); }
-    catch(e){ if(e.status===409 || e.status===422){ const r = await ghGet(t); sha = await ghPut(t, DATA, r.sha); } else throw e; }
-    dirty = false; store.del(LS.draft); refreshStatus();
+    if(dirty){
+      DATA.aktualisiert = new Date().toISOString();
+      try{ sha = await ghPut(t, DATA, sha); }
+      catch(e){ if(e.status===409 || e.status===422){ const r = await ghGet(t); sha = await ghPut(t, DATA, r.sha); } else throw e; }
+      dirty = false; store.del(LS.draft);
+    }
+    if(impDirty){
+      const d = K.importData(); d.meta = d.meta || {}; d.meta.bearbeitet = new Date().toISOString();
+      const text = JSON.stringify(d);
+      try{ impSha = await ghPutPath(t, IMP_PATH, text, impSha, "Frontlinie aktualisiert"); }
+      catch(e){ if(e.status===409 || e.status===422){ const r = await ghGetPath(t, IMP_PATH); impSha = await ghPutPath(t, IMP_PATH, text, r.sha, "Frontlinie aktualisiert"); } else throw e; }
+      impDirty = false; store.del(LS.imp); undoStack = [];
+    }
+    refreshStatus(); renderOpts();
     toast("Gespeichert. In etwa einer Minute ist es online.");
   }catch(e){
     setStatus(e.status===401 ? "Schlüssel ungültig oder abgelaufen." : e.status===403||e.status===404 ? "Schlüssel darf nicht schreiben (Contents: Read and write?)." : "Speichern fehlgeschlagen. Nochmal versuchen.", "err");
@@ -305,6 +362,11 @@ function highlight(){
 function updateDraft(){
   let src = null; try{ src = map.getSource("draft"); }catch(e){} if(!src) return;
   const f = [];
+  if(front && front.start){
+    const p = [front.start.pt, ...front.pts];
+    p.forEach(c=>f.push({type:"Feature", properties:{}, geometry:{type:"Point", coordinates:c}}));
+    if(p.length>1) f.push({type:"Feature", properties:{}, geometry:{type:"LineString", coordinates:p}});
+  }
   if(draft){
     const p = draft.pts;
     p.forEach(c=>f.push({type:"Feature", properties:{}, geometry:{type:"Point", coordinates:c}}));
@@ -317,7 +379,8 @@ function updateDraft(){
 /* ---------- tools ---------- */
 function setTool(t, opt){
   tool = t; draft = DRAW.includes(t) ? {typ:t, pts:[], replaceId:opt&&opt.replaceId} : null;
-  document.body.classList.toggle("drawing", DRAW.includes(t) || t==="symbol");
+  front = t==="front" ? {start:null, pts:[]} : null; ensureFrontEdge();
+  document.body.classList.toggle("drawing", DRAW.includes(t) || t==="symbol" || t==="front");
   $("frame").hidden = t!=="bild"; if(t==="bild") placeFrame();
   $("tools").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.t===t));
   if(t!=="select") select(null, false, true);
@@ -431,8 +494,73 @@ async function makeShot(){
 }
 $("shotClose").onclick = ()=>$("shot").hidden = true;
 
+/* ---------- Frontlinie ---------- */
+function ensureFrontEdge(){
+  try{
+    if(!map.getSource("imp")) return;
+    if(!map.getLayer("front-edge")) map.addLayer({id:"front-edge", type:"line", source:"imp", filter:["all",["==",["get","art"],"flaeche"],["==",["get","ebene"],frontEbene]],
+      layout:{"line-join":"round"}, paint:{"line-color":"#ffffff","line-width":3,"line-dasharray":[2,1.5]}});
+    map.setFilter("front-edge", ["all",["==",["get","art"],"flaeche"],["==",["get","ebene"],frontEbene]]);
+    map.setLayoutProperty("front-edge","visibility", tool==="front" ? "visible" : "none");
+  }catch(e){}
+}
+map.on("style.load", ()=>setTimeout(ensureFrontEdge, 0));
+const SNAP = 28;
+function frontClick(e){
+  if(!K.importData()){ toast("Lagedaten sind noch nicht geladen."); return; }
+  const ll = [+e.lngLat.lng.toFixed(5), +e.lngLat.lat.toFixed(5)];
+  if(!front.start){
+    const n = K.nearestEdge(map, frontEbene, ll);
+    if(!n || n.d > SNAP){ toast("Tippe direkt auf die weiß gestrichelte Frontlinie."); return; }
+    front.start = n;
+  } else front.pts.push(ll);
+  updateDraft(); renderOpts();
+}
+const RICHTUNG = {ru:"russischer Gewinn", ua:"ukrainischer Gewinn", grau:"Grauzone"};
+function finishFront(){
+  if(!front || !front.start) return;
+  const pts = front.pts.slice();
+  if(!pts.length){ toast("Tippe erst den neuen Verlauf und zum Schluss wieder auf die Frontlinie."); return; }
+  const end = K.nearestEdge(map, frontEbene, pts[pts.length-1], front.start.f);
+  if(end && end.d <= SNAP) pts.pop();
+  if(!end || end.i === front.start.i){ toast("Anfang und Ende liegen auf demselben Punkt. Setz das Ende weiter weg."); return; }
+  const u = K.applyFrontEdit(front.start.f, front.start.i, end.i, pts, {datum:frontDatum});
+  if(!u){ toast("Das hat nicht geklappt. Bitte nochmal versuchen."); return; }
+  undoStack.push(u);
+  front = {start:null, pts:[]};
+  impChange(); updateDraft(); renderOpts();
+  toast("Frontlinie angepasst: " + RICHTUNG[u.change.properties.richtung]);
+}
+function frontOpts(o){
+  const d = K.importData();
+  const areas = d ? ((d.meta && d.meta.ebenen) || []).filter(l=>d.features.some(f=>f.properties.ebene===l.id && f.properties.art==="flaeche")) : [];
+  if(!areas.length){ o.innerHTML = `<div class="hint">Keine Lagedaten geladen.</div>`; return; }
+  const step = !front.start ? `<b>1.</b> Tippe auf die weiß gestrichelte Frontlinie, wo die Änderung <b>beginnt</b>.`
+    : !front.pts.length ? `<b>2.</b> Tippe den <b>neuen Verlauf</b> der Front, Punkt für Punkt.`
+    : `<b>3.</b> Tippe zum Schluss auf die Frontlinie, wo der Verlauf wieder <b>anschließt</b>, dann „Übernehmen“ oder Doppeltipp.`;
+  const last = undoStack[undoStack.length-1];
+  o.innerHTML = `<div class="grid2">
+      <div><label class="lbl" for="fEb">Fläche</label><select class="f" id="fEb">${areas.map(l=>`<option value="${esc(l.id)}" ${l.id===frontEbene?"selected":""}>${esc(l.name)}</option>`).join("")}</select></div>
+      <div><label class="lbl" for="fDt">Datum</label><input class="f" id="fDt" type="date" value="${esc(frontDatum)}"></div></div>
+    <div class="hint">${step}</div>
+    <div class="row"><button class="btn sm volt" id="frGo" ${front.start && front.pts.length ? "" : "disabled"}>Übernehmen</button><button class="btn sm" id="frUndoPt" ${front.start ? "" : "disabled"}>Letzten Punkt weg</button><button class="btn sm" id="frReset" ${front.start ? "" : "disabled"}>Neu anfangen</button></div>
+    ${last ? `<div class="confirm" style="border-color:var(--line-2)"><div class="hint">Letzte Änderung: <b>${RICHTUNG[last.change.properties.richtung]}</b>, ${esc(last.change.properties.datum)}</div>
+      <div class="row"><button class="btn sm" id="frFlip">Richtung umkehren</button><button class="btn sm danger" id="frUndo">Rückgängig</button></div></div>` : ""}
+    <div class="hint">Neue Flächen werden ${14} Tage lang kräftig angezeigt, danach wie das übrige Gebiet. Speichern nicht vergessen.</div>`;
+  $("fEb").onchange = e=>{ frontEbene = e.target.value; front = {start:null, pts:[]}; ensureFrontEdge(); updateDraft(); renderOpts(); };
+  $("fDt").onchange = e=>{ frontDatum = e.target.value || frontDatum; };
+  $("frGo").onclick = finishFront;
+  $("frUndoPt").onclick = ()=>{ if(front.pts.length) front.pts.pop(); else front.start = null; updateDraft(); renderOpts(); };
+  $("frReset").onclick = ()=>{ front = {start:null, pts:[]}; updateDraft(); renderOpts(); };
+  if(last){
+    $("frFlip").onclick = ()=>{ const p = last.change.properties; p.richtung = p.richtung==="ru" ? "ua" : p.richtung==="ua" ? "ru" : p.richtung; impChange(); renderOpts(); };
+    $("frUndo").onclick = ()=>{ K.undoFrontEdit(undoStack.pop()); impChange(); renderOpts(); toast("Änderung rückgängig gemacht"); };
+  }
+}
+
 function renderOpts(){
   const o = $("opts");
+  if(tool==="front"){ frontOpts(o); return; }
   if(tool==="bild"){ shotOpts(o); return; }
   if(tool==="symbol"){
     o.innerHTML = symbolFields(prefs) + `<div class="hint"><b>Tippe auf die Karte</b>, um das Symbol zu setzen.</div>`;

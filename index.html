@@ -17,10 +17,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611071546">
+<link rel="stylesheet" href="style.css?v=202611071725">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611071546"></script>
+<script src="karte.js?v=202611071725"></script>
 <style>
 .panel{border-top:2px solid var(--volt)}
 .search{position:relative}
@@ -102,7 +102,8 @@ $("legend").innerHTML = Object.values(K.SIDES).map(s=>`<span><i style="backgroun
 const impOff = new Set();
 function renderImp(d){
   const meta = d && d.meta; if(!meta || !meta.ebenen || !meta.ebenen.length) return;
-  const col = id=>{ const fs = d.features.filter(x=>x.properties.ebene===id); if(!fs.length) return "#888";
+  const col = id=>{ if(id==="aenderungen") return "linear-gradient(135deg,#ff1f3d 50%,#1f8bff 50%)";
+    const fs = d.features.filter(x=>x.properties.ebene===id); if(!fs.length) return "#888";
     const area = fs.find(x=>x.properties.art==="flaeche");
     if(area && fs.every(x=>x.properties.art!=="symbol")) return area.properties.fuellung;
     const sides = [...new Set(fs.filter(x=>x.properties.art==="symbol").map(x=>x.properties.sidc[1]))].map(k=>(K.SIDES[k]||K.SIDES.U).color);

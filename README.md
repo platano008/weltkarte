@@ -48,3 +48,17 @@ python3 tools/milx2geojson.py Layer.milxly import/lage.geojson "ukv3.65"
 
 Flächenfarben und Transparenz kommen aus der Datei, NATO-Symbole werden aus dem SIDC erzeugt,
 Namen (z. B. „18th Army“) erscheinen ab mittlerer Zoomstufe. Eine neue Version ersetzt einfach die Datei.
+
+## Frontlinie anpassen
+
+Im Editor das Werkzeug **Front** wählen:
+
+1. Fläche wählen (meist „Russisch kontrolliert“), Datum prüfen.
+2. Auf die weiß gestrichelte Frontlinie tippen, wo die Änderung beginnt.
+3. Den neuen Verlauf Punkt für Punkt tippen.
+4. Auf die Frontlinie tippen, wo der Verlauf wieder anschließt, dann **Übernehmen**.
+5. **Speichern**. Die geänderte Fläche wird in `import/lage.geojson` geschrieben.
+
+Die Änderung wird automatisch als Gewinn oder Verlust erkannt („Richtung umkehren“ korrigiert das)
+und 14 Tage lang kräftig hervorgehoben (Ebene „Veränderungen“).
+Achtung: Ein neuer MilX-Import ersetzt die Datei und damit auch diese Änderungen.
