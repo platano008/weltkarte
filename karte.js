@@ -24,16 +24,16 @@ function darkStyle(){
     glyphs:"https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
     sources:{[S]:{type:"vector", url:"https://tiles.openfreemap.org/planet"}},
     layers:[
-      {id:"land", type:"background", paint:{"background-color":"#1d2025"}},
-      {id:"wood", type:"fill", source:S, "source-layer":"landcover", filter:["==",["get","class"],"wood"], paint:{"fill-color":"#202a23","fill-opacity":Z(3,0.5,8,1)}},
-      {id:"grass", type:"fill", source:S, "source-layer":"landcover", filter:["in",["get","class"],["literal",["grass","wetland"]]], paint:{"fill-color":"#1e2421","fill-opacity":0.8}},
+      {id:"land", type:"background", paint:{"background-color":"#2a2e35"}},
+      {id:"wood", type:"fill", source:S, "source-layer":"landcover", filter:["==",["get","class"],"wood"], paint:{"fill-color":"#27342b","fill-opacity":Z(3,0.6,8,1)}},
+      {id:"grass", type:"fill", source:S, "source-layer":"landcover", filter:["in",["get","class"],["literal",["grass","wetland"]]], paint:{"fill-color":"#283029","fill-opacity":0.8}},
       {id:"ice", type:"fill", source:S, "source-layer":"landcover", filter:["in",["get","class"],["literal",["ice","glacier"]]], paint:{"fill-color":"#2b2f35"}},
-      {id:"urban", type:"fill", source:S, "source-layer":"landuse", minzoom:6, filter:["in",["get","class"],["literal",["residential","suburb","neighbourhood","industrial","commercial","retail"]]], paint:{"fill-color":"#272a30","fill-opacity":Z(6,0.5,10,1)}},
-      {id:"water", type:"fill", source:S, "source-layer":"water", paint:{"fill-color":"#0f1c29"}},
-      {id:"river", type:"line", source:S, "source-layer":"waterway", minzoom:5, filter:["in",["get","class"],["literal",["river","canal"]]], paint:{"line-color":"#24435d","line-width":Z(5,0.6,10,2,14,4)}},
-      {id:"stream", type:"line", source:S, "source-layer":"waterway", minzoom:10, filter:["==",["get","class"],"stream"], paint:{"line-color":"#203a50","line-width":0.8}},
-      {id:"road-major", type:"line", source:S, "source-layer":"transportation", minzoom:6, filter:["in",["get","class"],["literal",["motorway","trunk"]]], layout:{"line-join":"round"}, paint:{"line-color":"#3b3f47","line-width":Z(6,0.5,10,1.6,14,4)}},
-      {id:"road-primary", type:"line", source:S, "source-layer":"transportation", minzoom:9, filter:["in",["get","class"],["literal",["primary","secondary"]]], layout:{"line-join":"round"}, paint:{"line-color":"#32363d","line-width":Z(9,0.5,14,2.5)}},
+      {id:"urban", type:"fill", source:S, "source-layer":"landuse", minzoom:6, filter:["in",["get","class"],["literal",["residential","suburb","neighbourhood","industrial","commercial","retail"]]], paint:{"fill-color":"#454a54","fill-opacity":Z(6,0.7,10,1)}},
+      {id:"water", type:"fill", source:S, "source-layer":"water", paint:{"fill-color":"#0a1520"}},
+      {id:"river", type:"line", source:S, "source-layer":"waterway", minzoom:5, filter:["in",["get","class"],["literal",["river","canal"]]], paint:{"line-color":"#2f5a7e","line-width":Z(5,0.7,10,2.2,14,4)}},
+      {id:"stream", type:"line", source:S, "source-layer":"waterway", minzoom:10, filter:["==",["get","class"],"stream"], paint:{"line-color":"#284c6a","line-width":0.8}},
+      {id:"road-major", type:"line", source:S, "source-layer":"transportation", minzoom:6, filter:["in",["get","class"],["literal",["motorway","trunk"]]], layout:{"line-join":"round"}, paint:{"line-color":"#50555f","line-width":Z(6,0.5,10,1.6,14,4)}},
+      {id:"road-primary", type:"line", source:S, "source-layer":"transportation", minzoom:9, filter:["in",["get","class"],["literal",["primary","secondary"]]], layout:{"line-join":"round"}, paint:{"line-color":"#41454e","line-width":Z(9,0.5,14,2.5)}},
       {id:"rail", type:"line", source:S, "source-layer":"transportation", minzoom:9, filter:["==",["get","class"],"rail"], paint:{"line-color":"#34383f","line-width":1,"line-dasharray":[3,2]}},
       {id:"border-state", type:"line", source:S, "source-layer":"boundary", minzoom:4.5, filter:["all",["==",["get","admin_level"],4],notMar], paint:{"line-color":"rgba(255,255,255,0.16)","line-width":Z(5,0.5,10,1.2),"line-dasharray":[3,2]}},
       {id:"border-country", type:"line", source:S, "source-layer":"boundary", filter:["all",["==",["get","admin_level"],2],notMar,["!=",["get","disputed"],1]], layout:{"line-join":"round"}, paint:{"line-color":"#aeb3bb","line-width":Z(2,0.6,6,1.2,10,2)}},
@@ -81,11 +81,11 @@ const PAL = {
         minor:"#2c2f35", major:"#4a4e56", motorway:"#727780", rail:"#3a3e45", casing:"#0c0d0f",
         border:"rgba(255,255,255,0.55)", border2:"rgba(255,255,255,0.16)", contour:"rgba(255,255,255,0.12)",
         text:"#e3e5e8", textWater:"#8fb0cb", halo:"#0c0d0f"},
-  topo:{bg:"#181a1e", land:"#1b1d21", water:"#1e3549", waterway:"#33536d", wood:"#243428", green:"#212b22",
-        urban:"#23252a", building:"#2d3035", ice:"#2f3439", sand:"#28282a",
-        minor:"#35383f", major:"#565a62", motorway:"#7d828b", rail:"#44484f", casing:"#111215",
-        border:"rgba(255,255,255,0.6)", border2:"rgba(255,255,255,0.2)", contour:"rgba(255,255,255,0.16)",
-        text:"#e8eaed", textWater:"#9dbad2", halo:"#101114"}
+  topo:{bg:"#272b31", land:"#272b31", water:"#0c1a28", waterway:"#33618a", wood:"#2c3b30", green:"#29322b",
+        urban:"#454a54", building:"#4d525c", ice:"#3a3f45", sand:"#33332f",
+        minor:"#3f434b", major:"#5d626b", motorway:"#878c95", rail:"#4a4e56", casing:"#16181b",
+        border:"rgba(255,255,255,0.65)", border2:"rgba(255,255,255,0.22)", contour:"rgba(255,255,255,0.15)",
+        text:"#eceef1", textWater:"#8fb3d2", halo:"#14161a"}
 };
 function setP(map,id,k,v){ try{ map.setPaintProperty(id,k,v); }catch(e){} }
 /* Satellit: Straßen ausblenden, Orte, Grenzen und Gewässer behalten */
@@ -300,13 +300,13 @@ function addDataLayers(map, prefix, src){
   map.addSource(P, {type:"geojson", data:src});
   const isLine = ["==",["get","typ"],"linie"];
   const isArrow = ["==",["get","typ"],"pfeil"], dashed = ["==",["get","stil"],"gestrichelt"];
-  map.addLayer({id:P+"-area-fill", type:"fill", source:P, filter:["==",["get","typ"],"flaeche"], paint:{"fill-color":["get","farbe"],"fill-opacity":0.22}});
+  map.addLayer({id:P+"-area-fill", type:"fill", source:P, filter:["==",["get","typ"],"flaeche"], paint:{"fill-color":["get","farbe"],"fill-opacity":0.14}});
   map.addLayer({id:P+"-area-line", type:"line", source:P, filter:["==",["get","typ"],"flaeche"], layout:{"line-join":"miter"}, paint:{"line-color":["get","farbe"],"line-width":W(1.5,3),"line-dasharray":[3,2]}});
   map.addLayer({id:P+"-casing", type:"line", source:P, filter:isLine, layout:{"line-join":"miter","line-cap":"butt"}, paint:{"line-color":"#000","line-opacity":0.55,"line-width":W(5,9)}});
   map.addLayer({id:P+"-line", type:"line", source:P, filter:["all",isLine,["!=",["get","stil"],"gestrichelt"]], layout:{"line-join":"miter","line-cap":"butt"}, paint:{"line-color":["get","farbe"],"line-width":W(2.5,5)}});
   map.addLayer({id:P+"-dash", type:"line", source:P, filter:["all",isLine,["==",["get","stil"],"gestrichelt"]], layout:{"line-join":"miter","line-cap":"butt"}, paint:{"line-color":["get","farbe"],"line-width":W(2.5,5),"line-dasharray":[2,1.5]}});
   map.addLayer({id:P+"-arrow-casing", type:"line", source:P, filter:isArrow, layout:{"line-join":"miter"}, paint:{"line-color":"#000","line-opacity":0.6,"line-width":W(3.5,6)}});
-  map.addLayer({id:P+"-arrow-fill", type:"fill", source:P, filter:isArrow, paint:{"fill-color":["get","farbe"],"fill-opacity":["case",dashed,0.22,0.5]}});
+  map.addLayer({id:P+"-arrow-fill", type:"fill", source:P, filter:isArrow, paint:{"fill-color":["get","farbe"],"fill-opacity":["case",dashed,0.18,0.38]}});
   map.addLayer({id:P+"-arrow-line", type:"line", source:P, filter:["all",isArrow,["!",dashed]], layout:{"line-join":"miter"}, paint:{"line-color":["get","farbe"],"line-width":W(1.5,3)}});
   map.addLayer({id:P+"-arrow-dash", type:"line", source:P, filter:["all",isArrow,dashed], layout:{"line-join":"miter"}, paint:{"line-color":["get","farbe"],"line-width":W(1.5,3),"line-dasharray":[3,2]}});
   map.addLayer({id:P+"-sel", type:"line", source:P, filter:["==",["get","id"],"__none"], layout:{"line-join":"miter"}, paint:{"line-color":"#ffffff","line-width":W(1.5,2.5),"line-gap-width":W(4,8)}});
@@ -362,8 +362,8 @@ function addImportLayers(map){
   [...new Set(importData.features.filter(f=>f.properties.art==="symbol").map(f=>f.properties.sidc))].forEach(s=>addImportIcon(map, "imp-"+s));
   if(!map.getStyle()) return;
   map.addSource("imp", {type:"geojson", data:importData, attribution: importData.meta && importData.meta.quelle ? "Lage: " + importData.meta.quelle : undefined});
-  map.addLayer({id:"imp-fill", type:"fill", source:"imp", filter:["==",["get","art"],"flaeche"], paint:{"fill-color":["get","fuellung"], "fill-opacity":["case",["==",["get","ebene"],"ukraine-terr"],0.07,["get","deckkraft"]]}}, before);
-  map.addLayer({id:"imp-line", type:"line", source:"imp", filter:["in",["get","art"],["literal",["flaeche","linie"]]], paint:{"line-color":["get","linie"], "line-width":["interpolate",["linear"],["zoom"],4,0.8,10,2], "line-opacity":["case",["==",["get","ebene"],"ukraine-terr"],0.3,0.95]}}, before);
+  map.addLayer({id:"imp-fill", type:"fill", source:"imp", filter:["==",["get","art"],"flaeche"], paint:{"fill-color":["get","fuellung"], "fill-opacity":["case",["==",["get","ebene"],"ukraine-terr"],0.05,["min",["get","deckkraft"],0.18]]}}, before);
+  map.addLayer({id:"imp-line", type:"line", source:"imp", filter:["in",["get","art"],["literal",["flaeche","linie"]]], paint:{"line-color":["get","linie"], "line-width":["interpolate",["linear"],["zoom"],4,0.8,10,2], "line-opacity":["case",["==",["get","ebene"],"ukraine-terr"],0.35,1]}}, before);
   const sym = (id, minzoom, size)=>({id, type:"symbol", source:"imp", minzoom, layout:{
       "icon-image":["concat","imp-",["get","sidc"]], "icon-size":["interpolate",["linear"],["zoom"],4,size*0.38,6,size*0.55,8,size*0.8,12,size],
       "icon-allow-overlap":false, "text-optional":true,
