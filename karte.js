@@ -6,10 +6,47 @@ const MAPTILER_KEY = "4TDQhzPsZwABTFDNshhB";
 const MT = n => `https://api.maptiler.com/maps/${n}/style.json?key=${MAPTILER_KEY}`;
 const STYLES = {
   sat:  {name:"Satellit", url:MT("hybrid-v4"), theme:"sat"},
-  karte:{name:"Karte",    url:MT("base-v4"),   theme:"dark"},
+  karte:{name:"Karte",    url:()=>darkStyle(), theme:null, own:true},
   topo: {name:"Gelände",  url:MT("topo-v4"),   theme:"topo"}
 };
 const STYLE_FREE = "https://tiles.openfreemap.org/styles/liberty";
+
+/* Eigener, klarer Kartenstil „Karte“ auf Basis von OpenFreeMap (OpenMapTiles-Schema).
+   Land dunkelgrau, Meer dunkelblau, klare Grenzen, deutsche Ortsnamen, kaum Straßen. */
+const styleOf = k => typeof STYLES[k].url === "function" ? STYLES[k].url() : STYLES[k].url;
+function darkStyle(){
+  const S = "omt", Z = (...a)=>["interpolate",["linear"],["zoom"],...a];
+  const NAME = ["coalesce",["get","name:de"],["get","name:latin"],["get","name"]];
+  const FONT = ["Noto Sans Regular"], BOLD = ["Noto Sans Bold"], ITAL = ["Noto Sans Italic"];
+  const halo = {"text-halo-color":"#0c0d10","text-halo-width":1.4};
+  const notMar = ["!=",["get","maritime"],1];
+  return {version:8, name:"Lagekarte dunkel",
+    glyphs:"https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+    sources:{[S]:{type:"vector", url:"https://tiles.openfreemap.org/planet"}},
+    layers:[
+      {id:"land", type:"background", paint:{"background-color":"#1d2025"}},
+      {id:"wood", type:"fill", source:S, "source-layer":"landcover", filter:["==",["get","class"],"wood"], paint:{"fill-color":"#202a23","fill-opacity":Z(3,0.5,8,1)}},
+      {id:"grass", type:"fill", source:S, "source-layer":"landcover", filter:["in",["get","class"],["literal",["grass","wetland"]]], paint:{"fill-color":"#1e2421","fill-opacity":0.8}},
+      {id:"ice", type:"fill", source:S, "source-layer":"landcover", filter:["in",["get","class"],["literal",["ice","glacier"]]], paint:{"fill-color":"#2b2f35"}},
+      {id:"urban", type:"fill", source:S, "source-layer":"landuse", minzoom:6, filter:["in",["get","class"],["literal",["residential","suburb","neighbourhood","industrial","commercial","retail"]]], paint:{"fill-color":"#272a30","fill-opacity":Z(6,0.5,10,1)}},
+      {id:"water", type:"fill", source:S, "source-layer":"water", paint:{"fill-color":"#0f1c29"}},
+      {id:"river", type:"line", source:S, "source-layer":"waterway", minzoom:5, filter:["in",["get","class"],["literal",["river","canal"]]], paint:{"line-color":"#24435d","line-width":Z(5,0.6,10,2,14,4)}},
+      {id:"stream", type:"line", source:S, "source-layer":"waterway", minzoom:10, filter:["==",["get","class"],"stream"], paint:{"line-color":"#203a50","line-width":0.8}},
+      {id:"road-major", type:"line", source:S, "source-layer":"transportation", minzoom:6, filter:["in",["get","class"],["literal",["motorway","trunk"]]], layout:{"line-join":"round"}, paint:{"line-color":"#3b3f47","line-width":Z(6,0.5,10,1.6,14,4)}},
+      {id:"road-primary", type:"line", source:S, "source-layer":"transportation", minzoom:9, filter:["in",["get","class"],["literal",["primary","secondary"]]], layout:{"line-join":"round"}, paint:{"line-color":"#32363d","line-width":Z(9,0.5,14,2.5)}},
+      {id:"rail", type:"line", source:S, "source-layer":"transportation", minzoom:9, filter:["==",["get","class"],"rail"], paint:{"line-color":"#34383f","line-width":1,"line-dasharray":[3,2]}},
+      {id:"border-state", type:"line", source:S, "source-layer":"boundary", minzoom:4.5, filter:["all",["==",["get","admin_level"],4],notMar], paint:{"line-color":"rgba(255,255,255,0.16)","line-width":Z(5,0.5,10,1.2),"line-dasharray":[3,2]}},
+      {id:"border-country", type:"line", source:S, "source-layer":"boundary", filter:["all",["==",["get","admin_level"],2],notMar,["!=",["get","disputed"],1]], layout:{"line-join":"round"}, paint:{"line-color":"#aeb3bb","line-width":Z(2,0.6,6,1.2,10,2)}},
+      {id:"border-disputed", type:"line", source:S, "source-layer":"boundary", filter:["all",["==",["get","admin_level"],2],notMar,["==",["get","disputed"],1]], paint:{"line-color":"#aeb3bb","line-width":Z(2,0.6,10,1.6),"line-dasharray":[2,2]}},
+      {id:"water-name", type:"symbol", source:S, "source-layer":"water_name", layout:{"text-field":NAME,"text-font":ITAL,"text-size":Z(3,10,8,13),"text-letter-spacing":0.05}, paint:{"text-color":"#6c8cab", ...halo}},
+      {id:"place-village", type:"symbol", source:S, "source-layer":"place", minzoom:10, filter:["in",["get","class"],["literal",["village","suburb"]]], layout:{"text-field":NAME,"text-font":FONT,"text-size":11}, paint:{"text-color":"#aeb3bb", ...halo}},
+      {id:"place-town", type:"symbol", source:S, "source-layer":"place", minzoom:7.5, filter:["==",["get","class"],"town"], layout:{"text-field":NAME,"text-font":FONT,"text-size":Z(8,11,12,13)}, paint:{"text-color":"#cfd3d9", ...halo}},
+      {id:"place-city", type:"symbol", source:S, "source-layer":"place", minzoom:4, filter:["==",["get","class"],"city"], layout:{"text-field":NAME,"text-font":BOLD,"text-size":Z(4,10,7,13,11,16),"symbol-sort-key":["get","rank"]}, paint:{"text-color":"#eceef1", ...halo}},
+      {id:"place-state", type:"symbol", source:S, "source-layer":"place", minzoom:5.5, maxzoom:9, filter:["==",["get","class"],"state"], layout:{"text-field":NAME,"text-font":FONT,"text-size":11,"text-transform":"uppercase","text-letter-spacing":0.12}, paint:{"text-color":"#7d838c", ...halo}},
+      {id:"place-country", type:"symbol", source:S, "source-layer":"place", maxzoom:9, filter:["==",["get","class"],"country"], layout:{"text-field":NAME,"text-font":BOLD,"text-size":Z(2,11,6,15),"text-transform":"uppercase","text-letter-spacing":0.15}, paint:{"text-color":"#c5c9cf", ...halo}}
+    ]};
+}
+
 
 /* Esri World Imagery: schärfere Satellitenbilder, nur über der Ukraine und erst ab Zoom 7.
    Der Schlüssel ist auf platano008.github.io beschränkt. */
@@ -325,16 +362,16 @@ function addImportLayers(map){
   [...new Set(importData.features.filter(f=>f.properties.art==="symbol").map(f=>f.properties.sidc))].forEach(s=>addImportIcon(map, "imp-"+s));
   if(!map.getStyle()) return;
   map.addSource("imp", {type:"geojson", data:importData, attribution: importData.meta && importData.meta.quelle ? "Lage: " + importData.meta.quelle : undefined});
-  map.addLayer({id:"imp-fill", type:"fill", source:"imp", filter:["==",["get","art"],"flaeche"], paint:{"fill-color":["get","fuellung"], "fill-opacity":["get","deckkraft"]}}, before);
-  map.addLayer({id:"imp-line", type:"line", source:"imp", filter:["in",["get","art"],["literal",["flaeche","linie"]]], paint:{"line-color":["get","linie"], "line-width":["interpolate",["linear"],["zoom"],4,1,10,2.2], "line-opacity":0.9}}, before);
+  map.addLayer({id:"imp-fill", type:"fill", source:"imp", filter:["==",["get","art"],"flaeche"], paint:{"fill-color":["get","fuellung"], "fill-opacity":["case",["==",["get","ebene"],"ukraine-terr"],0.07,["get","deckkraft"]]}}, before);
+  map.addLayer({id:"imp-line", type:"line", source:"imp", filter:["in",["get","art"],["literal",["flaeche","linie"]]], paint:{"line-color":["get","linie"], "line-width":["interpolate",["linear"],["zoom"],4,0.8,10,2], "line-opacity":["case",["==",["get","ebene"],"ukraine-terr"],0.3,0.95]}}, before);
   const sym = (id, minzoom, size)=>({id, type:"symbol", source:"imp", minzoom, layout:{
-      "icon-image":["concat","imp-",["get","sidc"]], "icon-size":["interpolate",["linear"],["zoom"],4,size*0.6,8,size*0.85,12,size],
+      "icon-image":["concat","imp-",["get","sidc"]], "icon-size":["interpolate",["linear"],["zoom"],4,size*0.38,6,size*0.55,8,size*0.8,12,size],
       "icon-allow-overlap":false, "text-optional":true,
-      "text-field":["step",["zoom"],"",6.5,["coalesce",["get","name"],""]], "text-font":font, "text-size":11,
+      "text-field":["step",["zoom"],"",7.5,["coalesce",["get","name"],""]], "text-font":font, "text-size":11,
       "text-offset":[0,1.5], "text-anchor":"top", "text-max-width":9},
     paint:{"text-color":"#ffffff", "text-halo-color":"rgba(0,0,0,0.85)", "text-halo-width":1.4}});
-  map.addLayer(sym("imp-sym", 3, 1), before);
-  map.addLayer(sym("imp-sym-small", 6.5, 0.9), before);
+  map.addLayer(sym("imp-sym", 4.5, 1), before);
+  map.addLayer(sym("imp-sym-small", 7.5, 0.9), before);
   applyImportFilters(map);
 }
 function setImportHidden(map, ids){
@@ -362,7 +399,7 @@ function importLegend(project, inView){
 
 function createMap(opts){
   let current = opts.style || "sat", free = false, errs = 0, globe = opts.globe!==false;
-  const map = new maplibregl.Map({container:opts.container, style:STYLES[current].url, center:START.center, zoom:START.zoom,
+  const map = new maplibregl.Map({container:opts.container, style:styleOf(current), center:START.center, zoom:START.zoom,
     attributionControl:false, doubleClickZoom: opts.doubleClickZoom!==false});
   map.addControl(new maplibregl.NavigationControl(), "top-right");
   map.addControl(new maplibregl.ScaleControl({unit:"metric"}), "bottom-right");
@@ -383,13 +420,14 @@ function createMap(opts){
   map.on("style.load", ()=>{
     styleReady = true;
     try{ map.setProjection({type: globe ? "globe" : "mercator"}); }catch(e){}
+    const logo = document.getElementById("mtLogo"); if(logo) logo.hidden = free || !!STYLES[current].own;
     const th = free ? "dark" : STYLES[current].theme;
     if(th){ try{ applyTheme(map, th); }catch(e){ console.warn("Farbschema:", e); } }
     if(!free && current==="sat") addEsri(map);
     if(importData){ try{ addImportLayers(map); }catch(e){ console.warn("Lagedaten:", e); } }
     if(opts.onStyle) opts.onStyle(map);
   });
-  map.setBase = k=>{ if(free || !STYLES[k] || k===current) return; current = k; errs = 0; styleReady = false; map.setStyle(STYLES[k].url, {diff:false}); };
+  map.setBase = k=>{ if(free || !STYLES[k] || k===current) return; current = k; errs = 0; styleReady = false; map.setStyle(styleOf(k), {diff:false}); };
   map.setGlobe = g=>{ globe = g; try{ map.setProjection({type: g ? "globe" : "mercator"}); }catch(e){} };
   map.currentBase = ()=>current;
   map.isFree = ()=>free;
@@ -443,7 +481,7 @@ function niceScale(maxMeters){
   return p;
 }
 function attributionFor(map, center, zoom){
-  if(map.isFree && map.isFree()) return "Karte: © OpenFreeMap, © OpenStreetMap-Mitwirkende";
+  if((map.isFree && map.isFree()) || map.currentBase()==="karte") return "Karte: © OpenFreeMap, © OpenStreetMap-Mitwirkende";
   let a = "Karte: © MapTiler, © OpenStreetMap-Mitwirkende";
   const [w,s,e,n] = ESRI_BOUNDS;
   if(map.currentBase()==="sat" && !esriOff && zoom >= 7 && center[0]>w && center[0]<e && center[1]>s && center[1]<n)
@@ -524,10 +562,10 @@ async function exportImage(map, o){
   const iw = Math.round(sideInner.w/2), ih = Math.round(sideInner.h/2);
   const inUA = c.lng > ESRI_BOUNDS[0] && c.lng < ESRI_BOUNDS[2] && c.lat > ESRI_BOUNDS[1] && c.lat < ESRI_BOUNDS[3];
   const insetMap = inUA ? {bounds:[[22.1,44.3],[40.2,52.4]], fitBoundsOptions:{padding:6}} : {center:c, zoom:Math.max(1, zoom - 4.5)};
-  const useDark = !(map.isFree && map.isFree());
-  const inset = o.overview===false ? null : offMap({w:iw, h:ih, map:Object.assign({style: useDark ? STYLES.karte.url : map.getStyle()}, insetMap),
-    onLoad: m=>{ if(useDark) applyTheme(m, "dark"); }});
-  if(inset) inset.m.on("style.load", ()=>{ if(useDark) applyTheme(inset.m, "dark"); });
+  const useDark = true;
+  const inset = o.overview===false ? null : offMap({w:iw, h:ih, map:Object.assign({style: useDark ? styleOf("karte") : map.getStyle()}, insetMap),
+    onLoad: ()=>{}});
+
 
   try{
     await Promise.all([main.ready, inset ? inset.ready : null]);
