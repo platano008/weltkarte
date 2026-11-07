@@ -172,19 +172,52 @@ function areaKm2(ring){
   for(let i=0;i<ring.length;i++){ const [x1,y1]=ring[i], [x2,y2]=ring[(i+1)%ring.length]; s += (x2-x1)*r*(2+Math.sin(y1*r)+Math.sin(y2*r)); }
   return Math.abs(s*R*R/2);
 }
-/* Pfeilspitze: Dreieck am Ende, Linie endet an der Basis */
+/* Stoßpfeil: geschwungener, zur Spitze breiter werdender Körper mit Schwalbenschwanz und großer Spitze.
+   Gerechnet in einer lokalen, längentreuen Ebene (x = Länge · cos(Breite), y = Breite). */
+function smoothPath(pts, per){
+  if(pts.length < 3) return pts.slice();
+  const out = [], P = i => pts[Math.max(0, Math.min(pts.length-1, i))];
+  for(let i=0;i<pts.length-1;i++){
+    const p0=P(i-1), p1=P(i), p2=P(i+1), p3=P(i+2);
+    for(let s=0;s<per;s++){
+      const t=s/per, t2=t*t, t3=t2*t;
+      out.push([0,1].map(k=>0.5*((2*p1[k]) + (-p0[k]+p2[k])*t + (2*p0[k]-5*p1[k]+4*p2[k]-p3[k])*t2 + (-p0[k]+3*p1[k]-3*p2[k]+p3[k])*t3)));
+    }
+  }
+  out.push(pts[pts.length-1]);
+  return out;
+}
 function arrow(coords){
-  const n = coords.length; if(n<2) return {line:coords, head:null};
-  const [x2,y2]=coords[n-1], [x1,y1]=coords[n-2];
-  const k = Math.cos(y2*Math.PI/180)||1;
-  let total=0; for(let i=1;i<n;i++){ total += Math.hypot((coords[i][0]-coords[i-1][0])*k, coords[i][1]-coords[i-1][1]); }
-  const dx=(x2-x1)*k, dy=y2-y1, len=Math.hypot(dx,dy); if(!len) return {line:coords, head:null};
-  const size = Math.min(Math.max(total*0.14, 0.01), Math.min(len*0.9, 0.8));
-  const ux=dx/len, uy=dy/len, bx=-ux*size, by=-uy*size, px=-uy*size*0.6, py=ux*size*0.6;
-  const base=[x2+bx/k, y2+by];
-  const head=[[x2,y2],[x2+(bx+px)/k, y2+by+py],[x2+(bx-px)/k, y2+by-py],[x2,y2]];
-  const line = coords.slice(0,-1).concat([[x2+bx*0.5/k, y2+by*0.5]]);
-  return {line, head, base};
+  const n = coords.length; if(n<2) return {axis:coords, body:null};
+  const lat0 = coords.reduce((a,c)=>a+c[1],0)/n, k = Math.cos(lat0*Math.PI/180)||1;
+  const pts = smoothPath(coords.map(([x,y])=>[x*k, y]), 14);
+  const dist = [0]; for(let i=1;i<pts.length;i++) dist.push(dist[i-1] + Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]));
+  const L = dist[dist.length-1]; if(!L) return {axis:coords, body:null};
+  const w = L*0.042;                       /* halbe Breite des Körpers an der Spitze */
+  const headLen = Math.min(L*0.28, w*4.2), headW = w*2.6, tailW = w*0.55, notch = w*1.1;
+  const at = d=>{                           /* Punkt und Richtung bei Strecke d */
+    let i = 1; while(i < dist.length-1 && dist[i] < d) i++;
+    const a = pts[i-1], b = pts[i], seg = (dist[i]-dist[i-1])||1e-12, t = Math.max(0, Math.min(1, (d-dist[i-1])/seg));
+    const dx = b[0]-a[0], dy = b[1]-a[1], l = Math.hypot(dx,dy)||1e-12;
+    return {p:[a[0]+dx*t, a[1]+dy*t], d:[dx/l, dy/l]};
+  };
+  const tip = pts[pts.length-1];
+  const baseD = L - headLen, steps = Math.max(12, Math.min(90, Math.round(pts.length*1.2)));
+  const left = [], right = [];
+  for(let s=0;s<=steps;s++){
+    const d = baseD*s/steps, {p, d:dir} = at(d), f = s/steps, hw = tailW + (w - tailW)*Math.pow(f, 0.8);
+    let nx = -dir[1], ny = dir[0];
+    if(s===steps){ const cx = tip[0]-p[0], cy = tip[1]-p[1], l = Math.hypot(cx,cy)||1; nx = -cy/l; ny = cx/l; }
+    left.push([p[0]+nx*hw, p[1]+ny*hw]); right.push([p[0]-nx*hw, p[1]-ny*hw]);
+  }
+  const base = at(baseD);
+  const cd = [tip[0]-base.p[0], tip[1]-base.p[1]], cl = Math.hypot(cd[0], cd[1]) || 1, bn = [-cd[1]/cl, cd[0]/cl];
+  const start = at(0), notchPt = [start.p[0] + start.d[0]*notch, start.p[1] + start.d[1]*notch];
+  const ring = [notchPt, ...left,
+    [base.p[0]+bn[0]*headW, base.p[1]+bn[1]*headW], tip, [base.p[0]-bn[0]*headW, base.p[1]-bn[1]*headW],
+    ...right.reverse(), notchPt];
+  const back = ([x,y])=>[+(x/k).toFixed(6), +y.toFixed(6)];
+  return {axis: pts.filter((_,i)=>i%3===0 || i===pts.length-1).map(back), body: ring.map(back)};
 }
 function toFeatures(els){
   const f = [];
@@ -193,8 +226,8 @@ function toFeatures(els){
     if(el.typ==="linie" && el.koordinaten.length>1) f.push({type:"Feature", properties:props, geometry:{type:"LineString", coordinates:el.koordinaten}});
     if(el.typ==="pfeil" && el.koordinaten.length>1){
       const a = arrow(el.koordinaten);
-      f.push({type:"Feature", properties:props, geometry:{type:"LineString", coordinates:a.line}});
-      if(a.head) f.push({type:"Feature", properties:{...props, typ:"pfeilspitze"}, geometry:{type:"Polygon", coordinates:[a.head]}});
+      if(a.body) f.push({type:"Feature", properties:props, geometry:{type:"Polygon", coordinates:[a.body]}});
+      f.push({type:"Feature", properties:{...props, typ:"pfeilachse"}, geometry:{type:"LineString", coordinates:a.axis}});
     }
     if(el.typ==="flaeche" && el.koordinaten.length>2){
       const ring = el.koordinaten.concat([el.koordinaten[0]]);
@@ -209,17 +242,21 @@ const W = (a,b)=>["interpolate",["linear"],["zoom"],4,a,12,b];
 function addDataLayers(map, prefix, src){
   const P = prefix;
   map.addSource(P, {type:"geojson", data:src});
-  const isLine = ["in",["get","typ"],["literal",["linie","pfeil"]]];
+  const isLine = ["==",["get","typ"],"linie"];
+  const isArrow = ["==",["get","typ"],"pfeil"], dashed = ["==",["get","stil"],"gestrichelt"];
   map.addLayer({id:P+"-area-fill", type:"fill", source:P, filter:["==",["get","typ"],"flaeche"], paint:{"fill-color":["get","farbe"],"fill-opacity":0.22}});
   map.addLayer({id:P+"-area-line", type:"line", source:P, filter:["==",["get","typ"],"flaeche"], layout:{"line-join":"miter"}, paint:{"line-color":["get","farbe"],"line-width":W(1.5,3),"line-dasharray":[3,2]}});
   map.addLayer({id:P+"-casing", type:"line", source:P, filter:isLine, layout:{"line-join":"miter","line-cap":"butt"}, paint:{"line-color":"#000","line-opacity":0.55,"line-width":W(5,9)}});
   map.addLayer({id:P+"-line", type:"line", source:P, filter:["all",isLine,["!=",["get","stil"],"gestrichelt"]], layout:{"line-join":"miter","line-cap":"butt"}, paint:{"line-color":["get","farbe"],"line-width":W(2.5,5)}});
   map.addLayer({id:P+"-dash", type:"line", source:P, filter:["all",isLine,["==",["get","stil"],"gestrichelt"]], layout:{"line-join":"miter","line-cap":"butt"}, paint:{"line-color":["get","farbe"],"line-width":W(2.5,5),"line-dasharray":[2,1.5]}});
-  map.addLayer({id:P+"-head", type:"fill", source:P, filter:["==",["get","typ"],"pfeilspitze"], paint:{"fill-color":["get","farbe"],"fill-outline-color":"#000"}});
+  map.addLayer({id:P+"-arrow-casing", type:"line", source:P, filter:isArrow, layout:{"line-join":"miter"}, paint:{"line-color":"#000","line-opacity":0.6,"line-width":W(3.5,6)}});
+  map.addLayer({id:P+"-arrow-fill", type:"fill", source:P, filter:isArrow, paint:{"fill-color":["get","farbe"],"fill-opacity":["case",dashed,0.22,0.5]}});
+  map.addLayer({id:P+"-arrow-line", type:"line", source:P, filter:["all",isArrow,["!",dashed]], layout:{"line-join":"miter"}, paint:{"line-color":["get","farbe"],"line-width":W(1.5,3)}});
+  map.addLayer({id:P+"-arrow-dash", type:"line", source:P, filter:["all",isArrow,dashed], layout:{"line-join":"miter"}, paint:{"line-color":["get","farbe"],"line-width":W(1.5,3),"line-dasharray":[3,2]}});
   map.addLayer({id:P+"-sel", type:"line", source:P, filter:["==",["get","id"],"__none"], layout:{"line-join":"miter"}, paint:{"line-color":"#ffffff","line-width":W(1.5,2.5),"line-gap-width":W(4,8)}});
   map.addLayer({id:P+"-hit", type:"line", source:P, paint:{"line-color":"#000","line-opacity":0,"line-width":18}});
 }
-const DATA_LAYERS = p => [p+"-area-fill",p+"-area-line",p+"-casing",p+"-line",p+"-dash",p+"-head",p+"-sel",p+"-hit"];
+const DATA_LAYERS = p => [p+"-area-fill",p+"-area-line",p+"-casing",p+"-line",p+"-dash",p+"-arrow-casing",p+"-arrow-fill",p+"-arrow-line",p+"-arrow-dash",p+"-sel",p+"-hit"];
 
 /* ---------------- Karte erstellen ---------------- */
 function createMap(opts){
@@ -341,7 +378,12 @@ function legendItems(shown){
 async function drawLegendRow(g, it, x, y, u, maxW){
   const sw = 26*u, cy = y + 11*u;
   if(it.kind==="flaeche"){ g.fillStyle = it.color; g.globalAlpha = .35; g.fillRect(x, cy-7*u, sw, 14*u); g.globalAlpha = 1; g.strokeStyle = it.color; g.lineWidth = 1.5*u; g.setLineDash([4*u,3*u]); g.strokeRect(x, cy-7*u, sw, 14*u); g.setLineDash([]); }
-  else if(it.kind==="linie" || it.kind==="pfeil"){
+  else if(it.kind==="pfeil"){
+    g.beginPath(); g.moveTo(x, cy+1*u); g.lineTo(x+4*u, cy+3.5*u); g.lineTo(x, cy+6*u); g.lineTo(x+16*u, cy+4*u); g.lineTo(x+16*u, cy+7*u); g.lineTo(x+sw, cy); g.lineTo(x+16*u, cy-7*u); g.lineTo(x+16*u, cy-4*u); g.closePath();
+    g.fillStyle = it.color; g.globalAlpha = it.dash ? .3 : .6; g.fill(); g.globalAlpha = 1;
+    g.strokeStyle = it.color; g.lineWidth = 1.5*u; if(it.dash) g.setLineDash([4*u,3*u]); g.lineJoin = "miter"; g.stroke(); g.setLineDash([]);
+  }
+  else if(it.kind==="linie"){
     g.strokeStyle = it.color; g.lineWidth = 3*u; if(it.dash) g.setLineDash([6*u,4*u]);
     g.beginPath(); g.moveTo(x, cy); g.lineTo(x + sw - (it.kind==="pfeil"?7*u:0), cy); g.stroke(); g.setLineDash([]);
     if(it.kind==="pfeil"){ g.fillStyle = it.color; g.beginPath(); g.moveTo(x+sw, cy); g.lineTo(x+sw-9*u, cy-6*u); g.lineTo(x+sw-9*u, cy+6*u); g.closePath(); g.fill(); }
