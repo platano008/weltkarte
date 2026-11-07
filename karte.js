@@ -39,16 +39,16 @@ const START = {center:[31.6,48.6], zoom:5.3};
 
 /* ---------------- Farbschema ---------------- */
 const PAL = {
-  dark:{bg:"#0f1012", land:"#14161a", water:"#121c26", waterway:"#1d2b38", wood:"#161c17", green:"#15191a",
-        urban:"#1a1c20", building:"#23262b", ice:"#24282c", sand:"#1c1d1e",
-        minor:"#2a2d33", major:"#474b53", motorway:"#6f747d", rail:"#383c43", casing:"#0b0c0e",
+  dark:{bg:"#121418", land:"#16181c", water:"#1b2f42", waterway:"#2b4a63", wood:"#1f2d23", green:"#1c261e",
+        urban:"#1e2024", building:"#26292e", ice:"#2a2f35", sand:"#22221f",
+        minor:"#2c2f35", major:"#4a4e56", motorway:"#727780", rail:"#3a3e45", casing:"#0c0d0f",
         border:"rgba(255,255,255,0.55)", border2:"rgba(255,255,255,0.16)", contour:"rgba(255,255,255,0.12)",
-        text:"#e3e5e8", textWater:"#7c95ab", halo:"#0b0c0e"},
-  topo:{bg:"#16181b", land:"#1a1c20", water:"#16232f", waterway:"#243545", wood:"#1d251f", green:"#1b2120",
-        urban:"#212328", building:"#2b2e33", ice:"#2b2f33", sand:"#232426",
-        minor:"#34373e", major:"#545961", motorway:"#7b818a", rail:"#42464e", casing:"#101114",
+        text:"#e3e5e8", textWater:"#8fb0cb", halo:"#0c0d0f"},
+  topo:{bg:"#181a1e", land:"#1b1d21", water:"#1e3549", waterway:"#33536d", wood:"#243428", green:"#212b22",
+        urban:"#23252a", building:"#2d3035", ice:"#2f3439", sand:"#28282a",
+        minor:"#35383f", major:"#565a62", motorway:"#7d828b", rail:"#44484f", casing:"#111215",
         border:"rgba(255,255,255,0.6)", border2:"rgba(255,255,255,0.2)", contour:"rgba(255,255,255,0.16)",
-        text:"#e8eaed", textWater:"#8ba3b8", halo:"#0f1012"}
+        text:"#e8eaed", textWater:"#9dbad2", halo:"#101114"}
 };
 function setP(map,id,k,v){ try{ map.setPaintProperty(id,k,v); }catch(e){} }
 /* Satellit: Straßen ausblenden, Orte, Grenzen und Gewässer behalten */
@@ -69,6 +69,19 @@ function applyTheme(map, kind){
     const key = (l.id+" "+(l["source-layer"]||"")).toLowerCase();
     const t = l.type;
     if(t==="background"){ setP(map,l.id,"background-color",p.bg); continue; }
+    const sl = (l["source-layer"]||"").toLowerCase();
+    if(t==="fill" && /^(landcover|land_cover|globallandcover)$/.test(sl)){
+      /* Landbedeckung nach Klasse einfärben, damit Wald und Grünflächen auch von weitem sichtbar sind */
+      setP(map,l.id,"fill-pattern",undefined);
+      setP(map,l.id,"fill-color",["match",["get","class"], ["wood","forest","tree"], p.wood, ["ice","glacier","snow"], p.ice,
+        ["sand","beach","bare_rock","rock","desert","scree"], p.sand, p.green]);
+      setP(map,l.id,"fill-outline-color","rgba(0,0,0,0)"); setP(map,l.id,"fill-opacity",0.95);
+      continue;
+    }
+    if(t==="fill" && /^(water|ocean)$/.test(sl)){
+      setP(map,l.id,"fill-pattern",undefined); setP(map,l.id,"fill-color",p.water); setP(map,l.id,"fill-outline-color",p.water); setP(map,l.id,"fill-opacity",1);
+      continue;
+    }
     if(t==="fill" || t==="fill-extrusion"){
       const c = /water|ocean|sea|lake|reservoir/.test(key) ? p.water
         : /wood|forest/.test(key) ? p.wood
@@ -91,6 +104,7 @@ function applyTheme(map, kind){
         : /trunk|primary/.test(key) ? p.major
         : p.minor;
       setP(map,l.id,"line-pattern",undefined); setP(map,l.id,"line-color",c);
+      if(c===p.waterway) setP(map,l.id,"line-opacity",1);
       continue;
     }
     if(t==="symbol"){
@@ -361,7 +375,7 @@ function createMap(opts){
     const fromMT = e && e.error && /api\.maptiler\.com/.test(String(e.error.url || e.error.message || ""));
     if((st===401 || st===403 || st===429) && (fromMT || !e.sourceId)){
       free = true; const logo = document.getElementById("mtLogo"); if(logo) logo.hidden = true;
-      styleReady = false; map.setStyle(STYLE_FREE);
+      styleReady = false; map.setStyle(STYLE_FREE, {diff:false});
       if(opts.onNotice) opts.onNotice(st===429 ? "MapTiler-Kontingent aufgebraucht – Ersatzkarte aktiv" : "MapTiler-Schlüssel abgelehnt – Ersatzkarte aktiv");
     }
   });
@@ -370,12 +384,12 @@ function createMap(opts){
     styleReady = true;
     try{ map.setProjection({type: globe ? "globe" : "mercator"}); }catch(e){}
     const th = free ? "dark" : STYLES[current].theme;
-    if(th) applyTheme(map, th);
+    if(th){ try{ applyTheme(map, th); }catch(e){ console.warn("Farbschema:", e); } }
     if(!free && current==="sat") addEsri(map);
-    if(importData) addImportLayers(map);
+    if(importData){ try{ addImportLayers(map); }catch(e){ console.warn("Lagedaten:", e); } }
     if(opts.onStyle) opts.onStyle(map);
   });
-  map.setBase = k=>{ if(free || !STYLES[k] || k===current) return; current = k; errs = 0; styleReady = false; map.setStyle(STYLES[k].url); };
+  map.setBase = k=>{ if(free || !STYLES[k] || k===current) return; current = k; errs = 0; styleReady = false; map.setStyle(STYLES[k].url, {diff:false}); };
   map.setGlobe = g=>{ globe = g; try{ map.setProjection({type: g ? "globe" : "mercator"}); }catch(e){} };
   map.currentBase = ()=>current;
   map.isFree = ()=>free;
