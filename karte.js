@@ -267,128 +267,225 @@ function symbolMarker(map, el, o){
 }
 
 /* ---------------- Bild-Export ---------------- */
-/* Rendert einen Ausschnitt (frame in CSS-Pixeln relativ zur Karte) neu mit höherer Pixeldichte
-   und legt Titel, NATO-Symbole, Legende, Maßstab und Quellenangabe darüber. */
+/* Aufbau wie eine Lagekarte zum Teilen: Karte links (bzw. oben), Seitenleiste mit Titel, Legende,
+   Übersichtskarte und Quellen. Die Ausgabegröße hängt nur von Format und Qualität ab, nicht vom Bildschirm. */
+const QUAL = {2:1920, 3:2880, 4:3840};
+function exportLayout(ratio, q){
+  const TW = QUAL[q] || 2880, TH = Math.round(TW/ratio), u = TW/1000, p = Math.round(12*u);
+  if(ratio >= 1.2){
+    const sw = Math.round(300*u);
+    return {TW, TH, u, p, portrait:false, map:{x:p, y:p, w:TW-3*p-sw, h:TH-2*p}, side:{x:TW-p-sw, y:p, w:sw, h:TH-2*p}};
+  }
+  const ph = Math.round(TH*0.3);
+  return {TW, TH, u, p, portrait:true, map:{x:p, y:p, w:TW-2*p, h:TH-3*p-ph}, side:{x:p, y:TH-p-ph, w:TW-2*p, h:ph}};
+}
 function loadImg(src){ return new Promise((res,rej)=>{ const i = new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
+const svgImgCache = {};
+function symbolImg(el, size){
+  const r = symbolSVG(el, size);
+  let svg = r.svg; if(!/xmlns=/.test(svg)) svg = svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
+  const key = svg;
+  if(!svgImgCache[key]) svgImgCache[key] = loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg)).then(img=>({img, r}), ()=>null);
+  return svgImgCache[key];
+}
 function niceScale(maxMeters){
   const p = Math.pow(10, Math.floor(Math.log10(maxMeters)));
   for(const f of [5,2,1]) if(f*p <= maxMeters) return f*p;
   return p;
 }
 function attributionFor(map, center, zoom){
-  if(map.isFree && map.isFree()) return "© OpenFreeMap · © OpenStreetMap-Mitwirkende";
-  let a = "© MapTiler · © OpenStreetMap-Mitwirkende";
+  if(map.isFree && map.isFree()) return "Karte: © OpenFreeMap, © OpenStreetMap-Mitwirkende";
+  let a = "Karte: © MapTiler, © OpenStreetMap-Mitwirkende";
   const [w,s,e,n] = ESRI_BOUNDS;
   if(map.currentBase()==="sat" && !esriOff && zoom >= 7 && center[0]>w && center[0]<e && center[1]>s && center[1]<n)
-    a = "Powered by Esri · Esri, Maxar, Earthstar Geographics · " + a;
+    a += ". Satellit: Powered by Esri (Esri, Maxar, Earthstar Geographics)";
   return a;
 }
-async function exportImage(map, o){
-  const PR = o.scale || 2, fw = Math.round(o.frame.w), fh = Math.round(o.frame.h);
-  const c = map.unproject([o.frame.x + fw/2, o.frame.y + fh/2]);
-  const zoom = map.getZoom(), bearing = map.getBearing(), pitch = map.getPitch();
+function offMap(opts){
   const holder = document.createElement("div");
-  holder.style.cssText = `position:fixed;left:-${fw*2+100}px;top:0;width:${fw}px;height:${fh}px;pointer-events:none;opacity:0`;
+  holder.style.cssText = `position:fixed;left:-${opts.w*2+200}px;top:0;width:${opts.w}px;height:${opts.h}px;pointer-events:none;opacity:0`;
   document.body.appendChild(holder);
-  const style = map.getStyle();
-  const off = new maplibregl.Map({container:holder, style, center:c, zoom, bearing, pitch, interactive:false, attributionControl:false,
-    pixelRatio:PR, fadeDuration:0, preserveDrawingBuffer:true, canvasContextAttributes:{preserveDrawingBuffer:true}});
+  const m = new maplibregl.Map(Object.assign({container:holder, interactive:false, attributionControl:false, pixelRatio:2, fadeDuration:0,
+    preserveDrawingBuffer:true, canvasContextAttributes:{preserveDrawingBuffer:true}}, opts.map));
+  m.on("error", ()=>{});
+  const ready = new Promise(res=>{
+    const t = setTimeout(res, 45000);
+    m.once("load", ()=>{ opts.onLoad && opts.onLoad(m); m.once("idle", ()=>{ clearTimeout(t); res(); }); });
+  });
+  return {m, ready, done(){ try{ m.remove(); }catch(e){} holder.remove(); }};
+}
+function wrapText(g, text, maxW, maxLines){
+  const words = text.split(/\s+/).filter(Boolean), lines = [];
+  let cur = "";
+  for(const w of words){
+    const t = cur ? cur+" "+w : w;
+    if(g.measureText(t).width <= maxW || !cur) cur = t; else { lines.push(cur); cur = w; }
+  }
+  if(cur) lines.push(cur);
+  if(maxLines && lines.length > maxLines){ lines.length = maxLines; lines[maxLines-1] += " …"; }
+  return lines;
+}
+function legendItems(shown){
+  const items = [], seen = new Set();
+  for(const el of shown){
+    let it;
+    if(el.typ==="symbol") it = {kind:"symbol", el, label: el.name || describe(el)};
+    else it = {kind: el.typ, color: el.farbe||"#f2ff1a", dash: el.stil==="gestrichelt", label: el.name || {linie:"Linie", pfeil:"Bewegung", flaeche:"Gebiet"}[el.typ]};
+    const key = it.kind + "|" + (it.kind==="symbol" ? sidcOf(el) : it.color + it.dash) + "|" + it.label;
+    if(seen.has(key)) continue; seen.add(key); items.push(it);
+  }
+  const order = {flaeche:0, linie:1, pfeil:2, symbol:3};
+  return items.sort((a,b)=>order[a.kind]-order[b.kind]);
+}
+async function drawLegendRow(g, it, x, y, u, maxW){
+  const sw = 26*u, cy = y + 11*u;
+  if(it.kind==="flaeche"){ g.fillStyle = it.color; g.globalAlpha = .35; g.fillRect(x, cy-7*u, sw, 14*u); g.globalAlpha = 1; g.strokeStyle = it.color; g.lineWidth = 1.5*u; g.setLineDash([4*u,3*u]); g.strokeRect(x, cy-7*u, sw, 14*u); g.setLineDash([]); }
+  else if(it.kind==="linie" || it.kind==="pfeil"){
+    g.strokeStyle = it.color; g.lineWidth = 3*u; if(it.dash) g.setLineDash([6*u,4*u]);
+    g.beginPath(); g.moveTo(x, cy); g.lineTo(x + sw - (it.kind==="pfeil"?7*u:0), cy); g.stroke(); g.setLineDash([]);
+    if(it.kind==="pfeil"){ g.fillStyle = it.color; g.beginPath(); g.moveTo(x+sw, cy); g.lineTo(x+sw-9*u, cy-6*u); g.lineTo(x+sw-9*u, cy+6*u); g.closePath(); g.fill(); }
+  } else {
+    const s = await symbolImg(it.el, 22);
+    if(s){ const sc = Math.min(sw/s.r.w, 20*u/s.r.h); g.drawImage(s.img, x + (sw - s.r.w*sc)/2, cy - s.r.h*sc/2, s.r.w*sc, s.r.h*sc); }
+  }
+  g.fillStyle = "#e6e4d8"; g.font = `500 ${12*u}px "Archivo", Arial, sans-serif`; g.textBaseline = "middle";
+  let t = it.label; while(g.measureText(t).width > maxW - sw - 12*u && t.length > 4) t = t.slice(0,-2);
+  if(t !== it.label) t = t.replace(/\s*$/,"") + "…";
+  g.fillText(t, x + sw + 12*u, cy);
+}
+
+async function exportImage(map, o){
+  const ratio = o.ratio || 16/9, L = exportLayout(ratio, o.quality || 3), u = L.u;
+  const fw = o.frame.w, fh = o.frame.h;
+  const c = map.unproject([o.frame.x + fw/2, o.frame.y + fh/2]);
+  const cssW = Math.round(L.map.w/2), cssH = Math.round(L.map.h/2);
+  const zoom = map.getZoom() + Math.log2(cssW / fw), bearing = map.getBearing(), pitch = map.getPitch();
+
+  const main = offMap({w:cssW, h:cssH, map:{style:map.getStyle(), center:c, zoom, bearing, pitch},
+    onLoad: m=>{ try{ if(m.getLayer("lage-sel")) m.setFilter("lage-sel",["==",["get","id"],"__none"]); }catch(e){} }});
+  /* Übersichtskarte */
+  const sideInner = L.portrait ? {w: L.side.w*0.38, h: L.side.h - 40*u} : {w: L.side.w - 40*u, h: (L.side.w - 40*u)*0.62};
+  const iw = Math.round(sideInner.w/2), ih = Math.round(sideInner.h/2);
+  const inUA = c.lng > ESRI_BOUNDS[0] && c.lng < ESRI_BOUNDS[2] && c.lat > ESRI_BOUNDS[1] && c.lat < ESRI_BOUNDS[3];
+  const insetMap = inUA ? {bounds:[[22.1,44.3],[40.2,52.4]], fitBoundsOptions:{padding:6}} : {center:c, zoom:Math.max(1, zoom - 4.5)};
+  const useDark = !(map.isFree && map.isFree());
+  const inset = o.overview===false ? null : offMap({w:iw, h:ih, map:Object.assign({style: useDark ? STYLES.karte.url : map.getStyle()}, insetMap),
+    onLoad: m=>{ if(useDark) applyTheme(m, "dark"); }});
+  if(inset) inset.m.on("style.load", ()=>{ if(useDark) applyTheme(inset.m, "dark"); });
+
   try{
-    await new Promise((res,rej)=>{
-      const t = setTimeout(()=>res(), 45000);
-      off.once("load", ()=>{
-        try{ if(off.getLayer("lage-sel")) off.setFilter("lage-sel",["==",["get","id"],"__none"]); }catch(e){}
-        off.once("idle", ()=>{ clearTimeout(t); res(); });
-      });
-      off.on("error", ()=>{});
-    });
-    const src = off.getCanvas();
-    const W = src.width, H = src.height, s = W / fw;
-    const out = document.createElement("canvas"); out.width = W; out.height = H;
+    await Promise.all([main.ready, inset ? inset.ready : null]);
+    const out = document.createElement("canvas"); out.width = L.TW; out.height = L.TH;
     const g = out.getContext("2d");
-    g.drawImage(src, 0, 0, W, H);
-    try{ if(document.fonts) await Promise.all([document.fonts.load(`${40*s}px "Setline Display"`), document.fonts.load(`500 ${12*s}px "IBM Plex Mono"`)]); }catch(e){}
+    try{ if(document.fonts) await Promise.all([document.fonts.load(`${40*u}px "Setline Display"`), document.fonts.load(`500 ${12*u}px "IBM Plex Mono"`), document.fonts.load(`500 ${12*u}px "Archivo"`)]); }catch(e){}
+    g.fillStyle = "#0b0b0a"; g.fillRect(0, 0, L.TW, L.TH);
 
-    /* nur was im Ausschnitt liegt */
-    const inView = ll=>{ const p = off.project(ll); return p.x >= -40 && p.y >= -40 && p.x <= fw+40 && p.y <= fh+40; };
+    /* Karte */
+    const M = L.map, src = main.m.getCanvas();
+    g.drawImage(src, M.x, M.y, M.w, M.h);
+    const sx = M.w / cssW;
+    const inView = ll=>{ const p = main.m.project(ll); return p.x >= -20 && p.y >= -20 && p.x <= cssW+20 && p.y <= cssH+20; };
     const shown = (o.elements||[]).filter(el=> el.typ==="symbol" ? inView(el.koordinaten) : (el.koordinaten||[]).some(inView));
-    const syms = shown.filter(el=>el.typ==="symbol");
-    /* NATO-Symbole */
-    for(const el of syms){
-      const p = off.project(el.koordinaten);
-      const r = symbolSVG(el, 30*(o.symbolScale||1));
-      let svg = r.svg; if(!/xmlns=/.test(svg)) svg = svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
-      try{
-        const img = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg));
-        g.save(); g.shadowColor = "rgba(0,0,0,0.6)"; g.shadowBlur = 3*s; g.shadowOffsetY = 1*s;
-        g.drawImage(img, (p.x - r.ax)*s, (p.y - r.ay)*s, r.w*s, r.h*s); g.restore();
-      }catch(e){}
+    g.save(); g.beginPath(); g.rect(M.x, M.y, M.w, M.h); g.clip();
+    for(const el of shown.filter(e=>e.typ==="symbol")){
+      const p = main.m.project(el.koordinaten), s = await symbolImg(el, 30);
+      if(!s) continue;
+      g.save(); g.shadowColor = "rgba(0,0,0,0.6)"; g.shadowBlur = 3*sx; g.shadowOffsetY = 1*sx;
+      g.drawImage(s.img, M.x + (p.x - s.r.ax)*sx, M.y + (p.y - s.r.ay)*sx, s.r.w*sx, s.r.h*sx); g.restore();
+    }
+    /* Maßstab */
+    const mpp = 40075016.686*Math.cos(c.lat*Math.PI/180)/(512*Math.pow(2,zoom)) / sx;
+    const meters = niceScale(mpp*M.w*0.15), bar = meters/mpp, label = meters >= 1000 ? (meters/1000).toLocaleString("de-DE")+" km" : meters+" m";
+    g.font = `600 ${13*u}px "IBM Plex Mono", Menlo, monospace`;
+    const lw = g.measureText(label).width, bx = M.x + 16*u, byy = M.y + M.h - 16*u;
+    g.fillStyle = "rgba(11,11,10,0.82)"; g.fillRect(bx, byy - 34*u, bar + lw + 40*u, 34*u);
+    g.fillStyle = "#f1f0e8"; g.fillRect(bx+12*u, byy-12*u, bar, 3*u); g.fillRect(bx+12*u, byy-19*u, 2*u, 10*u); g.fillRect(bx+12*u+bar-2*u, byy-19*u, 2*u, 10*u);
+    g.fillStyle = "#f2ff1a"; g.fillRect(bx+12*u, byy-12*u, bar/2, 3*u);
+    g.fillStyle = "#f1f0e8"; g.textBaseline = "middle"; g.fillText(label, bx + 22*u + bar, byy - 13*u);
+    if(Math.abs(bearing) > 0.5){
+      const nx = M.x + M.w - 30*u, ny = M.y + 30*u;
+      g.save(); g.translate(nx, ny); g.rotate(-bearing*Math.PI/180);
+      g.fillStyle = "rgba(11,11,10,0.85)"; g.fillRect(-18*u,-18*u,36*u,36*u);
+      g.fillStyle = "#f2ff1a"; g.beginPath(); g.moveTo(0,-12*u); g.lineTo(7*u,7*u); g.lineTo(0,2*u); g.lineTo(-7*u,7*u); g.closePath(); g.fill(); g.restore();
+    }
+    g.restore();
+    g.strokeStyle = "#33332d"; g.lineWidth = 1.5*u; g.strokeRect(M.x, M.y, M.w, M.h);
+
+    /* Seitenleiste */
+    const S = L.side, ip = 20*u;
+    g.fillStyle = "#121211"; g.fillRect(S.x, S.y, S.w, S.h);
+    g.strokeStyle = "#33332d"; g.lineWidth = 1.5*u; g.strokeRect(S.x, S.y, S.w, S.h);
+    g.fillStyle = "#f2ff1a"; g.fillRect(S.x, S.y, S.w, 3*u);
+    const colW = L.portrait ? S.w*0.58 - ip : S.w - 2*ip, x0 = S.x + ip;
+    let y = S.y + ip + 6*u;
+    if(o.subtitle){
+      g.fillStyle = "#f2ff1a"; g.fillRect(x0, y, 9*u, 9*u);
+      g.fillStyle = "#a5a497"; g.font = `500 ${12*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle";
+      g.fillText(o.subtitle.toUpperCase(), x0 + 17*u, y + 5*u); y += 26*u;
+    }
+    if(o.title){
+      let fs = 40*u, lines;
+      for(;;){ g.font = `${fs}px "Setline Display", "Archivo", Arial, sans-serif`; lines = wrapText(g, o.title.toUpperCase(), colW); if((lines.length <= 2 && lines.every(l=>g.measureText(l).width <= colW)) || fs < 18*u) break; fs -= 2*u; }
+      if(lines.length > 3) lines = lines.slice(0,3);
+      g.fillStyle = "#f1f0e8"; g.textBaseline = "top";
+      for(const l of lines){ g.fillText(l, x0, y); y += fs*1.02; }
+      y += 8*u;
+    }
+    g.fillStyle = "#33332d"; g.fillRect(x0, y, colW, 1.5*u); y += 16*u;
+
+    /* Fußzeile */
+    const attr = attributionFor(map, [c.lng, c.lat], zoom);
+    g.font = `${9.5*u}px "IBM Plex Mono", Menlo, monospace`;
+    const footW = L.portrait ? colW : S.w - 2*ip, attrLines = wrapText(g, attr, footW, 3);
+    const creditH = o.credit ? 26*u : 0, footH = attrLines.length*13*u + creditH;
+    const footY = S.y + S.h - ip - footH;
+    if(o.credit){ g.fillStyle = "#f1f0e8"; g.font = `${20*u}px "Setline Display", "Archivo", Arial, sans-serif`; g.textBaseline = "top"; g.fillText(o.credit.toUpperCase(), x0, footY); }
+    g.fillStyle = "#77766b"; g.font = `${9.5*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "top";
+    attrLines.forEach((l,i)=>g.fillText(l, x0, footY + creditH + i*13*u));
+
+    /* Übersichtskarte */
+    let legendBottom = footY - 14*u;
+    if(inset){
+      const IW = sideInner.w, IH = L.portrait ? S.h - 2*ip : sideInner.h;
+      const IX = L.portrait ? S.x + S.w - ip - IW : x0, IY = L.portrait ? S.y + ip : footY - 16*u - IH;
+      g.drawImage(inset.m.getCanvas(), IX, IY, IW, IH);
+      g.strokeStyle = "#33332d"; g.lineWidth = 1.5*u; g.strokeRect(IX, IY, IW, IH);
+      const isx = IW / iw, corners = [[0,0],[cssW,0],[cssW,cssH],[0,cssH]].map(p=>main.m.unproject(p)).map(ll=>inset.m.project(ll));
+      const xs = corners.map(p=>IX + p.x*isx), ys = corners.map(p=>IY + p.y*isx);
+      const rw = Math.max(...xs) - Math.min(...xs), rh = Math.max(...ys) - Math.min(...ys);
+      g.save(); g.beginPath(); g.rect(IX, IY, IW, IH); g.clip();
+      if(rw < 10*u || rh < 10*u){
+        const mx = (Math.max(...xs)+Math.min(...xs))/2, my = (Math.max(...ys)+Math.min(...ys))/2, k = 9*u;
+        g.strokeStyle = "#f2ff1a"; g.lineWidth = 2.5*u; g.strokeRect(mx-k, my-k, 2*k, 2*k);
+      } else {
+        g.fillStyle = "rgba(242,255,26,0.18)"; g.strokeStyle = "#f2ff1a"; g.lineWidth = 2*u;
+        g.beginPath(); xs.forEach((x,i)=> i ? g.lineTo(x, ys[i]) : g.moveTo(x, ys[i])); g.closePath(); g.fill(); g.stroke();
+      }
+      g.restore();
+      if(!L.portrait) legendBottom = IY - 14*u;
     }
 
-    const pad = 18*s, mono = `"IBM Plex Mono", Menlo, monospace`, disp = `"Setline Display", "Archivo", Arial, sans-serif`;
-    /* Titel oben links */
-    if(o.title || o.subtitle){
-      g.font = `${30*s}px ${disp}`; const tw = o.title ? g.measureText(o.title.toUpperCase()).width : 0;
-      g.font = `500 ${11*s}px ${mono}`; const sw = o.subtitle ? g.measureText(o.subtitle.toUpperCase()).width : 0;
-      const bw = Math.max(tw, sw + 22*s) + 36*s, bh = (o.title && o.subtitle ? 78 : o.title ? 58 : 40)*s;
-      g.fillStyle = "rgba(11,11,10,0.9)"; g.fillRect(pad, pad, bw, bh);
-      g.fillStyle = "#f2ff1a"; g.fillRect(pad, pad, bw, 3*s);
-      let y = pad + 20*s;
-      if(o.subtitle){ g.fillRect(pad+18*s, y-8*s, 10*s, 10*s); g.fillStyle = "#8a897e"; g.font = `500 ${11*s}px ${mono}`; g.textBaseline = "middle"; g.fillText(o.subtitle.toUpperCase(), pad+36*s, y-3*s); y += 18*s; }
-      if(o.title){ g.fillStyle = "#f1f0e8"; g.font = `${30*s}px ${disp}`; g.textBaseline = "top"; g.fillText(o.title.toUpperCase(), pad+18*s, o.subtitle ? y : pad+16*s); }
-    }
-    /* Nordpfeil, wenn gedreht */
-    if(Math.abs(bearing) > 0.5){
-      const cx = W - pad - 16*s, cy = pad + 16*s;
-      g.save(); g.translate(cx, cy); g.rotate(-bearing*Math.PI/180);
-      g.fillStyle = "rgba(11,11,10,0.9)"; g.fillRect(-16*s,-16*s,32*s,32*s);
-      g.fillStyle = "#f2ff1a"; g.beginPath(); g.moveTo(0,-11*s); g.lineTo(6*s,6*s); g.lineTo(0,2*s); g.lineTo(-6*s,6*s); g.closePath(); g.fill();
-      g.restore();
-    }
-    /* Legende unten links */
-    let by = H - pad;
-    const bottom = [];
-    if(o.legend){
-      const sides = [...new Set(syms.map(el=>el.seite||"U"))];
-      const items = sides.map(k=>({c:SIDES[k].color, t:SIDES[k].short}));
-      if(shown.some(el=>el.stil==="gestrichelt" || el.geplant)) items.push({dash:true, t:"vermutet"});
-      if(items.length) bottom.push(items);
-    }
-    const lat = c.lat, mpp = 40075016.686*Math.cos(lat*Math.PI/180)/(512*Math.pow(2,zoom));
-    const meters = niceScale(mpp*fw*0.18), barPx = meters/mpp*s;
-    const label = meters >= 1000 ? (meters/1000).toLocaleString("de-DE")+" km" : meters+" m";
-    g.font = `500 ${11*s}px ${mono}`;
-    const legendW = bottom.length ? bottom[0].reduce((a,it)=>a + 22*s + g.measureText(it.t.toUpperCase()).width + 14*s, 0) : 0;
-    const labelW = g.measureText(label).width;
-    const boxW = Math.max(barPx + 8*s + labelW, legendW) + 28*s, boxH = (bottom.length ? 58 : 36)*s;
-    g.fillStyle = "rgba(11,11,10,0.88)"; g.fillRect(pad, H - pad - boxH, boxW, boxH);
-    let x = pad + 14*s, yy = H - pad - boxH + 18*s;
-    g.textBaseline = "middle";
-    if(bottom.length){
-      for(const it of bottom[0]){
-        if(it.dash){ g.strokeStyle = "#f1f0e8"; g.lineWidth = 2*s; g.setLineDash([4*s,3*s]); g.beginPath(); g.moveTo(x, yy); g.lineTo(x+14*s, yy); g.stroke(); g.setLineDash([]); }
-        else { g.fillStyle = it.c; g.fillRect(x, yy-5*s, 10*s, 10*s); g.strokeStyle = "rgba(0,0,0,.6)"; g.lineWidth = 1*s; g.strokeRect(x, yy-5*s, 10*s, 10*s); }
-        g.fillStyle = "#c9c8bd"; g.fillText(it.t.toUpperCase(), x + 20*s, yy); x += 22*s + g.measureText(it.t.toUpperCase()).width + 14*s;
+    /* Legende */
+    if(o.legend !== false){
+      const items = legendItems(shown), rowH = 22*u;
+      if(items.length){
+        g.fillStyle = "#77766b"; g.font = `500 ${10*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "top";
+        g.fillText("LEGENDE", x0, y); y += 20*u;
+        const cols = L.portrait ? 2 : 1, cw = (colW - (cols-1)*16*u) / cols;
+        const fit = Math.max(0, Math.floor((legendBottom - y) / rowH)) * cols;
+        const list = items.length > fit ? items.slice(0, Math.max(0, fit-1)) : items;
+        const rows = Math.ceil(list.length / cols);
+        for(let i=0;i<list.length;i++){ const col = Math.floor(i / rows), row = i % rows; await drawLegendRow(g, list[i], x0 + col*(cw+16*u), y + row*rowH, u, cw); }
+        if(items.length > list.length && fit > 0){ const i = list.length, col = Math.floor(i / Math.max(rows,1)), row = rows ? i % rows : 0;
+          g.fillStyle = "#77766b"; g.font = `500 ${11*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle"; g.fillText(`+ ${items.length - list.length} weitere`, x0 + Math.min(col,cols-1)*(cw+16*u), y + (col>=cols ? rows : row)*rowH + 11*u); }
       }
-      yy += 22*s;
     }
-    x = pad + 14*s;
-    g.fillStyle = "#f1f0e8"; g.fillRect(x, yy+2*s, barPx, 3*s); g.fillRect(x, yy-4*s, 2*s, 9*s); g.fillRect(x+barPx-2*s, yy-4*s, 2*s, 9*s);
-    g.fillStyle = "#f2ff1a"; g.fillRect(x, yy+2*s, barPx/2, 3*s);
-    g.fillStyle = "#c9c8bd"; g.textBaseline = "middle"; g.font = `500 ${11*s}px ${mono}`; g.fillText(label, x + barPx + 8*s, yy+3*s);
-    /* Quellenangabe unten rechts */
-    const attr = attributionFor(map, [c.lng, c.lat], zoom) + (o.credit ? " · " + o.credit : "");
-    g.font = `${10*s}px ${mono}`; g.textBaseline = "middle";
-    const aw = g.measureText(attr).width + 16*s;
-    g.fillStyle = "rgba(11,11,10,0.8)"; g.fillRect(W - aw, H - 20*s, aw, 20*s);
-    g.fillStyle = "#c9c8bd"; g.fillText(attr, W - aw + 8*s, H - 10*s);
 
     const type = o.format==="jpg" ? "image/jpeg" : "image/png";
     const blob = await new Promise((res,rej)=>{ try{ out.toBlob(b=>b?res(b):rej(new Error("leer")), type, 0.92); }catch(e){ rej(e); } });
-    return {blob, width:W, height:H};
+    return {blob, width:L.TW, height:L.TH};
   } finally {
-    try{ off.remove(); }catch(e){}
-    holder.remove();
+    main.done(); if(inset) inset.done();
   }
 }
 
@@ -396,5 +493,5 @@ function emptyData(){ return {version:1, aktualisiert:null, elemente:[]}; }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
 window.Karte = {STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
-  addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage};
+  addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage, exportLayout};
 })();

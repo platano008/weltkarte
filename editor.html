@@ -344,7 +344,7 @@ function wireSymbolFields(s, onChange){
 }
 /* ---------- Bild-Export ---------- */
 const RATIOS = {"16:9":16/9, "3:2":3/2, "4:3":4/3, "1:1":1, "4:5":4/5};
-const SCALES = {2:"Gut", 3:"Hoch", 4:"Sehr hoch"};
+const SCALES = {2:"Full HD", 3:"2,9K", 4:"4K"};
 const today = new Date().toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
 let shot = Object.assign({ratio:"16:9", scale:3, format:"png", title:"Lagekarte", subtitle:"Stand "+today, legend:true, credit:""}, JSON.parse(store.get("lage-shot")||"{}"));
 shot.subtitle = shot.subtitle && /^Stand \d/.test(shot.subtitle) ? "Stand "+today : shot.subtitle;
@@ -353,13 +353,14 @@ let frameRect = null;
 function placeFrame(){
   const mapR = $("map").getBoundingClientRect(), pr = $("panel").getBoundingClientRect(), mobile = mq.matches;
   let L = mobile ? 12 : pr.right + 24, T = mobile ? 100 : 110, R = mapR.width - (mobile ? 12 : 70), B = mobile ? pr.top - 40 : mapR.height - 70;
-  const aw = Math.max(80, R-L), ah = Math.max(80, B-T), r = RATIOS[shot.ratio];
+  const LY = K.exportLayout(RATIOS[shot.ratio], shot.scale);
+  const aw = Math.max(80, R-L), ah = Math.max(80, B-T), r = LY.map.w / LY.map.h;
   let w = aw, h = w / r; if(h > ah){ h = ah; w = h * r; }
   w = Math.round(w); h = Math.round(h);
   const x = Math.round(L + (aw - w)/2), y = Math.round(T + (ah - h)/2);
   frameRect = {x, y, w, h};
   Object.assign($("frame").style, {left:x+"px", top:y+"px", width:w+"px", height:h+"px"});
-  $("frameLbl").textContent = `${shot.ratio} · ${w*shot.scale} × ${h*shot.scale} px`;
+  $("frameLbl").textContent = `Kartenbereich · Bild ${shot.ratio} · ${LY.TW} × ${LY.TH} px`;
 }
 window.addEventListener("resize", ()=>{ if(tool==="bild") placeFrame(); });
 try{ new ResizeObserver(()=>{ if(tool==="bild") placeFrame(); }).observe($("panel")); }catch(e){}
@@ -367,12 +368,12 @@ function shotOpts(o){
   const seg = (name, map, cur)=>`<div class="sides" style="grid-template-columns:repeat(${Object.keys(map).length},1fr)">${Object.entries(map).map(([k,v])=>`<button data-${name}="${k}" style="${String(cur)===String(k)?"background:var(--volt);color:var(--ink)":""}">${v}</button>`).join("")}</div>`;
   o.innerHTML = `<div class="hint"><b>Verschiebe und zoome die Karte,</b> bis der gewünschte Ausschnitt im gelben Rahmen liegt.</div>
     <div><span class="lbl">Format</span>${seg("ratio", Object.fromEntries(Object.keys(RATIOS).map(k=>[k,k])), shot.ratio)}</div>
-    <div><span class="lbl">Qualität</span>${seg("scale", SCALES, shot.scale)}</div>
-    <div class="grid2"><div><label class="lbl" for="sTitle">Titel</label><input class="f" id="sTitle" value="${esc(shot.title)}" maxlength="60"></div>
+    <div><span class="lbl">Auflösung</span>${seg("scale", SCALES, shot.scale)}</div>
+    <div class="grid2"><div><label class="lbl" for="sTitle">Titel</label><input class="f" id="sTitle" value="${esc(shot.title)}" placeholder="z. B. Raum Pokrowsk" maxlength="60"></div>
       <div><label class="lbl" for="sSub">Untertitel</label><input class="f" id="sSub" value="${esc(shot.subtitle)}" maxlength="60"></div></div>
     <div class="grid2"><div><label class="lbl" for="sCredit">Dein Blogname</label><input class="f" id="sCredit" value="${esc(shot.credit)}" placeholder="optional" maxlength="40"></div>
       <div><span class="lbl">Datei</span>${seg("fmt", {png:"PNG", jpg:"JPG"}, shot.format)}</div></div>
-    <label class="check"><input type="checkbox" id="sLeg" ${shot.legend?"checked":""}> Legende und Maßstab</label>
+    <label class="check"><input type="checkbox" id="sLeg" ${shot.legend?"checked":""}> Legende</label><label class="check"><input type="checkbox" id="sOv" ${shot.overview!==false?"checked":""}> Übersichtskarte</label>
     <div class="row"><button class="btn volt" id="sGo">Bild erstellen</button></div>`;
   o.querySelectorAll("[data-ratio]").forEach(b=>b.onclick=()=>{ shot.ratio=b.dataset.ratio; saveShot(); shotOpts(o); placeFrame(); });
   o.querySelectorAll("[data-scale]").forEach(b=>b.onclick=()=>{ shot.scale=+b.dataset.scale; saveShot(); shotOpts(o); placeFrame(); });
@@ -381,6 +382,7 @@ function shotOpts(o){
   $("sSub").oninput = e=>{ shot.subtitle=e.target.value; saveShot(); };
   $("sCredit").oninput = e=>{ shot.credit=e.target.value; saveShot(); };
   $("sLeg").onchange = e=>{ shot.legend=e.target.checked; saveShot(); };
+  $("sOv").onchange = e=>{ shot.overview=e.target.checked; saveShot(); };
   $("sGo").onclick = makeShot;
 }
 let shotUrl = null;
@@ -389,8 +391,8 @@ async function makeShot(){
   placeFrame();
   const mapR = $("map").getBoundingClientRect();
   try{
-    const r = await K.exportImage(map, {frame:{x:frameRect.x-mapR.left, y:frameRect.y-mapR.top, w:frameRect.w, h:frameRect.h}, scale:shot.scale,
-      title:shot.title.trim(), subtitle:shot.subtitle.trim(), legend:shot.legend, credit:shot.credit.trim(), format:shot.format, elements:DATA.elemente});
+    const r = await K.exportImage(map, {frame:{x:frameRect.x-mapR.left, y:frameRect.y-mapR.top, w:frameRect.w, h:frameRect.h}, ratio:RATIOS[shot.ratio], quality:shot.scale,
+      title:shot.title.trim(), subtitle:shot.subtitle.trim(), legend:shot.legend, overview:shot.overview!==false, credit:shot.credit.trim(), format:shot.format, elements:DATA.elemente});
     if(shotUrl) URL.revokeObjectURL(shotUrl);
     shotUrl = URL.createObjectURL(r.blob);
     const d = new Date(), stamp = d.toISOString().slice(0,10);
