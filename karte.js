@@ -5,7 +5,7 @@
 const MAPTILER_KEY = "4TDQhzPsZwABTFDNshhB";
 const MT = n => `https://api.maptiler.com/maps/${n}/style.json?key=${MAPTILER_KEY}`;
 const STYLES = {
-  sat:  {name:"Satellit", url:MT("hybrid-v4"), theme:null},
+  sat:  {name:"Satellit", url:MT("hybrid-v4"), theme:"sat"},
   karte:{name:"Karte",    url:MT("base-v4"),   theme:"dark"},
   topo: {name:"Gelände",  url:MT("topo-v4"),   theme:"topo"}
 };
@@ -26,7 +26,19 @@ const PAL = {
         text:"#e6e4d8", textWater:"#86a2b8", halo:"#10100e"}
 };
 function setP(map,id,k,v){ try{ map.setPaintProperty(id,k,v); }catch(e){} }
+/* Satellit: Straßen ausblenden, Orte, Grenzen und Gewässer behalten */
+const ROADS = /road|street|transport|highway|motorway|trunk|primary|secondary|tertiary|minor|service|path|track|rail|bridge|tunnel|ferry|aeroway|runway|oneway|shield|poi|housenum|building|landuse|landcover|park/;
+const KEEP_SAT = /boundary|admin|border|place|city|town|village|country|state|water|ocean|sea|lake|river|marine|continent/;
+function cleanSatellite(map){
+  for(const l of map.getStyle().layers){
+    if(l.type!=="line" && l.type!=="symbol" && l.type!=="fill") continue;
+    const key = (l.id+" "+(l["source-layer"]||"")).toLowerCase();
+    if(ROADS.test(key) && !KEEP_SAT.test(key)){ try{ map.setLayoutProperty(l.id,"visibility","none"); }catch(e){} }
+    else if(l.type==="symbol"){ setP(map,l.id,"text-halo-color","rgba(0,0,0,0.85)"); setP(map,l.id,"text-halo-width",1.4); }
+  }
+}
 function applyTheme(map, kind){
+  if(kind==="sat") return cleanSatellite(map);
   const p = PAL[kind]; if(!p) return;
   for(const l of map.getStyle().layers){
     const key = (l.id+" "+(l["source-layer"]||"")).toLowerCase();
