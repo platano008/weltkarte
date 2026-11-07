@@ -12,10 +12,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611071921">
+<link rel="stylesheet" href="style.css?v=202611071926">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611071921"></script>
+<script src="karte.js?v=202611071926"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -431,10 +431,10 @@ function wireSymbolFields(s, onChange){
 const RATIOS = {"16:9":16/9, "3:2":3/2, "4:3":4/3, "1:1":1, "4:5":4/5};
 const SCALES = {2:"Full HD", 3:"2,9K", 4:"4K"};
 const today = new Date().toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
-let shot = Object.assign({layout:"overlay", ratio:"16:9", scale:3, format:"png", title:"Lagekarte Ukraine", subtitle:"Stand "+today, legend:true, credit:"Plyus"}, JSON.parse(store.get("lage-shot")||"{}"));
+let shot = Object.assign({layout:"overlay", ratio:"16:9", scale:3, format:"png", title:"", subtitle:"Stand "+today, legend:true, credit:"Plyus"}, JSON.parse(store.get("lage-shot")||"{}"));
 shot.subtitle = shot.subtitle && /^Stand \d/.test(shot.subtitle) ? "Stand "+today : shot.subtitle;
 const saveShot = ()=>store.set("lage-shot", JSON.stringify(shot));
-if(!shot.plyus){ if(!(shot.credit||"").trim()) shot.credit = "Plyus"; if(/^lagekarte$/i.test((shot.title||"").trim())) shot.title = "Lagekarte Ukraine"; shot.plyus = 1; saveShot(); }
+if((shot.plyus||0) < 2){ if(!(shot.credit||"").trim()) shot.credit = "Plyus"; if(/^lagekarte( ukraine)?$/i.test((shot.title||"").trim())) shot.title = ""; shot.plyus = 2; saveShot(); }
 let frameRect = null;
 function placeFrame(){
   const mapR = $("map").getBoundingClientRect(), pr = $("panel").getBoundingClientRect(), mobile = mq.matches;
