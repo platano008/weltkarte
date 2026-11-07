@@ -351,7 +351,7 @@ function importFilter(extra){
 const IMP_LAYERS = ["imp-fill","imp-line","imp-change-fill","imp-change-line","imp-change-label","imp-sym","imp-sym-small"];
 /* Veränderungen werden so lange kräftig gezeigt */
 const CHANGE_DAYS = 14;
-const CHANGE_COL = {ru:"#ff1f3d", ua:"#1f8bff", grau:"#e0e0e0"};
+const CHANGE_COL = {ru:"#d8344a", ua:"#2f7fe0", grau:"#d6d6d6"};
 const changeCutoff = ()=>new Date(Date.now() - CHANGE_DAYS*864e5).toISOString().slice(0,10);
 const isRecentChange = ()=>["all",["==",["get","art"],"aenderung"],[">=",["coalesce",["get","datum"],""],changeCutoff()]];
 function applyImportFilters(map){
@@ -368,10 +368,10 @@ function addImportLayers(map){
   [...new Set(importData.features.filter(f=>f.properties.art==="symbol").map(f=>f.properties.sidc))].forEach(s=>addImportIcon(map, "imp-"+s));
   if(!map.getStyle()) return;
   map.addSource("imp", {type:"geojson", data:importData, attribution: importData.meta && importData.meta.quelle ? "Lage: " + importData.meta.quelle : undefined});
-  map.addLayer({id:"imp-fill", type:"fill", source:"imp", filter:["==",["get","art"],"flaeche"], paint:{"fill-color":["get","fuellung"], "fill-opacity":["case",["==",["get","ebene"],"ukraine-terr"],0.05,["min",["get","deckkraft"],0.18]]}}, before);
+  map.addLayer({id:"imp-fill", type:"fill", source:"imp", filter:["==",["get","art"],"flaeche"], paint:{"fill-color":["get","fuellung"], "fill-opacity":["case",["==",["get","ebene"],"ukraine-terr"],0.05,["==",["get","ebene"],"russian-terr"],0.32,["min",["get","deckkraft"],0.18]]}}, before);
   map.addLayer({id:"imp-line", type:"line", source:"imp", filter:["in",["get","art"],["literal",["flaeche","linie"]]], paint:{"line-color":["get","linie"], "line-width":["interpolate",["linear"],["zoom"],4,0.8,10,2], "line-opacity":["case",["==",["get","ebene"],"ukraine-terr"],0.35,1]}}, before);
   const chCol = ["match",["get","richtung"],"ru",CHANGE_COL.ru,"ua",CHANGE_COL.ua,CHANGE_COL.grau];
-  map.addLayer({id:"imp-change-fill", type:"fill", source:"imp", filter:isRecentChange(), paint:{"fill-color":chCol, "fill-opacity":0.55}}, before);
+  map.addLayer({id:"imp-change-fill", type:"fill", source:"imp", filter:isRecentChange(), paint:{"fill-color":chCol, "fill-opacity":0.48}}, before);
   map.addLayer({id:"imp-change-line", type:"line", source:"imp", filter:isRecentChange(), layout:{"line-join":"round"}, paint:{"line-color":chCol, "line-width":["interpolate",["linear"],["zoom"],5,1.5,10,3]}}, before);
   map.addLayer({id:"imp-change-label", type:"symbol", source:"imp", minzoom:8, filter:isRecentChange(), layout:{"text-field":["coalesce",["get","datum"],""], "text-font":font, "text-size":11, "symbol-placement":"point"},
     paint:{"text-color":"#ffffff","text-halo-color":"rgba(0,0,0,0.9)","text-halo-width":1.5}}, before);
@@ -671,7 +671,21 @@ async function exportImage(map, o){
   const insetMap = inUA ? {bounds:[[22.1,44.3],[40.2,52.4]], fitBoundsOptions:{padding:6}} : {center:c, zoom:Math.max(1, zoom - 4.5)};
   const useDark = true;
   const inset = o.overview===false ? null : offMap({w:iw, h:ih, map:Object.assign({style: useDark ? styleOf("karte") : map.getStyle()}, insetMap),
-    onLoad: ()=>{}});
+    onLoad: m=>{
+      if(!importData) return;
+      const isRed = c=>{ const v = parseInt(String(c||"").slice(1),16); if(isNaN(v)) return false; const r=v>>16&255, b=v&255; return r > b + 40; };
+      const cut = changeCutoff();
+      const feats = importData.features.filter(f=>f.geometry.type==="Polygon" && (
+        (f.properties.ebene==="russian-terr" && f.properties.art==="flaeche" && isRed(f.properties.fuellung)) ||
+        (f.properties.art==="aenderung" && f.properties.richtung==="ru")));
+      if(!feats.length) return;
+      const before = m.getLayer("water-name") ? "water-name" : undefined;
+      try{
+        m.addSource("ru", {type:"geojson", data:{type:"FeatureCollection", features:feats}});
+        m.addLayer({id:"ru-fill", type:"fill", source:"ru", paint:{"fill-color":"#e5383b", "fill-opacity":0.45}}, before);
+        m.addLayer({id:"ru-line", type:"line", source:"ru", paint:{"line-color":"#ff5a5c", "line-width":1}}, before);
+      }catch(e){}
+    }});
 
 
   try{
@@ -747,10 +761,9 @@ async function exportImage(map, o){
       /* unten links: Übersichtskarte */
       let scaleX = pad + 8*u;
       if(inset){
-        const IW = sideInner.w, IH = sideInner.h, hh = 24*u, IX = pad + 8*u, IY = TH - pad - 8*u - IH;
+        const IW = sideInner.w, IH = sideInner.h, hh = 0, IX = pad + 8*u, IY = TH - pad - 8*u - IH;
         g.save(); g.shadowColor = "rgba(0,0,0,0.55)"; g.shadowBlur = 18*u; g.fillStyle = "#0e0f11"; g.fillRect(IX, IY - hh, IW, IH + hh); g.restore();
-        g.fillStyle = "#ffffff"; g.fillRect(IX, IY - hh, IW, 2*u); g.fillRect(IX + 10*u, IY - hh/2 - 3*u, 7*u, 7*u);
-        g.fillStyle = "#a3a8b0"; g.font = `500 ${10*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle"; g.fillText("ÜBERSICHT", IX + 24*u, IY - hh/2 + 1*u);
+        g.fillStyle = "#ffffff"; g.fillRect(IX, IY - hh, IW, 2*u);
         g.drawImage(inset.m.getCanvas(), IX, IY, IW, IH);
         g.strokeStyle = "#3a3e45"; g.lineWidth = 1.5*u; g.strokeRect(IX, IY - hh, IW, IH + hh);
         drawInsetMark(IX, IY, IW, IH);
@@ -762,15 +775,14 @@ async function exportImage(map, o){
       if(o.legend !== false){
         const items = impLegend.concat(legendItems(shown));
         if(items.length){
-          const LW = (L.portrait ? 360 : 270)*u, rowH = 21*u, head = 32*u, ip = 14*u;
+          const LW = (L.portrait ? 360 : 270)*u, rowH = 21*u, head = 12*u, ip = 12*u;
           const maxRows = Math.max(1, Math.floor((TH*(L.portrait ? 0.32 : 0.4) - head - ip) / rowH));
           const list = items.length > maxRows ? items.slice(0, maxRows-1) : items;
           const more = items.length - list.length, rowsN = list.length + (more ? 1 : 0);
           const LH = head + rowsN*rowH + ip, LX = TW - pad - 8*u - LW, LY = TH - pad - 8*u - LH;
           g.save(); g.shadowColor = "rgba(0,0,0,0.55)"; g.shadowBlur = 18*u; g.fillStyle = "rgba(14,15,17,0.9)"; g.fillRect(LX, LY, LW, LH); g.restore();
           g.strokeStyle = "#3a3e45"; g.lineWidth = 1.5*u; g.strokeRect(LX, LY, LW, LH);
-          g.fillStyle = "#ffffff"; g.fillRect(LX, LY, LW, 2*u); g.fillRect(LX + ip, LY + 13*u, 7*u, 7*u);
-          g.fillStyle = "#a3a8b0"; g.font = `500 ${10*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle"; g.fillText("LEGENDE", LX + ip + 14*u, LY + 17*u);
+          g.fillStyle = "#ffffff"; g.fillRect(LX, LY, LW, 2*u);
           let yy = LY + head;
           for(const it of list){ await drawLegendRow(g, it, LX + ip, yy, u, LW - 2*ip); yy += rowH; }
           if(more){ g.fillStyle = "#7b818a"; g.font = `500 ${11*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle"; g.fillText(`+ ${more} weitere`, LX + ip, yy + 11*u); }
@@ -854,8 +866,6 @@ async function exportImage(map, o){
     if(o.legend !== false){
       const items = impLegend.concat(legendItems(shown)), rowH = 22*u;
       if(items.length){
-        g.fillStyle = "#7b818a"; g.font = `500 ${10*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "top";
-        g.fillText("LEGENDE", x0, y); y += 20*u;
         const cols = L.portrait ? 2 : 1, cw = (colW - (cols-1)*16*u) / cols;
         const fit = Math.max(0, Math.floor((legendBottom - y) / rowH)) * cols;
         const list = items.length > fit ? items.slice(0, Math.max(0, fit-1)) : items;
