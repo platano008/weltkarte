@@ -12,10 +12,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611071915">
+<link rel="stylesheet" href="style.css?v=202611071921">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611071915"></script>
+<script src="karte.js?v=202611071921"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -434,6 +434,7 @@ const today = new Date().toLocaleDateString("de-DE",{day:"2-digit",month:"2-digi
 let shot = Object.assign({layout:"overlay", ratio:"16:9", scale:3, format:"png", title:"Lagekarte Ukraine", subtitle:"Stand "+today, legend:true, credit:"Plyus"}, JSON.parse(store.get("lage-shot")||"{}"));
 shot.subtitle = shot.subtitle && /^Stand \d/.test(shot.subtitle) ? "Stand "+today : shot.subtitle;
 const saveShot = ()=>store.set("lage-shot", JSON.stringify(shot));
+if(!shot.plyus){ if(!(shot.credit||"").trim()) shot.credit = "Plyus"; if(/^lagekarte$/i.test((shot.title||"").trim())) shot.title = "Lagekarte Ukraine"; shot.plyus = 1; saveShot(); }
 let frameRect = null;
 function placeFrame(){
   const mapR = $("map").getBoundingClientRect(), pr = $("panel").getBoundingClientRect(), mobile = mq.matches;
