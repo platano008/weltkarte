@@ -12,12 +12,15 @@
 <meta property="og:url" content="https://platano008.github.io/weltkarte/">
 <meta name="twitter:card" content="summary">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230e0f11'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23ffffff'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.css">
+<link rel="preconnect" href="https://api.maptiler.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611071522">
-<script src="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
-<script src="https://unpkg.com/milsymbol@2.2.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611071522"></script>
+<link rel="stylesheet" href="style.css?v=202611071525">
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
+<script src="karte.js?v=202611071525"></script>
 <style>
 .panel{border-top:2px solid var(--volt)}
 .search{position:relative}
@@ -60,7 +63,7 @@
 
 <div class="switches">
   <div class="seg" id="base"></div>
-  <div class="seg" id="view"><button data-v="globe" class="on">Globus</button><button data-v="flat">Flach</button></div>
+  <div class="seg" id="view"><button data-v="globe">Globus</button><button data-v="flat">Flach</button></div>
 </div>
 
 <section class="panel" id="panel">
@@ -109,7 +112,9 @@ function renderImp(d){
   $("impChips").innerHTML = meta.ebenen.map(l=>`<button class="chip${impOff.has(l.id)?"":" on"}" data-imp="${esc(l.id)}" aria-pressed="${!impOff.has(l.id)}"><i style="background:${esc(col(l.id))}"></i>${esc(l.name)}</button>`).join("");
   $("impChips").querySelectorAll("[data-imp]").forEach(b=>b.onclick=()=>{ const id=b.dataset.imp; impOff.has(id)?impOff.delete(id):impOff.add(id); map.setImportHidden([...impOff]); renderImp(d); });
 }
-const map = K.createMap({onImport: d=>renderImp(d), container:"map", style:"sat", onStyle: m=>{
+const startGlobe = !window.matchMedia("(max-width:720px)").matches;
+document.querySelector(`#view [data-v="${startGlobe?"globe":"flat"}"]`).classList.add("on");
+const map = K.createMap({onImport: d=>renderImp(d), onNotice: t=>toast(t), globe:startGlobe, container:"map", style:"sat", onStyle: m=>{
   K.addDataLayers(m, "lage", K.toFeatures(visible()));
   m.on("click","lage-hit", onHit); m.on("click","lage-area-fill", onHit);
   ["lage-hit","lage-area-fill"].forEach(l=>{ m.on("mouseenter",l,()=>m.getCanvas().style.cursor="pointer"); m.on("mouseleave",l,()=>m.getCanvas().style.cursor=""); });

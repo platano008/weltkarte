@@ -356,9 +356,12 @@ function createMap(opts){
     if(e && e.sourceId==="esri"){ if(++esriErrs > 6) esriFailed(map); return; }
     if(free) return;
     const st = e && e.error && e.error.status;
-    if(st===401 || st===403 || st===429 || ++errs > 25){
+    /* Nur bei klaren Absagen von MapTiler umschalten, nicht bei einzelnen langsamen Kacheln */
+    const fromMT = e && e.error && /api\.maptiler\.com/.test(String(e.error.url || e.error.message || ""));
+    if((st===401 || st===403 || st===429) && (fromMT || !e.sourceId)){
       free = true; const logo = document.getElementById("mtLogo"); if(logo) logo.hidden = true;
       map.setStyle(STYLE_FREE);
+      if(opts.onNotice) opts.onNotice(st===429 ? "MapTiler-Kontingent aufgebraucht – Ersatzkarte aktiv" : "MapTiler-Schlüssel abgelehnt – Ersatzkarte aktiv");
     }
   });
   map.on("style.load", ()=>{
