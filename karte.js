@@ -309,6 +309,7 @@ function addImportLayers(map){
   const fontLayer = map.getStyle().layers.find(l=>l.type==="symbol" && l.layout && l.layout["text-font"]);
   const font = fontLayer ? fontLayer.layout["text-font"] : ["Noto Sans Regular"];
   [...new Set(importData.features.filter(f=>f.properties.art==="symbol").map(f=>f.properties.sidc))].forEach(s=>addImportIcon(map, "imp-"+s));
+  if(!map.getStyle()) return;
   map.addSource("imp", {type:"geojson", data:importData, attribution: importData.meta && importData.meta.quelle ? "Lage: " + importData.meta.quelle : undefined});
   map.addLayer({id:"imp-fill", type:"fill", source:"imp", filter:["==",["get","art"],"flaeche"], paint:{"fill-color":["get","fuellung"], "fill-opacity":["get","deckkraft"]}}, before);
   map.addLayer({id:"imp-line", type:"line", source:"imp", filter:["in",["get","art"],["literal",["flaeche","linie"]]], paint:{"line-color":["get","linie"], "line-width":["interpolate",["linear"],["zoom"],4,1,10,2.2], "line-opacity":0.9}}, before);
@@ -360,11 +361,13 @@ function createMap(opts){
     const fromMT = e && e.error && /api\.maptiler\.com/.test(String(e.error.url || e.error.message || ""));
     if((st===401 || st===403 || st===429) && (fromMT || !e.sourceId)){
       free = true; const logo = document.getElementById("mtLogo"); if(logo) logo.hidden = true;
-      map.setStyle(STYLE_FREE);
+      styleReady = false; map.setStyle(STYLE_FREE);
       if(opts.onNotice) opts.onNotice(st===429 ? "MapTiler-Kontingent aufgebraucht – Ersatzkarte aktiv" : "MapTiler-Schlüssel abgelehnt – Ersatzkarte aktiv");
     }
   });
+  let styleReady = false;
   map.on("style.load", ()=>{
+    styleReady = true;
     try{ map.setProjection({type: globe ? "globe" : "mercator"}); }catch(e){}
     const th = free ? "dark" : STYLES[current].theme;
     if(th) applyTheme(map, th);
@@ -372,13 +375,14 @@ function createMap(opts){
     if(importData) addImportLayers(map);
     if(opts.onStyle) opts.onStyle(map);
   });
-  map.setBase = k=>{ if(free || !STYLES[k] || k===current) return; current = k; errs = 0; map.setStyle(STYLES[k].url); };
+  map.setBase = k=>{ if(free || !STYLES[k] || k===current) return; current = k; errs = 0; styleReady = false; map.setStyle(STYLES[k].url); };
   map.setGlobe = g=>{ globe = g; try{ map.setProjection({type: g ? "globe" : "mercator"}); }catch(e){} };
   map.currentBase = ()=>current;
   map.isFree = ()=>free;
   map.on("styleimagemissing", e=>addImportIcon(map, e.id));
   map.setImportHidden = ids=>setImportHidden(map, ids);
-  if(opts.importLayers !== false) loadImport().then(d=>{ if(!d) return; try{ if(map.isStyleLoaded()) addImportLayers(map); }catch(e){} if(opts.onImport) opts.onImport(d); });
+  /* Lagedaten: sofort einfügen, wenn der Kartenstil schon steht (auch wenn noch Kacheln laden), sonst beim nächsten style.load */
+  if(opts.importLayers !== false) loadImport().then(d=>{ if(!d) return; if(styleReady){ try{ addImportLayers(map); }catch(e){ console.warn("Lagedaten:", e); } } if(opts.onImport) opts.onImport(d); });
   return map;
 }
 
