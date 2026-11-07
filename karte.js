@@ -129,6 +129,7 @@ const UNITS = {
 };
 const ECHELONS = {"-":"–", D:"Zug", E:"Kompanie", F:"Bataillon", G:"Regiment", H:"Brigade", I:"Division", J:"Korps", K:"Armee"};
 function sidcOf(s){
+  if(s.sidc) return s.sidc;
   const side = s.seite||"U", fn = (UNITS[s.einheit]||UNITS.inf).fn;
   const mod = s.hq ? "A" : "-";
   return "S"+side+"G"+(s.geplant?"A":"P")+fn+mod+(s.groesse||"-")+"---";
@@ -259,6 +260,90 @@ function addDataLayers(map, prefix, src){
 const DATA_LAYERS = p => [p+"-area-fill",p+"-area-line",p+"-casing",p+"-line",p+"-dash",p+"-arrow-casing",p+"-arrow-fill",p+"-arrow-line",p+"-arrow-dash",p+"-sel",p+"-hit"];
 
 /* ---------------- Karte erstellen ---------------- */
+/* ---------------- Importierte Lagedaten (MilX → import/lage.geojson) ---------------- */
+const IMPORT_URL = "import/lage.geojson";
+let importData = null, importPromise = null;
+const importHidden = new Set();
+function loadImport(){
+  if(!importPromise) importPromise = fetch(IMPORT_URL, {cache:"no-cache"}).then(r=>r.ok ? r.json() : null).catch(()=>null).then(d=>importData = d);
+  return importPromise;
+}
+/* NATO-Symbol als Kartenbild, Ankerpunkt in der Bildmitte */
+function importIcon(sidc){
+  let src = null, ax = 0, ay = 0, w = 0, h = 0;
+  try{
+    if(window.ms && ms.Symbol){
+      const s = new ms.Symbol(sidc, {size:26, outlineWidth:3, outlineColor:"rgba(0,0,0,0.75)"});
+      if(!s.isValid || s.isValid()){ src = s.asCanvas(2); const a = s.getAnchor(), z = s.getSize(); ax = a.x; ay = a.y; w = z.width; h = z.height; }
+    }
+  }catch(e){ src = null; }
+  const W = src ? Math.ceil(2*Math.max(ax, w-ax)) : 40, H = src ? Math.ceil(2*Math.max(ay, h-ay)) : 28;
+  const cv = document.createElement("canvas"); cv.width = W*2; cv.height = H*2;
+  const g = cv.getContext("2d");
+  if(src) g.drawImage(src, (W/2 - ax)*2, (H/2 - ay)*2);
+  else { const c = (SIDES[sidc[1]]||SIDES.U).color; g.fillStyle = c; g.strokeStyle = "#000"; g.lineWidth = 4; g.fillRect(4,4,W*2-8,H*2-8); g.strokeRect(4,4,W*2-8,H*2-8); }
+  return {width:cv.width, height:cv.height, data:g.getImageData(0,0,cv.width,cv.height).data};
+}
+function addImportIcon(map, id){
+  if(!id || id.indexOf("imp-")!==0 || map.hasImage(id)) return;
+  try{ map.addImage(id, importIcon(id.slice(4)), {pixelRatio:2}); }catch(e){}
+}
+function importFilter(extra){
+  const f = ["all", extra];
+  if(importHidden.size) f.push(["!", ["in", ["get","ebene"], ["literal", [...importHidden]]]]);
+  return f;
+}
+const IMP_LAYERS = ["imp-fill","imp-line","imp-sym","imp-sym-small"];
+function applyImportFilters(map){
+  const base = {"imp-fill":["==",["get","art"],"flaeche"], "imp-line":["in",["get","art"],["literal",["flaeche","linie"]]],
+    "imp-sym":["all",["==",["get","art"],"symbol"],["!=",["get","ebene"],"units-lower"]], "imp-sym-small":["all",["==",["get","art"],"symbol"],["==",["get","ebene"],"units-lower"]]};
+  for(const id of IMP_LAYERS) if(map.getLayer(id)) map.setFilter(id, importFilter(base[id]));
+}
+function addImportLayers(map){
+  if(!importData || map.getSource("imp")) return;
+  const before = map.getLayer("lage-area-fill") ? "lage-area-fill" : undefined;
+  const fontLayer = map.getStyle().layers.find(l=>l.type==="symbol" && l.layout && l.layout["text-font"]);
+  const font = fontLayer ? fontLayer.layout["text-font"] : ["Noto Sans Regular"];
+  [...new Set(importData.features.filter(f=>f.properties.art==="symbol").map(f=>f.properties.sidc))].forEach(s=>addImportIcon(map, "imp-"+s));
+  map.addSource("imp", {type:"geojson", data:importData, attribution: importData.meta && importData.meta.quelle ? "Lage: " + importData.meta.quelle : undefined});
+  map.addLayer({id:"imp-fill", type:"fill", source:"imp", filter:["==",["get","art"],"flaeche"], paint:{"fill-color":["get","fuellung"], "fill-opacity":["get","deckkraft"]}}, before);
+  map.addLayer({id:"imp-line", type:"line", source:"imp", filter:["in",["get","art"],["literal",["flaeche","linie"]]], paint:{"line-color":["get","linie"], "line-width":["interpolate",["linear"],["zoom"],4,1,10,2.2], "line-opacity":0.9}}, before);
+  const sym = (id, minzoom, size)=>({id, type:"symbol", source:"imp", minzoom, layout:{
+      "icon-image":["concat","imp-",["get","sidc"]], "icon-size":["interpolate",["linear"],["zoom"],4,size*0.6,8,size*0.85,12,size],
+      "icon-allow-overlap":false, "text-optional":true,
+      "text-field":["step",["zoom"],"",6.5,["coalesce",["get","name"],""]], "text-font":font, "text-size":11,
+      "text-offset":[0,1.5], "text-anchor":"top", "text-max-width":9},
+    paint:{"text-color":"#ffffff", "text-halo-color":"rgba(0,0,0,0.85)", "text-halo-width":1.4}});
+  map.addLayer(sym("imp-sym", 3, 1), before);
+  map.addLayer(sym("imp-sym-small", 6.5, 0.9), before);
+  applyImportFilters(map);
+}
+function setImportHidden(map, ids){
+  importHidden.clear(); ids.forEach(i=>importHidden.add(i));
+  applyImportFilters(map);
+}
+function importLegend(project, inView){
+  if(!importData) return [];
+  const out = [];
+  for(const L of (importData.meta && importData.meta.ebenen) || []){
+    if(importHidden.has(L.id)) continue;
+    const fs = importData.features.filter(f=>f.properties.ebene===L.id && (f.geometry.type==="Point" ? inView(f.geometry.coordinates) : f.geometry.coordinates[0].some ? (f.geometry.type==="Polygon" ? f.geometry.coordinates[0] : f.geometry.coordinates).some(inView) : false));
+    if(!fs.length) continue;
+    const areas = fs.filter(f=>f.properties.art==="flaeche");
+    if(areas.length){
+      const cnt = {}; areas.forEach(f=>cnt[f.properties.fuellung]=(cnt[f.properties.fuellung]||0)+1);
+      const col = Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0];
+      out.push({kind:"flaeche", color:col, dash:false, label:L.name});
+    }
+    const syms = fs.filter(f=>f.properties.art==="symbol");
+    for(const side of ["F","H","N","U"]){
+      const s = syms.find(f=>f.properties.sidc[1]===side);
+      if(s) out.push({kind:"symbol", el:{typ:"symbol", sidc:s.properties.sidc}, label:`${L.name} (${SIDES[side].short})`});
+    }
+  }
+  return out;
+}
+
 function createMap(opts){
   let current = opts.style || "sat", free = false, errs = 0, globe = opts.globe!==false;
   const map = new maplibregl.Map({container:opts.container, style:STYLES[current].url, center:START.center, zoom:START.zoom,
@@ -280,12 +365,16 @@ function createMap(opts){
     const th = free ? "dark" : STYLES[current].theme;
     if(th) applyTheme(map, th);
     if(!free && current==="sat") addEsri(map);
+    if(importData) addImportLayers(map);
     if(opts.onStyle) opts.onStyle(map);
   });
   map.setBase = k=>{ if(free || !STYLES[k] || k===current) return; current = k; errs = 0; map.setStyle(STYLES[k].url); };
   map.setGlobe = g=>{ globe = g; try{ map.setProjection({type: g ? "globe" : "mercator"}); }catch(e){} };
   map.currentBase = ()=>current;
   map.isFree = ()=>free;
+  map.on("styleimagemissing", e=>addImportIcon(map, e.id));
+  map.setImportHidden = ids=>setImportHidden(map, ids);
+  if(opts.importLayers !== false) loadImport().then(d=>{ if(!d) return; try{ if(map.isStyleLoaded()) addImportLayers(map); }catch(e){} if(opts.onImport) opts.onImport(d); });
   return map;
 }
 
@@ -346,6 +435,7 @@ function offMap(opts){
   const m = new maplibregl.Map(Object.assign({container:holder, interactive:false, attributionControl:false, pixelRatio:2, fadeDuration:0,
     preserveDrawingBuffer:true, canvasContextAttributes:{preserveDrawingBuffer:true}}, opts.map));
   m.on("error", ()=>{});
+  m.on("styleimagemissing", e=>addImportIcon(m, e.id));
   const ready = new Promise(res=>{
     const t = setTimeout(res, 45000);
     m.once("load", ()=>{ opts.onLoad && opts.onLoad(m); m.once("idle", ()=>{ clearTimeout(t); res(); }); });
@@ -430,6 +520,7 @@ async function exportImage(map, o){
     const sx = M.w / cssW;
     const inView = ll=>{ const p = main.m.project(ll); return p.x >= -20 && p.y >= -20 && p.x <= cssW+20 && p.y <= cssH+20; };
     const shown = (o.elements||[]).filter(el=> el.typ==="symbol" ? inView(el.koordinaten) : (el.koordinaten||[]).some(inView));
+    const impLegend = importLegend(null, inView);
 
     /* Inset-Rahmen zeichnen (für beide Aufbauten) */
     const drawInsetMark = (IX, IY, IW, IH)=>{
@@ -502,7 +593,7 @@ async function exportImage(map, o){
 
       /* unten rechts: Legende */
       if(o.legend !== false){
-        const items = legendItems(shown);
+        const items = impLegend.concat(legendItems(shown));
         if(items.length){
           const LW = (L.portrait ? 360 : 270)*u, rowH = 21*u, head = 32*u, ip = 14*u;
           const maxRows = Math.max(1, Math.floor((TH*(L.portrait ? 0.32 : 0.4) - head - ip) / rowH));
@@ -594,7 +685,7 @@ async function exportImage(map, o){
 
     /* Legende */
     if(o.legend !== false){
-      const items = legendItems(shown), rowH = 22*u;
+      const items = impLegend.concat(legendItems(shown)), rowH = 22*u;
       if(items.length){
         g.fillStyle = "#77766b"; g.font = `500 ${10*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "top";
         g.fillText("LEGENDE", x0, y); y += 20*u;
@@ -622,5 +713,5 @@ function emptyData(){ return {version:1, aktualisiert:null, elemente:[]}; }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
 window.Karte = {STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
-  addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage, exportLayout};
+  addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage, exportLayout, loadImport, importMeta: ()=>importData && importData.meta};
 })();

@@ -36,3 +36,15 @@ Seite (Freund, Feind, Neutral, Unbekannt), Truppengattung, Größe, Stab und „
 - Ukraine (ab Zoom 7, nur Satellit): [Esri World Imagery](https://www.esri.com), Powered by Esri. Der Schlüssel in `karte.js` ist auf `platano008.github.io` beschränkt.
 - Ersatz, falls MapTiler nicht antwortet: [OpenFreeMap](https://openfreemap.org), Daten © OpenStreetMap-Mitwirkende
 - Kartenbibliothek: [MapLibre GL JS](https://maplibre.org)
+
+## Lagedaten aus MilX importieren
+
+Eine MilX-Layerdatei (`.milxly` oder `.zip`) wird in `import/lage.geojson` umgewandelt und als eigene,
+schaltbare Ebene unter deinen eigenen Einträgen angezeigt:
+
+```
+python3 tools/milx2geojson.py Layer.milxly import/lage.geojson "ukv3.65"
+```
+
+Flächenfarben und Transparenz kommen aus der Datei, NATO-Symbole werden aus dem SIDC erzeugt,
+Namen (z. B. „18th Army“) erscheinen ab mittlerer Zoomstufe. Eine neue Version ersetzt einfach die Datei.

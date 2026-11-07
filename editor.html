@@ -9,10 +9,10 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0a'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23f2ff1a'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611071437">
+<link rel="stylesheet" href="style.css?v=202611071446">
 <script src="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://unpkg.com/milsymbol@2.2.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611071437"></script>
+<script src="karte.js?v=202611071446"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -78,6 +78,9 @@ details.gh[open] summary{color:var(--fg)}
 .toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:50;background:var(--fg);color:var(--bg);font-weight:600;font-size:14px;padding:10px 16px;transition:.2s;pointer-events:none;box-shadow:inset 3px 0 0 var(--volt);max-width:calc(100% - 32px)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 @media (max-width:720px){ .panel{max-height:58%;width:auto} }
+.imp{display:flex;flex-direction:column;gap:6px}
+.imp .eyebrow{display:flex;justify-content:space-between}
+.chip i{width:10px;height:10px;display:inline-block;border:1px solid rgba(0,0,0,.5)}
 </style>
 </head>
 <body>
@@ -94,6 +97,7 @@ details.gh[open] summary{color:var(--fg)}
     <div class="ed-h"><h1>Bearbeiten</h1><button class="toggle" id="toggle" aria-label="Werkzeuge ein- oder ausklappen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M6 9l6 6 6-6"/></svg></button></div>
     <div class="status" id="status">Lädt …</div>
     <div class="row"><button class="btn volt" id="save" disabled>Speichern</button><a class="btn" href="./" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Ansicht öffnen</a></div>
+    <div class="imp" id="imp" hidden><div class="eyebrow"><span>Lagedaten</span><span id="impSrc"></span></div><div class="chips" id="impChips"></div></div>
     <div class="tools" id="tools">
       <button data-t="select"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M5 3l14 8-6 2-2 6z"/></svg>Auswahl</button>
       <button data-t="symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"><path d="M3 6h18v12H3zM3 6l18 12M21 6L3 18"/></svg>Symbol</button>
@@ -153,7 +157,21 @@ $("base").innerHTML = Object.entries(K.STYLES).map(([k,s])=>`<button data-b="${k
 $("base").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("base").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setBase(b.dataset.b); });
 $("view").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("view").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setGlobe(b.dataset.v==="globe"); });
 
-const map = K.createMap({container:"map", style:"sat", globe:false, doubleClickZoom:false, onStyle: m=>{
+/* Lagedaten-Ebenen (Import) */
+const impOff = new Set();
+function renderImp(d){
+  const meta = d && d.meta; if(!meta || !meta.ebenen || !meta.ebenen.length) return;
+  const col = id=>{ const fs = d.features.filter(x=>x.properties.ebene===id); if(!fs.length) return "#888";
+    const area = fs.find(x=>x.properties.art==="flaeche");
+    if(area && fs.every(x=>x.properties.art!=="symbol")) return area.properties.fuellung;
+    const sides = [...new Set(fs.filter(x=>x.properties.art==="symbol").map(x=>x.properties.sidc[1]))].map(k=>(K.SIDES[k]||K.SIDES.U).color);
+    return sides.length > 1 ? `linear-gradient(135deg,${sides[0]} 50%,${sides[1]} 50%)` : sides[0]; };
+  $("imp").hidden = false;
+  $("impSrc").textContent = meta.quelle || "";
+  $("impChips").innerHTML = meta.ebenen.map(l=>`<button class="chip${impOff.has(l.id)?"":" on"}" data-imp="${esc(l.id)}" aria-pressed="${!impOff.has(l.id)}"><i style="background:${esc(col(l.id))}"></i>${esc(l.name)}</button>`).join("");
+  $("impChips").querySelectorAll("[data-imp]").forEach(b=>b.onclick=()=>{ const id=b.dataset.imp; impOff.has(id)?impOff.delete(id):impOff.add(id); map.setImportHidden([...impOff]); renderImp(d); });
+}
+const map = K.createMap({onImport: d=>renderImp(d), container:"map", style:"sat", globe:false, doubleClickZoom:false, onStyle: m=>{
   K.addDataLayers(m, "lage", K.toFeatures(DATA.elemente));
   m.addSource("draft", {type:"geojson", data:{type:"FeatureCollection", features:[]}});
   m.addLayer({id:"draft-fill", type:"fill", source:"draft", filter:["==",["geometry-type"],"Polygon"], paint:{"fill-color":"#ffffff","fill-opacity":0.12}});
