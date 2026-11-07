@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Lagekarte bearbeiten</title>
+<title>Plyus bearbeiten</title>
 <meta name="theme-color" content="#0b0b0a">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230e0f11'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23ffffff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://api.maptiler.com" crossorigin>
@@ -12,10 +12,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611071742">
+<link rel="stylesheet" href="style.css?v=202611071915">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611071742"></script>
+<script src="karte.js?v=202611071915"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -431,7 +431,7 @@ function wireSymbolFields(s, onChange){
 const RATIOS = {"16:9":16/9, "3:2":3/2, "4:3":4/3, "1:1":1, "4:5":4/5};
 const SCALES = {2:"Full HD", 3:"2,9K", 4:"4K"};
 const today = new Date().toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
-let shot = Object.assign({layout:"overlay", ratio:"16:9", scale:3, format:"png", title:"Lagekarte", subtitle:"Stand "+today, legend:true, credit:""}, JSON.parse(store.get("lage-shot")||"{}"));
+let shot = Object.assign({layout:"overlay", ratio:"16:9", scale:3, format:"png", title:"Lagekarte Ukraine", subtitle:"Stand "+today, legend:true, credit:"Plyus"}, JSON.parse(store.get("lage-shot")||"{}"));
 shot.subtitle = shot.subtitle && /^Stand \d/.test(shot.subtitle) ? "Stand "+today : shot.subtitle;
 const saveShot = ()=>store.set("lage-shot", JSON.stringify(shot));
 let frameRect = null;

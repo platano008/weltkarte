@@ -1,5 +1,6 @@
-# Lagekarte
+# Plyus
 
+Lagekarte Ukraine. 
 Satellitenkarte mit Linien, Pfeilen, Flächen und NATO-Symbolen. Startet auf der Ukraine, zeigt aber die ganze Welt.
 
 - **Ansicht für alle:** https://platano008.github.io/weltkarte/
@@ -13,7 +14,8 @@ Satellitenkarte mit Linien, Pfeilen, Flächen und NATO-Symbolen. Startet auf der
 | `editor.html` | Bearbeitungs-Seite: Linie, Pfeil, Fläche, NATO-Symbol, Speichern |
 | `karte.json` | Alle Einträge auf der Karte. Der Editor schreibt diese Datei. |
 | `karte.js` | Gemeinsamer Code: Kartenstile, Farbschema, Symbole |
-| `style.css` | Gemeinsames Design und Schrift |
+| `style.css` | Gemeinsames Design |
+| `fonts/` | Eigene Schrift „Plyus“ (Regular und Bold) |
 
 ## Bearbeiten
 

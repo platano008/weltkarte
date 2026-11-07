@@ -20,7 +20,7 @@ function darkStyle(){
   const FONT = ["Noto Sans Regular"], BOLD = ["Noto Sans Bold"], ITAL = ["Noto Sans Italic"];
   const halo = {"text-halo-color":"#0c0d10","text-halo-width":1.4};
   const notMar = ["!=",["get","maritime"],1];
-  return {version:8, name:"Lagekarte dunkel",
+  return {version:8, name:"Plyus dunkel",
     glyphs:"https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
     sources:{[S]:{type:"vector", url:"https://tiles.openfreemap.org/planet"}},
     layers:[
@@ -692,7 +692,7 @@ async function exportImage(map, o){
     await Promise.all([main.ready, inset ? inset.ready : null]);
     const out = document.createElement("canvas"); out.width = L.TW; out.height = L.TH;
     const g = out.getContext("2d");
-    try{ if(document.fonts) await Promise.all([document.fonts.load(`${40*u}px "Setline Display"`), document.fonts.load(`500 ${12*u}px "IBM Plex Mono"`), document.fonts.load(`500 ${12*u}px "Archivo"`)]); }catch(e){}
+    try{ if(document.fonts) await Promise.all([document.fonts.load(`${40*u}px "Plyus"`), document.fonts.load(`500 ${12*u}px "IBM Plex Mono"`), document.fonts.load(`500 ${12*u}px "Archivo"`)]); }catch(e){}
     g.fillStyle = "#0e0f11"; g.fillRect(0, 0, L.TW, L.TH);
 
     /* Karte */
@@ -736,12 +736,12 @@ async function exportImage(map, o){
       g.textBaseline = "middle";
       if(o.credit){
         g.save(); g.shadowColor = "rgba(0,0,0,0.6)"; g.shadowBlur = 6*u; g.fillStyle = "#ffffff"; g.fillRect(x0, y, 20*u, 20*u); g.restore();
-        g.font = `${22*u}px "Setline Display", "Archivo", Arial, sans-serif`;
+        g.font = `${22*u}px "Plyus", "Archivo", Arial, sans-serif`;
         shadowText(o.credit.toUpperCase(), x0 + 30*u, y + 11*u, "#f2f3f5"); y += 42*u;
       }
       if(o.title){
         const maxW = Math.min(TW*0.55, 600*u); let fs = 56*u, lines;
-        for(;;){ g.font = `${fs}px "Setline Display", "Archivo", Arial, sans-serif`; lines = wrapText(g, o.title.toUpperCase(), maxW); if((lines.length <= 2 && lines.every(l=>g.measureText(l).width <= maxW)) || fs < 24*u) break; fs -= 2*u; }
+        for(;;){ g.font = `${fs}px "Plyus", "Archivo", Arial, sans-serif`; lines = wrapText(g, o.title.toUpperCase(), maxW); if((lines.length <= 2 && lines.every(l=>g.measureText(l).width <= maxW)) || fs < 24*u) break; fs -= 2*u; }
         lines = lines.slice(0, 3);
         const th = lines.length * fs * 0.98;
         g.fillStyle = "#ffffff"; g.fillRect(x0, y + 2*u, 5*u, th - 6*u);
@@ -833,7 +833,7 @@ async function exportImage(map, o){
     }
     if(o.title){
       let fs = 40*u, lines;
-      for(;;){ g.font = `${fs}px "Setline Display", "Archivo", Arial, sans-serif`; lines = wrapText(g, o.title.toUpperCase(), colW); if((lines.length <= 2 && lines.every(l=>g.measureText(l).width <= colW)) || fs < 18*u) break; fs -= 2*u; }
+      for(;;){ g.font = `${fs}px "Plyus", "Archivo", Arial, sans-serif`; lines = wrapText(g, o.title.toUpperCase(), colW); if((lines.length <= 2 && lines.every(l=>g.measureText(l).width <= colW)) || fs < 18*u) break; fs -= 2*u; }
       if(lines.length > 3) lines = lines.slice(0,3);
       g.fillStyle = "#f2f3f5"; g.textBaseline = "top";
       for(const l of lines){ g.fillText(l, x0, y); y += fs*1.02; }
@@ -847,7 +847,7 @@ async function exportImage(map, o){
     const footW = L.portrait ? colW : S.w - 2*ip, attrLines = wrapText(g, attr, footW, 3);
     const creditH = o.credit ? 26*u : 0, footH = attrLines.length*13*u + creditH;
     const footY = S.y + S.h - ip - footH;
-    if(o.credit){ g.fillStyle = "#f2f3f5"; g.font = `${20*u}px "Setline Display", "Archivo", Arial, sans-serif`; g.textBaseline = "top"; g.fillText(o.credit.toUpperCase(), x0, footY); }
+    if(o.credit){ g.fillStyle = "#f2f3f5"; g.font = `${20*u}px "Plyus", "Archivo", Arial, sans-serif`; g.textBaseline = "top"; g.fillText(o.credit.toUpperCase(), x0, footY); }
     g.fillStyle = "#7b818a"; g.font = `${9.5*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "top";
     attrLines.forEach((l,i)=>g.fillText(l, x0, footY + creditH + i*13*u));
 
