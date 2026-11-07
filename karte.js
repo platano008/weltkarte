@@ -248,6 +248,7 @@ function createMap(opts){
   map.setBase = k=>{ if(free || !STYLES[k] || k===current) return; current = k; errs = 0; map.setStyle(STYLES[k].url); };
   map.setGlobe = g=>{ globe = g; try{ map.setProjection({type: g ? "globe" : "mercator"}); }catch(e){} };
   map.currentBase = ()=>current;
+  map.isFree = ()=>free;
   return map;
 }
 
@@ -265,9 +266,135 @@ function symbolMarker(map, el, o){
   return m;
 }
 
+/* ---------------- Bild-Export ---------------- */
+/* Rendert einen Ausschnitt (frame in CSS-Pixeln relativ zur Karte) neu mit höherer Pixeldichte
+   und legt Titel, NATO-Symbole, Legende, Maßstab und Quellenangabe darüber. */
+function loadImg(src){ return new Promise((res,rej)=>{ const i = new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
+function niceScale(maxMeters){
+  const p = Math.pow(10, Math.floor(Math.log10(maxMeters)));
+  for(const f of [5,2,1]) if(f*p <= maxMeters) return f*p;
+  return p;
+}
+function attributionFor(map, center, zoom){
+  if(map.isFree && map.isFree()) return "© OpenFreeMap · © OpenStreetMap-Mitwirkende";
+  let a = "© MapTiler · © OpenStreetMap-Mitwirkende";
+  const [w,s,e,n] = ESRI_BOUNDS;
+  if(map.currentBase()==="sat" && !esriOff && zoom >= 7 && center[0]>w && center[0]<e && center[1]>s && center[1]<n)
+    a = "Powered by Esri · Esri, Maxar, Earthstar Geographics · " + a;
+  return a;
+}
+async function exportImage(map, o){
+  const PR = o.scale || 2, fw = Math.round(o.frame.w), fh = Math.round(o.frame.h);
+  const c = map.unproject([o.frame.x + fw/2, o.frame.y + fh/2]);
+  const zoom = map.getZoom(), bearing = map.getBearing(), pitch = map.getPitch();
+  const holder = document.createElement("div");
+  holder.style.cssText = `position:fixed;left:-${fw*2+100}px;top:0;width:${fw}px;height:${fh}px;pointer-events:none;opacity:0`;
+  document.body.appendChild(holder);
+  const style = map.getStyle();
+  const off = new maplibregl.Map({container:holder, style, center:c, zoom, bearing, pitch, interactive:false, attributionControl:false,
+    pixelRatio:PR, fadeDuration:0, preserveDrawingBuffer:true, canvasContextAttributes:{preserveDrawingBuffer:true}});
+  try{
+    await new Promise((res,rej)=>{
+      const t = setTimeout(()=>res(), 45000);
+      off.once("load", ()=>{
+        try{ if(off.getLayer("lage-sel")) off.setFilter("lage-sel",["==",["get","id"],"__none"]); }catch(e){}
+        off.once("idle", ()=>{ clearTimeout(t); res(); });
+      });
+      off.on("error", ()=>{});
+    });
+    const src = off.getCanvas();
+    const W = src.width, H = src.height, s = W / fw;
+    const out = document.createElement("canvas"); out.width = W; out.height = H;
+    const g = out.getContext("2d");
+    g.drawImage(src, 0, 0, W, H);
+    try{ if(document.fonts) await Promise.all([document.fonts.load(`${40*s}px "Setline Display"`), document.fonts.load(`500 ${12*s}px "IBM Plex Mono"`)]); }catch(e){}
+
+    /* nur was im Ausschnitt liegt */
+    const inView = ll=>{ const p = off.project(ll); return p.x >= -40 && p.y >= -40 && p.x <= fw+40 && p.y <= fh+40; };
+    const shown = (o.elements||[]).filter(el=> el.typ==="symbol" ? inView(el.koordinaten) : (el.koordinaten||[]).some(inView));
+    const syms = shown.filter(el=>el.typ==="symbol");
+    /* NATO-Symbole */
+    for(const el of syms){
+      const p = off.project(el.koordinaten);
+      const r = symbolSVG(el, 30*(o.symbolScale||1));
+      let svg = r.svg; if(!/xmlns=/.test(svg)) svg = svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
+      try{
+        const img = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg));
+        g.save(); g.shadowColor = "rgba(0,0,0,0.6)"; g.shadowBlur = 3*s; g.shadowOffsetY = 1*s;
+        g.drawImage(img, (p.x - r.ax)*s, (p.y - r.ay)*s, r.w*s, r.h*s); g.restore();
+      }catch(e){}
+    }
+
+    const pad = 18*s, mono = `"IBM Plex Mono", Menlo, monospace`, disp = `"Setline Display", "Archivo", Arial, sans-serif`;
+    /* Titel oben links */
+    if(o.title || o.subtitle){
+      g.font = `${30*s}px ${disp}`; const tw = o.title ? g.measureText(o.title.toUpperCase()).width : 0;
+      g.font = `500 ${11*s}px ${mono}`; const sw = o.subtitle ? g.measureText(o.subtitle.toUpperCase()).width : 0;
+      const bw = Math.max(tw, sw + 22*s) + 36*s, bh = (o.title && o.subtitle ? 78 : o.title ? 58 : 40)*s;
+      g.fillStyle = "rgba(11,11,10,0.9)"; g.fillRect(pad, pad, bw, bh);
+      g.fillStyle = "#f2ff1a"; g.fillRect(pad, pad, bw, 3*s);
+      let y = pad + 20*s;
+      if(o.subtitle){ g.fillRect(pad+18*s, y-8*s, 10*s, 10*s); g.fillStyle = "#8a897e"; g.font = `500 ${11*s}px ${mono}`; g.textBaseline = "middle"; g.fillText(o.subtitle.toUpperCase(), pad+36*s, y-3*s); y += 18*s; }
+      if(o.title){ g.fillStyle = "#f1f0e8"; g.font = `${30*s}px ${disp}`; g.textBaseline = "top"; g.fillText(o.title.toUpperCase(), pad+18*s, o.subtitle ? y : pad+16*s); }
+    }
+    /* Nordpfeil, wenn gedreht */
+    if(Math.abs(bearing) > 0.5){
+      const cx = W - pad - 16*s, cy = pad + 16*s;
+      g.save(); g.translate(cx, cy); g.rotate(-bearing*Math.PI/180);
+      g.fillStyle = "rgba(11,11,10,0.9)"; g.fillRect(-16*s,-16*s,32*s,32*s);
+      g.fillStyle = "#f2ff1a"; g.beginPath(); g.moveTo(0,-11*s); g.lineTo(6*s,6*s); g.lineTo(0,2*s); g.lineTo(-6*s,6*s); g.closePath(); g.fill();
+      g.restore();
+    }
+    /* Legende unten links */
+    let by = H - pad;
+    const bottom = [];
+    if(o.legend){
+      const sides = [...new Set(syms.map(el=>el.seite||"U"))];
+      const items = sides.map(k=>({c:SIDES[k].color, t:SIDES[k].short}));
+      if(shown.some(el=>el.stil==="gestrichelt" || el.geplant)) items.push({dash:true, t:"vermutet"});
+      if(items.length) bottom.push(items);
+    }
+    const lat = c.lat, mpp = 40075016.686*Math.cos(lat*Math.PI/180)/(512*Math.pow(2,zoom));
+    const meters = niceScale(mpp*fw*0.18), barPx = meters/mpp*s;
+    const label = meters >= 1000 ? (meters/1000).toLocaleString("de-DE")+" km" : meters+" m";
+    g.font = `500 ${11*s}px ${mono}`;
+    const legendW = bottom.length ? bottom[0].reduce((a,it)=>a + 22*s + g.measureText(it.t.toUpperCase()).width + 14*s, 0) : 0;
+    const labelW = g.measureText(label).width;
+    const boxW = Math.max(barPx + 8*s + labelW, legendW) + 28*s, boxH = (bottom.length ? 58 : 36)*s;
+    g.fillStyle = "rgba(11,11,10,0.88)"; g.fillRect(pad, H - pad - boxH, boxW, boxH);
+    let x = pad + 14*s, yy = H - pad - boxH + 18*s;
+    g.textBaseline = "middle";
+    if(bottom.length){
+      for(const it of bottom[0]){
+        if(it.dash){ g.strokeStyle = "#f1f0e8"; g.lineWidth = 2*s; g.setLineDash([4*s,3*s]); g.beginPath(); g.moveTo(x, yy); g.lineTo(x+14*s, yy); g.stroke(); g.setLineDash([]); }
+        else { g.fillStyle = it.c; g.fillRect(x, yy-5*s, 10*s, 10*s); g.strokeStyle = "rgba(0,0,0,.6)"; g.lineWidth = 1*s; g.strokeRect(x, yy-5*s, 10*s, 10*s); }
+        g.fillStyle = "#c9c8bd"; g.fillText(it.t.toUpperCase(), x + 20*s, yy); x += 22*s + g.measureText(it.t.toUpperCase()).width + 14*s;
+      }
+      yy += 22*s;
+    }
+    x = pad + 14*s;
+    g.fillStyle = "#f1f0e8"; g.fillRect(x, yy+2*s, barPx, 3*s); g.fillRect(x, yy-4*s, 2*s, 9*s); g.fillRect(x+barPx-2*s, yy-4*s, 2*s, 9*s);
+    g.fillStyle = "#f2ff1a"; g.fillRect(x, yy+2*s, barPx/2, 3*s);
+    g.fillStyle = "#c9c8bd"; g.textBaseline = "middle"; g.font = `500 ${11*s}px ${mono}`; g.fillText(label, x + barPx + 8*s, yy+3*s);
+    /* Quellenangabe unten rechts */
+    const attr = attributionFor(map, [c.lng, c.lat], zoom) + (o.credit ? " · " + o.credit : "");
+    g.font = `${10*s}px ${mono}`; g.textBaseline = "middle";
+    const aw = g.measureText(attr).width + 16*s;
+    g.fillStyle = "rgba(11,11,10,0.8)"; g.fillRect(W - aw, H - 20*s, aw, 20*s);
+    g.fillStyle = "#c9c8bd"; g.fillText(attr, W - aw + 8*s, H - 10*s);
+
+    const type = o.format==="jpg" ? "image/jpeg" : "image/png";
+    const blob = await new Promise((res,rej)=>{ try{ out.toBlob(b=>b?res(b):rej(new Error("leer")), type, 0.92); }catch(e){ rej(e); } });
+    return {blob, width:W, height:H};
+  } finally {
+    try{ off.remove(); }catch(e){}
+    holder.remove();
+  }
+}
+
 function emptyData(){ return {version:1, aktualisiert:null, elemente:[]}; }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
 window.Karte = {STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
-  addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme};
+  addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage};
 })();
