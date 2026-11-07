@@ -562,6 +562,8 @@ function symbolMarker(map, el, o){
 /* ---------------- Bild-Export ---------------- */
 /* Aufbau wie eine Lagekarte zum Teilen: Karte links (bzw. oben), Seitenleiste mit Titel, Legende,
    Übersichtskarte und Quellen. Die Ausgabegröße hängt nur von Format und Qualität ab, nicht vom Bildschirm. */
+const LOGO_PATH = "M4.5 1.5H9.5V4H4.5Z M14.5 1.5H19.5V4H14.5Z M3.5 5H10.5V9.5H13.5V5H20.5L23 10V22.5H13.5V14H10.5V22.5H1V10Z M3.5 15.5V20H8V15.5Z M16 15.5V20H20.5V15.5Z";
+function drawLogo(g, x, y, s, col){ g.save(); g.translate(x, y); g.scale(s/24, s/24); g.fillStyle = col; g.fill(new Path2D(LOGO_PATH), "evenodd"); g.restore(); }
 const QUAL = {2:1920, 3:2880, 4:3840};
 function exportLayout(ratio, q, layout){
   const TW = QUAL[q] || 2880, TH = Math.round(TW/ratio), u = TW/1000, p = Math.round(12*u);
@@ -735,9 +737,9 @@ async function exportImage(map, o){
       let y = pad + 8*u; const x0 = pad + 8*u;
       g.textBaseline = "middle";
       if(o.credit){
-        g.save(); g.shadowColor = "rgba(0,0,0,0.6)"; g.shadowBlur = 6*u; g.fillStyle = "#ffffff"; g.fillRect(x0, y, 20*u, 20*u); g.restore();
+        g.save(); g.shadowColor = "rgba(0,0,0,0.6)"; g.shadowBlur = 6*u; drawLogo(g, x0 - 2*u, y - 3*u, 26*u, "#ffffff"); g.restore();
         g.font = `${22*u}px "Plyus", "Archivo", Arial, sans-serif`;
-        shadowText(o.credit.toUpperCase(), x0 + 30*u, y + 11*u, "#f2f3f5"); y += 42*u;
+        shadowText(o.credit.toUpperCase(), x0 + 34*u, y + 11*u, "#f2f3f5"); y += 42*u;
       }
       if(o.title){
         const maxW = Math.min(TW*0.55, 600*u); let fs = 56*u, lines;
@@ -827,9 +829,9 @@ async function exportImage(map, o){
     const colW = L.portrait ? S.w*0.58 - ip : S.w - 2*ip, x0 = S.x + ip;
     let y = S.y + ip + 6*u;
     if(o.subtitle){
-      g.fillStyle = "#ffffff"; g.fillRect(x0, y, 9*u, 9*u);
+      drawLogo(g, x0, y - 3*u, 15*u, "#ffffff");
       g.fillStyle = "#a3a8b0"; g.font = `500 ${12*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle";
-      g.fillText(o.subtitle.toUpperCase(), x0 + 17*u, y + 5*u); y += 26*u;
+      g.fillText(o.subtitle.toUpperCase(), x0 + 22*u, y + 5*u); y += 26*u;
     }
     if(o.title){
       let fs = 40*u, lines;
@@ -847,7 +849,7 @@ async function exportImage(map, o){
     const footW = L.portrait ? colW : S.w - 2*ip, attrLines = wrapText(g, attr, footW, 3);
     const creditH = o.credit ? 26*u : 0, footH = attrLines.length*13*u + creditH;
     const footY = S.y + S.h - ip - footH;
-    if(o.credit){ g.fillStyle = "#f2f3f5"; g.font = `${20*u}px "Plyus", "Archivo", Arial, sans-serif`; g.textBaseline = "top"; g.fillText(o.credit.toUpperCase(), x0, footY); }
+    if(o.credit){ drawLogo(g, x0, footY - 2*u, 22*u, "#f2f3f5"); g.fillStyle = "#f2f3f5"; g.font = `${20*u}px "Plyus", "Archivo", Arial, sans-serif`; g.textBaseline = "top"; g.fillText(o.credit.toUpperCase(), x0 + 30*u, footY); }
     g.fillStyle = "#7b818a"; g.font = `${9.5*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "top";
     attrLines.forEach((l,i)=>g.fillText(l, x0, footY + creditH + i*13*u));
 
