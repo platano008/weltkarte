@@ -6,13 +6,13 @@
 <meta name="robots" content="noindex">
 <title>Lagekarte bearbeiten</title>
 <meta name="theme-color" content="#0b0b0a">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0a'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23f2ff1a'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230e0f11'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23ffffff'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611071446">
+<link rel="stylesheet" href="style.css?v=202611071522">
 <script src="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://unpkg.com/milsymbol@2.2.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611071446"></script>
+<script src="karte.js?v=202611071522"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -25,13 +25,13 @@
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 14px;font-weight:600;font-size:14px;border:1px solid var(--line-2)}
 .btn:hover{border-color:var(--fg)}
 .btn.volt{background:var(--volt);color:var(--ink);border-color:var(--volt)}
-.btn.volt:hover{background:#fff;border-color:#fff}
+.btn.volt:hover{background:#d9dce1;border-color:#d9dce1}
 .btn.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,transparent)}
 .btn:disabled{opacity:.35;cursor:not-allowed}
 .btn.sm{min-height:32px;font-size:13px;padding:0 10px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .tools{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid var(--line-2)}
-.frame{position:fixed;z-index:3;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,.5);outline:1px solid rgba(242,255,26,.9)}
+.frame{position:fixed;z-index:3;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,.5);outline:1px solid rgba(255,255,255,.9)}
 .frame i{position:absolute;width:18px;height:18px;border:0 solid var(--volt)}
 .frame i:nth-child(1){left:-3px;top:-3px;border-left-width:3px;border-top-width:3px}
 .frame i:nth-child(2){right:-3px;top:-3px;border-right-width:3px;border-top-width:3px}
@@ -136,7 +136,7 @@ details.gh[open] summary{color:var(--fg)}
 const K = Karte, $ = id => document.getElementById(id), esc = K.esc;
 const GH = {owner:"platano008", repo:"weltkarte", path:"karte.json", branch:"main"};
 const API = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${GH.path}`;
-const COLORS = [["#f2ff1a","Gelb"],["#ff3b30","Rot"],["#2f80ff","Blau"],["#ffffff","Weiß"],["#ff8a3d","Orange"],["#3ddc84","Grün"]];
+const COLORS = [["#e5383b","Rot · Feind"],["#2f7cf6","Blau · Freund"],["#c9c9c9","Grau · Grauzone"],["#45c46b","Grün · Neutral"],["#ffb800","Bernstein · Hinweis"],["#ffffff","Weiß"]];
 const DRAW = ["linie","pfeil","flaeche"];
 const LS = {token:"lage-gh-token", draft:"lage-draft", prefs:"lage-prefs"};
 const store = {
@@ -147,7 +147,8 @@ const store = {
 
 let DATA = K.emptyData(), sha = null, dirty = false, tool = "select", sel = null, markers = [];
 let draft = null; /* {typ, pts:[], replaceId} */
-let prefs = Object.assign({farbe:"#ff3b30", stil:"durchgezogen", seite:"H", einheit:"inf", groesse:"F", hq:false, geplant:false}, JSON.parse(store.get(LS.prefs)||"{}"));
+let prefs = Object.assign({farbe:"#e5383b", stil:"durchgezogen", seite:"H", einheit:"inf", groesse:"F", hq:false, geplant:false}, JSON.parse(store.get(LS.prefs)||"{}"));
+prefs.farbe = K.farbe(prefs.farbe);
 const savePrefs = ()=>store.set(LS.prefs, JSON.stringify(prefs));
 const uid = ()=>"e"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("on"); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("on"),2600); }
@@ -287,7 +288,7 @@ function measure(el){
 }
 function icon(el){
   if(el.typ==="symbol") return `<span class="ic">${K.symbolSVG(el,18).svg}</span>`;
-  return `<span class="ic"><i class="sw${el.typ==="flaeche"?" area":""}" style="background:${esc(el.farbe)}"></i></span>`;
+  return `<span class="ic"><i class="sw${el.typ==="flaeche"?" area":""}" style="background:${esc(K.farbe(el.farbe))}"></i></span>`;
 }
 function renderList(){
   $("list").innerHTML = DATA.elemente.slice().reverse().map(el=>`<button class="item${sel&&sel.id===el.id?" sel":""}" data-id="${esc(el.id)}">${icon(el)}<span><b>${esc(el.name||K.describe(el))}</b>${el.name?`<span class="c">${esc(K.describe(el))}</span>`:""}</span><span class="km">${measure(el)}</span></button>`).join("")
@@ -452,7 +453,7 @@ function renderOpts(){
   if(!sel){ o.innerHTML = `<div class="hint">Wähle oben ein Werkzeug oder tippe ein Element auf der Karte bzw. in der Liste an, um es zu bearbeiten.</div>`; return; }
   const el = sel;
   o.innerHTML = `<div><label class="lbl" for="fName">Name</label><input class="f" id="fName" value="${esc(el.name)}" placeholder="${esc(K.describe(el))}" maxlength="80"></div>
-    ${el.typ==="symbol" ? `<div><label class="lbl" for="fZus">Bezeichnung am Symbol</label><input class="f" id="fZus" value="${esc(el.zusatz)}" placeholder="z. B. 93" maxlength="20"></div>` + symbolFields(el) : `<div><span class="lbl">Farbe</span>${swatches(el.farbe)}</div>`}
+    ${el.typ==="symbol" ? `<div><label class="lbl" for="fZus">Bezeichnung am Symbol</label><input class="f" id="fZus" value="${esc(el.zusatz)}" placeholder="z. B. 93" maxlength="20"></div>` + symbolFields(el) : `<div><span class="lbl">Farbe</span>${swatches(K.farbe(el.farbe))}</div>`}
     ${el.typ==="linie"||el.typ==="pfeil" ? `<div><span class="lbl">Stil</span><div class="sides" style="grid-template-columns:1fr 1fr"><button data-st="durchgezogen" style="${el.stil!=="gestrichelt"?"background:var(--volt);color:var(--ink)":""}">Durchgezogen</button><button data-st="gestrichelt" style="${el.stil==="gestrichelt"?"background:var(--volt);color:var(--ink)":""}">Gestrichelt</button></div></div>`:""}
     <div><label class="lbl" for="fText">Beschreibung</label><textarea class="f" id="fText" maxlength="2000">${esc(el.text)}</textarea></div>
     <div><label class="lbl" for="fDate">Datum</label><input class="f" id="fDate" type="date" value="${esc(el.datum||"")}"></div>

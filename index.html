@@ -11,13 +11,13 @@
 <meta property="og:description" content="Lagekarte Ukraine mit Satellitenbildern, Frontlinien, Bewegungen und NATO-Symbolen.">
 <meta property="og:url" content="https://platano008.github.io/weltkarte/">
 <meta name="twitter:card" content="summary">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0a'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23f2ff1a'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230e0f11'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23ffffff'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611071446">
+<link rel="stylesheet" href="style.css?v=202611071522">
 <script src="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://unpkg.com/milsymbol@2.2.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611071446"></script>
+<script src="karte.js?v=202611071522"></script>
 <style>
 .panel{border-top:2px solid var(--volt)}
 .search{position:relative}
@@ -27,7 +27,7 @@
 .legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:9px;height:9px;display:block;border:1px solid rgba(0,0,0,.6)}
-.grp{position:sticky;top:0;z-index:1;padding:8px 18px 6px;background:rgba(18,18,17,.98);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
+.grp{position:sticky;top:0;z-index:1;padding:8px 18px 6px;background:rgba(21,23,26,.98);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
 .pf{display:flex;justify-content:space-between;gap:12px;padding:8px 18px;border-top:1px solid var(--line-2);font-family:var(--mono);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
 .pf a{color:var(--muted);text-decoration:none}
 .pf a:hover{color:var(--fg)}
@@ -151,7 +151,7 @@ function renderChips(){
 }
 function icon(el){
   if(el.typ==="symbol") return `<span class="ic">${K.symbolSVG(el,18).svg}</span>`;
-  return `<span class="ic"><i class="sw${el.typ==="flaeche"?" area":""}" style="background:${esc(el.farbe)}"></i></span>`;
+  return `<span class="ic"><i class="sw${el.typ==="flaeche"?" area":""}" style="background:${esc(K.farbe(el.farbe))}"></i></span>`;
 }
 function measure(el){
   if(el.typ==="linie"||el.typ==="pfeil") return Math.round(K.lineKm(el.koordinaten)).toLocaleString("de-DE")+" km";
@@ -188,7 +188,7 @@ function select(el, fly){
   if(!sel){ card.hidden = true; return; }
   const m = measure(sel), [lng,lat] = center(sel);
   const visual = sel.typ==="symbol" ? `<div class="big">${K.symbolSVG(sel,40).svg}</div>`
-    : `<div class="stripe${sel.stil==="gestrichelt"?" dash":""}" style="background:${sel.stil==="gestrichelt"?`repeating-linear-gradient(90deg,${esc(sel.farbe)} 0 9px,transparent 9px 14px)`:esc(sel.farbe)}"></div>`;
+    : `<div class="stripe${sel.stil==="gestrichelt"?" dash":""}" style="background:${sel.stil==="gestrichelt"?`repeating-linear-gradient(90deg,${esc(K.farbe(sel.farbe))} 0 9px,transparent 9px 14px)`:esc(K.farbe(sel.farbe))}"></div>`;
   card.innerHTML = `<div class="row"><h2>${esc(sel.name||K.describe(sel))}</h2><button class="x" id="cx" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     ${visual}
     <div class="meta"><span>${esc(K.describe(sel))}</span>${m?`<span>${m}</span>`:""}${sel.datum?`<span>${esc(fmtDate(sel.datum))}</span>`:""}</div>

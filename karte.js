@@ -39,16 +39,16 @@ const START = {center:[31.6,48.6], zoom:5.3};
 
 /* ---------------- Farbschema ---------------- */
 const PAL = {
-  dark:{bg:"#10100e", land:"#151513", water:"#16202a", waterway:"#22303d", wood:"#192017", green:"#171b14",
-        urban:"#1a1a17", building:"#22221e", ice:"#26292a", sand:"#1e1d18",
-        minor:"#2b2b26", major:"#4a4a40", motorway:"#9aa216", rail:"#3a3a32", casing:"#0b0b0a",
-        border:"rgba(242,255,26,0.55)", border2:"rgba(255,255,255,0.18)", contour:"rgba(242,255,26,0.16)",
-        text:"#dedcd0", textWater:"#7590a8", halo:"#0b0b0a"},
-  topo:{bg:"#191a15", land:"#1c1d18", water:"#1b2935", waterway:"#28394a", wood:"#243022", green:"#20261b",
-        urban:"#23231f", building:"#2c2c26", ice:"#2d3131", sand:"#26251e",
-        minor:"#36362f", major:"#55554a", motorway:"#a7af1c", rail:"#45453c", casing:"#121210",
-        border:"rgba(242,255,26,0.6)", border2:"rgba(255,255,255,0.22)", contour:"rgba(242,255,26,0.22)",
-        text:"#e6e4d8", textWater:"#86a2b8", halo:"#10100e"}
+  dark:{bg:"#0f1012", land:"#14161a", water:"#121c26", waterway:"#1d2b38", wood:"#161c17", green:"#15191a",
+        urban:"#1a1c20", building:"#23262b", ice:"#24282c", sand:"#1c1d1e",
+        minor:"#2a2d33", major:"#474b53", motorway:"#6f747d", rail:"#383c43", casing:"#0b0c0e",
+        border:"rgba(255,255,255,0.55)", border2:"rgba(255,255,255,0.16)", contour:"rgba(255,255,255,0.12)",
+        text:"#e3e5e8", textWater:"#7c95ab", halo:"#0b0c0e"},
+  topo:{bg:"#16181b", land:"#1a1c20", water:"#16232f", waterway:"#243545", wood:"#1d251f", green:"#1b2120",
+        urban:"#212328", building:"#2b2e33", ice:"#2b2f33", sand:"#232426",
+        minor:"#34373e", major:"#545961", motorway:"#7b818a", rail:"#42464e", casing:"#101114",
+        border:"rgba(255,255,255,0.6)", border2:"rgba(255,255,255,0.2)", contour:"rgba(255,255,255,0.16)",
+        text:"#e8eaed", textWater:"#8ba3b8", halo:"#0f1012"}
 };
 function setP(map,id,k,v){ try{ map.setPaintProperty(id,k,v); }catch(e){} }
 /* Satellit: Straßen ausblenden, Orte, Grenzen und Gewässer behalten */
@@ -145,8 +145,9 @@ function symbolSVG(s, size){
     }
   }catch(e){}
   /* einfacher Ersatz, falls die Symbol-Bibliothek nicht lädt */
-  const c = (SIDES[s.seite]||SIDES.U).color, w = size*1.5, h = size;
-  const shape = s.seite==="H" ? `<polygon points="${w/2},2 ${w-2},${h/2+4} ${w/2},${h+6} 2,${h/2+4}" fill="${c}" stroke="#000" stroke-width="2"/>`
+  const side = s.seite || (s.sidc && s.sidc[1]) || "U";
+  const c = (SIDES[side]||SIDES.U).color, w = size*1.5, h = size;
+  const shape = side==="H" ? `<polygon points="${w/2},2 ${w-2},${h/2+4} ${w/2},${h+6} 2,${h/2+4}" fill="${c}" stroke="#000" stroke-width="2"/>`
     : `<rect x="2" y="4" width="${w-4}" height="${h}" fill="${c}" stroke="#000" stroke-width="2"/>`;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h+10}">${shape}<text x="${w/2}" y="${h/2+9}" font-family="Arial" font-size="${size*0.38}" font-weight="700" text-anchor="middle">${(UNITS[s.einheit]||UNITS.inf).name.slice(0,3).toUpperCase()}</text></svg>`;
   return {svg, ax:w/2, ay:(h+10)/2, w, h:h+10};
@@ -220,10 +221,13 @@ function arrow(coords){
   const back = ([x,y])=>[+(x/k).toFixed(6), +y.toFixed(6)];
   return {axis: pts.filter((_,i)=>i%3===0 || i===pts.length-1).map(back), body: ring.map(back)};
 }
+/* Farben aus älteren Versionen auf die aktuelle Palette abbilden */
+const LEGACY_COL = {"#f2ff1a":"#ffb800", "#ff3b30":"#e5383b", "#2f80ff":"#2f7cf6", "#ff8a3d":"#ffb800", "#3ddc84":"#45c46b"};
+function farbe(c){ c = String(c||"#ffffff").toLowerCase(); return LEGACY_COL[c] || c; }
 function toFeatures(els){
   const f = [];
   for(const el of els){
-    const props = {id:el.id, typ:el.typ, farbe:el.farbe||"#f2ff1a", stil:el.stil||"durchgezogen"};
+    const props = {id:el.id, typ:el.typ, farbe:farbe(el.farbe), stil:el.stil||"durchgezogen"};
     if(el.typ==="linie" && el.koordinaten.length>1) f.push({type:"Feature", properties:props, geometry:{type:"LineString", coordinates:el.koordinaten}});
     if(el.typ==="pfeil" && el.koordinaten.length>1){
       const a = arrow(el.koordinaten);
@@ -336,10 +340,7 @@ function importLegend(project, inView){
       out.push({kind:"flaeche", color:col, dash:false, label:L.name});
     }
     const syms = fs.filter(f=>f.properties.art==="symbol");
-    for(const side of ["F","H","N","U"]){
-      const s = syms.find(f=>f.properties.sidc[1]===side);
-      if(s) out.push({kind:"symbol", el:{typ:"symbol", sidc:s.properties.sidc}, label:`${L.name} (${SIDES[side].short})`});
-    }
+    if(syms.length) out.push({kind:"symbol", el:{typ:"symbol", sidc:syms[0].properties.sidc}, label:L.name});
   }
   return out;
 }
@@ -458,7 +459,7 @@ function legendItems(shown){
   for(const el of shown){
     let it;
     if(el.typ==="symbol") it = {kind:"symbol", el, label: el.name || describe(el)};
-    else it = {kind: el.typ, color: el.farbe||"#f2ff1a", dash: el.stil==="gestrichelt", label: el.name || {linie:"Linie", pfeil:"Bewegung", flaeche:"Gebiet"}[el.typ]};
+    else it = {kind: el.typ, color: el.farbe||"#ffffff", dash: el.stil==="gestrichelt", label: el.name || {linie:"Linie", pfeil:"Bewegung", flaeche:"Gebiet"}[el.typ]};
     const key = it.kind + "|" + (it.kind==="symbol" ? sidcOf(el) : it.color + it.dash) + "|" + it.label;
     if(seen.has(key)) continue; seen.add(key); items.push(it);
   }
@@ -481,7 +482,7 @@ async function drawLegendRow(g, it, x, y, u, maxW){
     const s = await symbolImg(it.el, 22);
     if(s){ const sc = Math.min(sw/s.r.w, 20*u/s.r.h); g.drawImage(s.img, x + (sw - s.r.w*sc)/2, cy - s.r.h*sc/2, s.r.w*sc, s.r.h*sc); }
   }
-  g.fillStyle = "#e6e4d8"; g.font = `500 ${12*u}px "Archivo", Arial, sans-serif`; g.textBaseline = "middle";
+  g.fillStyle = "#e6e8eb"; g.font = `500 ${12*u}px "Archivo", Arial, sans-serif`; g.textBaseline = "middle";
   let t = it.label; while(g.measureText(t).width > maxW - sw - 12*u && t.length > 4) t = t.slice(0,-2);
   if(t !== it.label) t = t.replace(/\s*$/,"") + "…";
   g.fillText(t, x + sw + 12*u, cy);
@@ -512,7 +513,7 @@ async function exportImage(map, o){
     const out = document.createElement("canvas"); out.width = L.TW; out.height = L.TH;
     const g = out.getContext("2d");
     try{ if(document.fonts) await Promise.all([document.fonts.load(`${40*u}px "Setline Display"`), document.fonts.load(`500 ${12*u}px "IBM Plex Mono"`), document.fonts.load(`500 ${12*u}px "Archivo"`)]); }catch(e){}
-    g.fillStyle = "#0b0b0a"; g.fillRect(0, 0, L.TW, L.TH);
+    g.fillStyle = "#0e0f11"; g.fillRect(0, 0, L.TW, L.TH);
 
     /* Karte */
     const M = L.map, src = main.m.getCanvas();
@@ -530,10 +531,10 @@ async function exportImage(map, o){
       g.save(); g.beginPath(); g.rect(IX, IY, IW, IH); g.clip();
       if(rw < 10*u || rh < 10*u){
         const mx = (Math.max(...xs)+Math.min(...xs))/2, my = (Math.max(...ys)+Math.min(...ys))/2, k = 9*u;
-        g.strokeStyle = "#f2ff1a"; g.lineWidth = 2.5*u; g.strokeRect(mx-k, my-k, 2*k, 2*k);
-        g.fillStyle = "#f2ff1a"; g.fillRect(mx-2*u, my-2*u, 4*u, 4*u);
+        g.strokeStyle = "#ffffff"; g.lineWidth = 2.5*u; g.strokeRect(mx-k, my-k, 2*k, 2*k);
+        g.fillStyle = "#ffffff"; g.fillRect(mx-2*u, my-2*u, 4*u, 4*u);
       } else {
-        g.fillStyle = "rgba(242,255,26,0.18)"; g.strokeStyle = "#f2ff1a"; g.lineWidth = 2*u;
+        g.fillStyle = "rgba(255,255,255,0.18)"; g.strokeStyle = "#ffffff"; g.lineWidth = 2*u;
         g.beginPath(); xs.forEach((x,i)=> i ? g.lineTo(x, ys[i]) : g.moveTo(x, ys[i])); g.closePath(); g.fill(); g.stroke();
       }
       g.restore();
@@ -544,26 +545,26 @@ async function exportImage(map, o){
       /* Abdunkeln an den Rändern, damit Schrift lesbar bleibt */
       const vg = g.createRadialGradient(TW/2, TH/2, Math.min(TW,TH)*0.3, TW/2, TH/2, Math.hypot(TW,TH)/2);
       vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,0.5)"); g.fillStyle = vg; g.fillRect(0,0,TW,TH);
-      let gr = g.createLinearGradient(0, 0, 0, 230*u); gr.addColorStop(0, "rgba(8,8,7,0.8)"); gr.addColorStop(1, "rgba(8,8,7,0)"); g.fillStyle = gr; g.fillRect(0, 0, TW, 230*u);
-      gr = g.createLinearGradient(0, TH - 260*u, 0, TH); gr.addColorStop(0, "rgba(8,8,7,0)"); gr.addColorStop(1, "rgba(8,8,7,0.7)"); g.fillStyle = gr; g.fillRect(0, TH - 260*u, TW, 260*u);
+      let gr = g.createLinearGradient(0, 0, 0, 230*u); gr.addColorStop(0, "rgba(10,11,13,0.8)"); gr.addColorStop(1, "rgba(10,11,13,0)"); g.fillStyle = gr; g.fillRect(0, 0, TW, 230*u);
+      gr = g.createLinearGradient(0, TH - 260*u, 0, TH); gr.addColorStop(0, "rgba(10,11,13,0)"); gr.addColorStop(1, "rgba(10,11,13,0.7)"); g.fillStyle = gr; g.fillRect(0, TH - 260*u, TW, 260*u);
       /* Sucher-Ecken */
-      const ci = 12*u, cl = 26*u, ct = 3*u; g.fillStyle = "#f2ff1a";
+      const ci = 12*u, cl = 26*u, ct = 3*u; g.fillStyle = "#ffffff";
       [[ci,ci,1,1],[TW-ci,ci,-1,1],[ci,TH-ci,1,-1],[TW-ci,TH-ci,-1,-1]].forEach(([x,y,dx,dy])=>{ g.fillRect(dx>0?x:x-cl, dy>0?y:y-ct, cl, ct); g.fillRect(dx>0?x:x-ct, dy>0?y:y-cl, ct, cl); });
 
       /* oben links: Logo, Titel, Stand */
       let y = pad + 8*u; const x0 = pad + 8*u;
       g.textBaseline = "middle";
       if(o.credit){
-        g.save(); g.shadowColor = "rgba(0,0,0,0.6)"; g.shadowBlur = 6*u; g.fillStyle = "#f2ff1a"; g.fillRect(x0, y, 20*u, 20*u); g.restore();
+        g.save(); g.shadowColor = "rgba(0,0,0,0.6)"; g.shadowBlur = 6*u; g.fillStyle = "#ffffff"; g.fillRect(x0, y, 20*u, 20*u); g.restore();
         g.font = `${22*u}px "Setline Display", "Archivo", Arial, sans-serif`;
-        shadowText(o.credit.toUpperCase(), x0 + 30*u, y + 11*u, "#f1f0e8"); y += 42*u;
+        shadowText(o.credit.toUpperCase(), x0 + 30*u, y + 11*u, "#f2f3f5"); y += 42*u;
       }
       if(o.title){
         const maxW = Math.min(TW*0.55, 600*u); let fs = 56*u, lines;
         for(;;){ g.font = `${fs}px "Setline Display", "Archivo", Arial, sans-serif`; lines = wrapText(g, o.title.toUpperCase(), maxW); if((lines.length <= 2 && lines.every(l=>g.measureText(l).width <= maxW)) || fs < 24*u) break; fs -= 2*u; }
         lines = lines.slice(0, 3);
         const th = lines.length * fs * 0.98;
-        g.fillStyle = "#f2ff1a"; g.fillRect(x0, y + 2*u, 5*u, th - 6*u);
+        g.fillStyle = "#ffffff"; g.fillRect(x0, y + 2*u, 5*u, th - 6*u);
         g.textBaseline = "top"; lines.forEach((l,i)=>shadowText(l, x0 + 20*u, y + i*fs*0.98, "#ffffff", 10));
         y += th + 6*u;
       }
@@ -572,7 +573,7 @@ async function exportImage(map, o){
       /* oben rechts: Koordinaten und Quellen */
       g.textAlign = "right"; g.textBaseline = "top";
       const ll = `${Math.abs(c.lat).toFixed(4)}° ${c.lat>=0?"N":"S"}   ${Math.abs(c.lng).toFixed(4)}° ${c.lng>=0?"O":"W"}`;
-      g.font = `600 ${13*u}px "IBM Plex Mono", Menlo, monospace`; shadowText(ll, TW - pad - 8*u, pad + 8*u, "#f2ff1a", 6);
+      g.font = `600 ${13*u}px "IBM Plex Mono", Menlo, monospace`; shadowText(ll, TW - pad - 8*u, pad + 8*u, "#ffffff", 6);
       g.font = `${9.5*u}px "IBM Plex Mono", Menlo, monospace`;
       wrapText(g, attributionFor(map, [c.lng, c.lat], zoom), 520*u, 3).forEach((l,i)=>shadowText(l, TW - pad - 8*u, pad + 32*u + i*13*u, "rgba(241,240,232,0.8)", 5));
       g.textAlign = "left";
@@ -581,11 +582,11 @@ async function exportImage(map, o){
       let scaleX = pad + 8*u;
       if(inset){
         const IW = sideInner.w, IH = sideInner.h, hh = 24*u, IX = pad + 8*u, IY = TH - pad - 8*u - IH;
-        g.save(); g.shadowColor = "rgba(0,0,0,0.55)"; g.shadowBlur = 18*u; g.fillStyle = "#0b0b0a"; g.fillRect(IX, IY - hh, IW, IH + hh); g.restore();
-        g.fillStyle = "#f2ff1a"; g.fillRect(IX, IY - hh, IW, 2*u); g.fillRect(IX + 10*u, IY - hh/2 - 3*u, 7*u, 7*u);
-        g.fillStyle = "#a5a497"; g.font = `500 ${10*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle"; g.fillText("ÜBERSICHT", IX + 24*u, IY - hh/2 + 1*u);
+        g.save(); g.shadowColor = "rgba(0,0,0,0.55)"; g.shadowBlur = 18*u; g.fillStyle = "#0e0f11"; g.fillRect(IX, IY - hh, IW, IH + hh); g.restore();
+        g.fillStyle = "#ffffff"; g.fillRect(IX, IY - hh, IW, 2*u); g.fillRect(IX + 10*u, IY - hh/2 - 3*u, 7*u, 7*u);
+        g.fillStyle = "#a3a8b0"; g.font = `500 ${10*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle"; g.fillText("ÜBERSICHT", IX + 24*u, IY - hh/2 + 1*u);
         g.drawImage(inset.m.getCanvas(), IX, IY, IW, IH);
-        g.strokeStyle = "#33332d"; g.lineWidth = 1.5*u; g.strokeRect(IX, IY - hh, IW, IH + hh);
+        g.strokeStyle = "#3a3e45"; g.lineWidth = 1.5*u; g.strokeRect(IX, IY - hh, IW, IH + hh);
         drawInsetMark(IX, IY, IW, IH);
         scaleX = IX + IW + 16*u;
       }
@@ -600,13 +601,13 @@ async function exportImage(map, o){
           const list = items.length > maxRows ? items.slice(0, maxRows-1) : items;
           const more = items.length - list.length, rowsN = list.length + (more ? 1 : 0);
           const LH = head + rowsN*rowH + ip, LX = TW - pad - 8*u - LW, LY = TH - pad - 8*u - LH;
-          g.save(); g.shadowColor = "rgba(0,0,0,0.55)"; g.shadowBlur = 18*u; g.fillStyle = "rgba(11,11,10,0.9)"; g.fillRect(LX, LY, LW, LH); g.restore();
-          g.strokeStyle = "#33332d"; g.lineWidth = 1.5*u; g.strokeRect(LX, LY, LW, LH);
-          g.fillStyle = "#f2ff1a"; g.fillRect(LX, LY, LW, 2*u); g.fillRect(LX + ip, LY + 13*u, 7*u, 7*u);
-          g.fillStyle = "#a5a497"; g.font = `500 ${10*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle"; g.fillText("LEGENDE", LX + ip + 14*u, LY + 17*u);
+          g.save(); g.shadowColor = "rgba(0,0,0,0.55)"; g.shadowBlur = 18*u; g.fillStyle = "rgba(14,15,17,0.9)"; g.fillRect(LX, LY, LW, LH); g.restore();
+          g.strokeStyle = "#3a3e45"; g.lineWidth = 1.5*u; g.strokeRect(LX, LY, LW, LH);
+          g.fillStyle = "#ffffff"; g.fillRect(LX, LY, LW, 2*u); g.fillRect(LX + ip, LY + 13*u, 7*u, 7*u);
+          g.fillStyle = "#a3a8b0"; g.font = `500 ${10*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle"; g.fillText("LEGENDE", LX + ip + 14*u, LY + 17*u);
           let yy = LY + head;
           for(const it of list){ await drawLegendRow(g, it, LX + ip, yy, u, LW - 2*ip); yy += rowH; }
-          if(more){ g.fillStyle = "#77766b"; g.font = `500 ${11*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle"; g.fillText(`+ ${more} weitere`, LX + ip, yy + 11*u); }
+          if(more){ g.fillStyle = "#7b818a"; g.font = `500 ${11*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle"; g.fillText(`+ ${more} weitere`, LX + ip, yy + 11*u); }
         }
       }
     };
@@ -623,44 +624,44 @@ async function exportImage(map, o){
       const meters = niceScale(mpp*M.w*frac), bar = meters/mpp, label = meters >= 1000 ? (meters/1000).toLocaleString("de-DE")+" km" : meters+" m";
       g.font = `600 ${13*u}px "IBM Plex Mono", Menlo, monospace`;
       const lw = g.measureText(label).width;
-      g.fillStyle = "rgba(11,11,10,0.82)"; g.fillRect(bx, byy - 34*u, bar + lw + 40*u, 34*u);
-      g.fillStyle = "#f1f0e8"; g.fillRect(bx+12*u, byy-12*u, bar, 3*u); g.fillRect(bx+12*u, byy-19*u, 2*u, 10*u); g.fillRect(bx+12*u+bar-2*u, byy-19*u, 2*u, 10*u);
-      g.fillStyle = "#f2ff1a"; g.fillRect(bx+12*u, byy-12*u, bar/2, 3*u);
-      g.fillStyle = "#f1f0e8"; g.textBaseline = "middle"; g.fillText(label, bx + 22*u + bar, byy - 13*u);
+      g.fillStyle = "rgba(14,15,17,0.82)"; g.fillRect(bx, byy - 34*u, bar + lw + 40*u, 34*u);
+      g.fillStyle = "#6b7079"; g.fillRect(bx+12*u, byy-12*u, bar, 3*u); g.fillStyle = "#f2f3f5"; g.fillRect(bx+12*u, byy-19*u, 2*u, 10*u); g.fillRect(bx+12*u+bar-2*u, byy-19*u, 2*u, 10*u);
+      g.fillStyle = "#ffffff"; g.fillRect(bx+12*u, byy-12*u, bar/2, 3*u);
+      g.fillStyle = "#f2f3f5"; g.textBaseline = "middle"; g.fillText(label, bx + 22*u + bar, byy - 13*u);
     };
     if(!L.overlay) drawScale(M.x + 16*u, M.y + M.h - 16*u, 0.15);
     if(Math.abs(bearing) > 0.5){
       const nx = M.x + M.w - (L.overlay ? 50 : 30)*u, ny = M.y + (L.overlay ? 90 : 30)*u;
       g.save(); g.translate(nx, ny); g.rotate(-bearing*Math.PI/180);
-      g.fillStyle = "rgba(11,11,10,0.85)"; g.fillRect(-18*u,-18*u,36*u,36*u);
-      g.fillStyle = "#f2ff1a"; g.beginPath(); g.moveTo(0,-12*u); g.lineTo(7*u,7*u); g.lineTo(0,2*u); g.lineTo(-7*u,7*u); g.closePath(); g.fill(); g.restore();
+      g.fillStyle = "rgba(14,15,17,0.85)"; g.fillRect(-18*u,-18*u,36*u,36*u);
+      g.fillStyle = "#ffffff"; g.beginPath(); g.moveTo(0,-12*u); g.lineTo(7*u,7*u); g.lineTo(0,2*u); g.lineTo(-7*u,7*u); g.closePath(); g.fill(); g.restore();
     }
     g.restore();
     if(L.overlay){ await drawOverlay(); }
     else {
-    g.strokeStyle = "#33332d"; g.lineWidth = 1.5*u; g.strokeRect(M.x, M.y, M.w, M.h);
+    g.strokeStyle = "#3a3e45"; g.lineWidth = 1.5*u; g.strokeRect(M.x, M.y, M.w, M.h);
 
     /* Seitenleiste */
     const S = L.side, ip = 20*u;
-    g.fillStyle = "#121211"; g.fillRect(S.x, S.y, S.w, S.h);
-    g.strokeStyle = "#33332d"; g.lineWidth = 1.5*u; g.strokeRect(S.x, S.y, S.w, S.h);
-    g.fillStyle = "#f2ff1a"; g.fillRect(S.x, S.y, S.w, 3*u);
+    g.fillStyle = "#15171a"; g.fillRect(S.x, S.y, S.w, S.h);
+    g.strokeStyle = "#3a3e45"; g.lineWidth = 1.5*u; g.strokeRect(S.x, S.y, S.w, S.h);
+    g.fillStyle = "#ffffff"; g.fillRect(S.x, S.y, S.w, 3*u);
     const colW = L.portrait ? S.w*0.58 - ip : S.w - 2*ip, x0 = S.x + ip;
     let y = S.y + ip + 6*u;
     if(o.subtitle){
-      g.fillStyle = "#f2ff1a"; g.fillRect(x0, y, 9*u, 9*u);
-      g.fillStyle = "#a5a497"; g.font = `500 ${12*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle";
+      g.fillStyle = "#ffffff"; g.fillRect(x0, y, 9*u, 9*u);
+      g.fillStyle = "#a3a8b0"; g.font = `500 ${12*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle";
       g.fillText(o.subtitle.toUpperCase(), x0 + 17*u, y + 5*u); y += 26*u;
     }
     if(o.title){
       let fs = 40*u, lines;
       for(;;){ g.font = `${fs}px "Setline Display", "Archivo", Arial, sans-serif`; lines = wrapText(g, o.title.toUpperCase(), colW); if((lines.length <= 2 && lines.every(l=>g.measureText(l).width <= colW)) || fs < 18*u) break; fs -= 2*u; }
       if(lines.length > 3) lines = lines.slice(0,3);
-      g.fillStyle = "#f1f0e8"; g.textBaseline = "top";
+      g.fillStyle = "#f2f3f5"; g.textBaseline = "top";
       for(const l of lines){ g.fillText(l, x0, y); y += fs*1.02; }
       y += 8*u;
     }
-    g.fillStyle = "#33332d"; g.fillRect(x0, y, colW, 1.5*u); y += 16*u;
+    g.fillStyle = "#3a3e45"; g.fillRect(x0, y, colW, 1.5*u); y += 16*u;
 
     /* Fußzeile */
     const attr = attributionFor(map, [c.lng, c.lat], zoom);
@@ -668,8 +669,8 @@ async function exportImage(map, o){
     const footW = L.portrait ? colW : S.w - 2*ip, attrLines = wrapText(g, attr, footW, 3);
     const creditH = o.credit ? 26*u : 0, footH = attrLines.length*13*u + creditH;
     const footY = S.y + S.h - ip - footH;
-    if(o.credit){ g.fillStyle = "#f1f0e8"; g.font = `${20*u}px "Setline Display", "Archivo", Arial, sans-serif`; g.textBaseline = "top"; g.fillText(o.credit.toUpperCase(), x0, footY); }
-    g.fillStyle = "#77766b"; g.font = `${9.5*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "top";
+    if(o.credit){ g.fillStyle = "#f2f3f5"; g.font = `${20*u}px "Setline Display", "Archivo", Arial, sans-serif`; g.textBaseline = "top"; g.fillText(o.credit.toUpperCase(), x0, footY); }
+    g.fillStyle = "#7b818a"; g.font = `${9.5*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "top";
     attrLines.forEach((l,i)=>g.fillText(l, x0, footY + creditH + i*13*u));
 
     /* Übersichtskarte */
@@ -678,7 +679,7 @@ async function exportImage(map, o){
       const IW = sideInner.w, IH = L.portrait ? S.h - 2*ip : sideInner.h;
       const IX = L.portrait ? S.x + S.w - ip - IW : x0, IY = L.portrait ? S.y + ip : footY - 16*u - IH;
       g.drawImage(inset.m.getCanvas(), IX, IY, IW, IH);
-      g.strokeStyle = "#33332d"; g.lineWidth = 1.5*u; g.strokeRect(IX, IY, IW, IH);
+      g.strokeStyle = "#3a3e45"; g.lineWidth = 1.5*u; g.strokeRect(IX, IY, IW, IH);
       drawInsetMark(IX, IY, IW, IH);
       if(!L.portrait) legendBottom = IY - 14*u;
     }
@@ -687,7 +688,7 @@ async function exportImage(map, o){
     if(o.legend !== false){
       const items = impLegend.concat(legendItems(shown)), rowH = 22*u;
       if(items.length){
-        g.fillStyle = "#77766b"; g.font = `500 ${10*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "top";
+        g.fillStyle = "#7b818a"; g.font = `500 ${10*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "top";
         g.fillText("LEGENDE", x0, y); y += 20*u;
         const cols = L.portrait ? 2 : 1, cw = (colW - (cols-1)*16*u) / cols;
         const fit = Math.max(0, Math.floor((legendBottom - y) / rowH)) * cols;
@@ -695,7 +696,7 @@ async function exportImage(map, o){
         const rows = Math.ceil(list.length / cols);
         for(let i=0;i<list.length;i++){ const col = Math.floor(i / rows), row = i % rows; await drawLegendRow(g, list[i], x0 + col*(cw+16*u), y + row*rowH, u, cw); }
         if(items.length > list.length && fit > 0){ const i = list.length, col = Math.floor(i / Math.max(rows,1)), row = rows ? i % rows : 0;
-          g.fillStyle = "#77766b"; g.font = `500 ${11*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle"; g.fillText(`+ ${items.length - list.length} weitere`, x0 + Math.min(col,cols-1)*(cw+16*u), y + (col>=cols ? rows : row)*rowH + 11*u); }
+          g.fillStyle = "#7b818a"; g.font = `500 ${11*u}px "IBM Plex Mono", Menlo, monospace`; g.textBaseline = "middle"; g.fillText(`+ ${items.length - list.length} weitere`, x0 + Math.min(col,cols-1)*(cw+16*u), y + (col>=cols ? rows : row)*rowH + 11*u); }
       }
     }
 
@@ -713,5 +714,5 @@ function emptyData(){ return {version:1, aktualisiert:null, elemente:[]}; }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
 window.Karte = {STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
-  addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage, exportLayout, loadImport, importMeta: ()=>importData && importData.meta};
+  addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage, exportLayout, farbe, loadImport, importMeta: ()=>importData && importData.meta};
 })();
