@@ -371,7 +371,7 @@ function addImportLayers(map){
   map.addLayer({id:"imp-fill", type:"fill", source:"imp", filter:["==",["get","art"],"flaeche"], paint:{"fill-color":["get","fuellung"], "fill-opacity":["case",["==",["get","ebene"],"ukraine-terr"],0.05,["==",["get","ebene"],"russian-terr"],0.32,["min",["get","deckkraft"],0.18]]}}, before);
   map.addLayer({id:"imp-line", type:"line", source:"imp", filter:["in",["get","art"],["literal",["flaeche","linie"]]], paint:{"line-color":["get","linie"], "line-width":["interpolate",["linear"],["zoom"],4,0.8,10,2], "line-opacity":["case",["==",["get","ebene"],"ukraine-terr"],0.35,1]}}, before);
   const chCol = ["match",["get","richtung"],"ru",CHANGE_COL.ru,"ua",CHANGE_COL.ua,CHANGE_COL.grau];
-  map.addLayer({id:"imp-change-fill", type:"fill", source:"imp", filter:isRecentChange(), paint:{"fill-color":chCol, "fill-opacity":0.48}}, before);
+  map.addLayer({id:"imp-change-fill", type:"fill", source:"imp", filter:isRecentChange(), paint:{"fill-color":chCol, "fill-opacity":0.3}}, before);
   map.addLayer({id:"imp-change-line", type:"line", source:"imp", filter:isRecentChange(), layout:{"line-join":"round"}, paint:{"line-color":chCol, "line-width":["interpolate",["linear"],["zoom"],5,1.5,10,3]}}, before);
   map.addLayer({id:"imp-change-label", type:"symbol", source:"imp", minzoom:8, filter:isRecentChange(), layout:{"text-field":["coalesce",["get","datum"],""], "text-font":font, "text-size":11, "symbol-placement":"point"},
     paint:{"text-color":"#ffffff","text-halo-color":"rgba(0,0,0,0.9)","text-halo-width":1.5}}, before);
