@@ -10,6 +10,31 @@ const STYLES = {
   topo: {name:"Gelände",  url:MT("topo-v4"),   theme:"topo"}
 };
 const STYLE_FREE = "https://tiles.openfreemap.org/styles/liberty";
+
+/* Esri World Imagery: schärfere Satellitenbilder, nur über der Ukraine und erst ab Zoom 7.
+   Der Schlüssel ist auf platano008.github.io beschränkt. */
+const ESRI_KEY = "AAPTa9KuMZUnWQGzFYq1i52nlAw..h2fE1_muFqHQuDnyNWqSWZcjtPU2Jbxwcs-6KhCrxrHhceZLvPzRTuneYNUm3ay_PxyZIXScz5yX43P4sv2ZbP4uWqaJ-TnWNxnO7wJwTASkMrYh9NHEgP01OLyUqRmIeoObk4DICPw3hWf3uxCQ4MwjHtW5-O9V5dDL5vN5PGfV5pGbe5Pi2sWyMDmJppIIPsUKmZMA7-HVfam5Xy8aAc2i6eZGWGzMoRNOwBobJ2DasxpCX1kAMUP04UQ.AT1_p9XEFpe5";
+const ESRI_URLS = [
+  "https://static-map-tiles-api.arcgis.com/arcgis/rest/services/static-basemap-tiles-service/v1/arcgis/imagery/static/tile/{z}/{y}/{x}?token=" + ESRI_KEY,
+  "https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?token=" + ESRI_KEY
+];
+const ESRI_BOUNDS = [21.9, 44.2, 40.4, 52.5];   /* Ukraine inkl. Krim, mit etwas Rand */
+const ESRI_ATTR = 'Ukraine: Powered by <a href="https://www.esri.com" target="_blank">Esri</a> · Esri, Maxar, Earthstar Geographics, GIS User Community';
+let esriUrl = 0, esriErrs = 0, esriOff = false;
+function addEsri(map){
+  if(esriOff || !ESRI_KEY) return;
+  const firstSymbol = (map.getStyle().layers.find(l=>l.type==="symbol")||{}).id;
+  try{
+    map.addSource("esri", {type:"raster", tiles:[ESRI_URLS[esriUrl]], tileSize:256, bounds:ESRI_BOUNDS, minzoom:7, maxzoom:19, attribution:ESRI_ATTR});
+    map.addLayer({id:"esri", type:"raster", source:"esri", minzoom:7, paint:{"raster-fade-duration":200}}, firstSymbol);
+  }catch(e){}
+}
+function esriFailed(map){
+  esriErrs = 0;
+  try{ map.removeLayer("esri"); map.removeSource("esri"); }catch(e){}
+  if(esriUrl < ESRI_URLS.length-1){ esriUrl++; addEsri(map); }
+  else esriOff = true;  /* beide Adressen gehen nicht: einfach MapTiler-Bilder behalten */
+}
 const START = {center:[31.6,48.6], zoom:5.3};
 
 /* ---------------- Farbschema ---------------- */
@@ -205,6 +230,7 @@ function createMap(opts){
   map.addControl(new maplibregl.ScaleControl({unit:"metric"}), "bottom-right");
   map.addControl(new maplibregl.AttributionControl({compact:false}), "bottom-right");
   map.on("error", e=>{
+    if(e && e.sourceId==="esri"){ if(++esriErrs > 6) esriFailed(map); return; }
     if(free) return;
     const st = e && e.error && e.error.status;
     if(st===401 || st===403 || st===429 || ++errs > 25){
@@ -216,6 +242,7 @@ function createMap(opts){
     try{ map.setProjection({type: globe ? "globe" : "mercator"}); }catch(e){}
     const th = free ? "dark" : STYLES[current].theme;
     if(th) applyTheme(map, th);
+    if(!free && current==="sat") addEsri(map);
     if(opts.onStyle) opts.onStyle(map);
   });
   map.setBase = k=>{ if(free || !STYLES[k] || k===current) return; current = k; errs = 0; map.setStyle(STYLES[k].url); };

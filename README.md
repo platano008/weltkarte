@@ -33,5 +33,6 @@ Seite (Freund, Feind, Neutral, Unbekannt), Truppengattung, Größe, Stab und „
 ## Kartenquellen
 
 - Satellit, Karte und Gelände: [MapTiler](https://www.maptiler.com) (Free-Plan, nicht-kommerziell, Logo und Quellenangabe Pflicht). Der Schlüssel ist auf `platano008.github.io` beschränkt.
+- Ukraine (ab Zoom 7, nur Satellit): [Esri World Imagery](https://www.esri.com), Powered by Esri. Der Schlüssel in `karte.js` ist auf `platano008.github.io` beschränkt.
 - Ersatz, falls MapTiler nicht antwortet: [OpenFreeMap](https://openfreemap.org), Daten © OpenStreetMap-Mitwirkende
 - Kartenbibliothek: [MapLibre GL JS](https://maplibre.org)
