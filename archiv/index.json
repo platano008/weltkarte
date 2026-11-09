@@ -1,0 +1,28 @@
+{
+ "staende": [
+  {
+   "id": "2026-11-07T1346",
+   "datum": "2026-11-07T13:46:16.000Z",
+   "titel": "MilX-Import ukv3.65",
+   "datei": "archiv/2026-11-07T1346.json",
+   "sum": {
+    "n": 0,
+    "ru": 0,
+    "ua": 0,
+    "grau": 0
+   }
+  },
+  {
+   "id": "2026-11-07T1802",
+   "datum": "2026-11-07T18:02:50.000Z",
+   "titel": "Frontlinie angepasst",
+   "datei": "archiv/2026-11-07T1802.json",
+   "sum": {
+    "n": 3,
+    "ru": 14.2,
+    "ua": 0,
+    "grau": 0
+   }
+  }
+ ]
+}

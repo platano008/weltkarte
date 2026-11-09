@@ -67,3 +67,14 @@ Im Editor das Werkzeug **Front** wählen:
 Die Änderung wird automatisch als Gewinn oder Verlust erkannt („Richtung umkehren“ korrigiert das)
 und 14 Tage lang kräftig hervorgehoben (Ebene „Veränderungen“).
 Achtung: Ein neuer MilX-Import ersetzt die Datei und damit auch diese Änderungen.
+
+## Verlauf (zwischen Updates spulen)
+
+Jedes Speichern im Editor legt in `archiv/` einen Stand an (komplette Lage und eigene Einträge)
+und trägt ihn in `archiv/index.json` ein. Auf der Karte erscheint unten ein Regler, mit dem man
+von Update zu Update springen oder den Verlauf abspielen kann. Ein bestimmter Stand lässt sich
+mit `karte.html#stand=<id>` verlinken.
+
+Im Editor steuert der Haken **„Als neues Update im Verlauf“**, ob ein neuer Stand entsteht
+oder der letzte ersetzt wird (für schnelle Korrekturen). Er ist automatisch gesetzt, wenn der
+letzte Stand älter als drei Stunden ist.

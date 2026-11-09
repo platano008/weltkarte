@@ -12,10 +12,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611091359">
+<link rel="stylesheet" href="style.css?v=202611091547">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611091359"></script>
+<script src="karte.js?v=202611091547"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -68,6 +68,8 @@ textarea.f{min-height:64px;resize:vertical}
 .check input{accent-color:var(--volt);width:16px;height:16px}
 .preview{display:flex;align-items:center;justify-content:center;min-height:70px;background:var(--surface-2);border:1px solid var(--line)}
 .hint{font-size:13px;color:var(--muted)}
+.stand{display:flex;flex-direction:column;gap:6px;margin:4px 0 8px}
+.stand .hint{font-size:12px}
 .hint b{color:var(--fg);font-weight:600}
 .confirm{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--danger)}
 details.gh{border-top:1px solid var(--line-2)}
@@ -99,6 +101,11 @@ details.gh[open] summary{color:var(--fg)}
   <div class="ph">
     <div class="ed-h"><h1>Bearbeiten</h1><button class="toggle" id="toggle" aria-label="Werkzeuge ein- oder ausklappen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M6 9l6 6 6-6"/></svg></button></div>
     <div class="status" id="status">Lädt …</div>
+    <div class="stand" id="standBox">
+      <label class="check"><input type="checkbox" id="standNew" checked> Als neues Update im Verlauf</label>
+      <input class="f" id="standNote" placeholder="Notiz zum Update (optional), z. B. Vorstoß bei Pokrowsk" maxlength="70">
+      <div class="hint" id="standHint"></div>
+    </div>
     <div class="row"><button class="btn volt" id="save" disabled>Speichern</button><a class="btn" href="karte.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Ansicht öffnen</a></div>
     <div class="imp" id="imp" hidden><div class="eyebrow"><span>Lagedaten</span><span id="impSrc"></span></div><div class="chips" id="impChips"></div></div>
     <div class="tools" id="tools">
@@ -314,13 +321,58 @@ $("save").onclick = async ()=>{
       catch(e){ if(e.status===409 || e.status===422){ const r = await ghGetPath(t, IMP_PATH); impSha = await ghPutPath(t, IMP_PATH, text, r.sha, "Frontlinie aktualisiert"); } else throw e; }
       impDirty = false; store.del(LS.imp); undoStack = [];
     }
+    let standOk = true;
+    try{ await saveStand(t); }catch(e){ standOk = false; console.warn("Verlauf:", e); }
     refreshStatus(); renderOpts();
-    toast("Gespeichert. In etwa einer Minute ist es online.");
+    toast(standOk ? "Gespeichert. In etwa einer Minute ist es online." : "Gespeichert, aber der Verlauf konnte nicht aktualisiert werden.");
   }catch(e){
     setStatus(e.status===401 ? "Schlüssel ungültig oder abgelaufen." : e.status===403||e.status===404 ? "Schlüssel darf nicht schreiben (Contents: Read and write?)." : "Speichern fehlgeschlagen. Nochmal versuchen.", "err");
     $("save").disabled = false;
   }
 };
+
+/* ---------- Verlauf: jeder Speichervorgang legt einen Stand an (oder ersetzt den letzten) ---------- */
+const STAND_IDX = "archiv/index.json";
+let lastStand = null;
+function standDefault(){
+  fetch(STAND_IDX, {cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null).then(ix=>{
+    const l = ix && ix.staende && ix.staende[ix.staende.length-1]; lastStand = l || null;
+    const old = !l || Date.now() - new Date(l.datum).getTime() > 3*3600e3;
+    $("standNew").checked = old; standHint();
+  });
+}
+function standHint(){
+  const l = lastStand, when = l ? new Date(l.datum).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "";
+  $("standHint").textContent = !l ? "Erster Stand im Verlauf." : $("standNew").checked ? "Wird als eigener Stand im Verlauf gespeichert (spulbar)." : "Ersetzt den letzten Stand vom " + when + " (gut für Korrekturen).";
+}
+$("standNew").onchange = standHint;
+async function saveStand(t){
+  const lage = K.importData(); if(!lage) return;
+  const ixr = await ghGetPath(t, STAND_IDX);
+  const ix = ixr.text ? JSON.parse(ixr.text) : {staende:[]};
+  const list = ix.staende || (ix.staende = []);
+  const neu = $("standNew").checked || !list.length;
+  const now = new Date().toISOString(), note = $("standNote").value.trim();
+  const prev = neu ? list[list.length-1] : list[list.length-2];
+  let prevLage = null;
+  if(prev){ try{ const r = await ghGetPath(t, prev.datei); prevLage = r.text ? JSON.parse(r.text).lage : null; }catch(e){} }
+  const snap = JSON.stringify({datum: now, lage, karte: DATA});
+  const sum = K.standSummary(lage, prevLage);
+  if(neu){
+    const id = now.slice(0,16).replace(/:/g,""), datei = "archiv/" + id + ".json";
+    await ghPutPath(t, datei, snap, null, "Verlauf: neuer Stand");
+    list.push({id, datum: now, titel: note, datei, sum});
+  } else {
+    const last = list[list.length-1], r = await ghGetPath(t, last.datei);
+    await ghPutPath(t, last.datei, snap, r.sha, "Verlauf: Stand aktualisiert");
+    Object.assign(last, {datum: now, sum}); if(note) last.titel = note;
+  }
+  const text = JSON.stringify(ix, null, 1) + "\n";
+  try{ await ghPutPath(t, STAND_IDX, text, ixr.sha, "Verlauf aktualisiert"); }
+  catch(e){ if(e.status===409 || e.status===422){ const r = await ghGetPath(t, STAND_IDX); await ghPutPath(t, STAND_IDX, text, r.sha, "Verlauf aktualisiert"); } else throw e; }
+  lastStand = list[list.length-1]; $("standNew").checked = false; $("standNote").value = ""; standHint();
+}
+standDefault();
 
 /* GitHub token box */
 function renderGh(){

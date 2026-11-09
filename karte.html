@@ -17,11 +17,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611091359">
+<link rel="stylesheet" href="style.css?v=202611091547">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611091359"></script>
-<script src="werkzeuge.js?v=202611091359"></script>
+<script src="karte.js?v=202611091547"></script>
+<script src="werkzeuge.js?v=202611091547"></script>
 <style>
 /* Leiste ein-/ausblenden */
 .hide-btn{display:grid;place-items:center;width:32px;height:32px;margin-left:auto;border:1px solid var(--line-2);background:none;color:var(--muted);cursor:pointer;padding:0;flex:none}
@@ -100,6 +100,16 @@ body.panel-gone .reopen{opacity:1;transform:none;pointer-events:auto;transition-
 </section>
 
 <button class="reopen" id="reopen" title="Leiste einblenden" aria-label="Leiste einblenden"><svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M4.5 1.5H9.5V4H4.5Z M14.5 1.5H19.5V4H14.5Z M3.5 5H10.5V9.5H13.5V5H20.5L23 10V22.5H13.5V14H10.5V22.5H1V10Z M3.5 15.5V20H8V15.5Z M16 15.5V20H20.5V15.5Z"/></svg><span>Plyus</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M9 6l6 6-6 6"/></svg></button>
+<div class="tl" id="tl" hidden>
+  <div class="tl-top"><span class="eyebrow" id="tlLbl">Verlauf</span><span class="tl-info" id="tlInfo"></span></div>
+  <div class="tl-row">
+    <button class="tl-btn" id="tlPrev" aria-label="Vorheriges Update" title="Vorheriges Update"><svg viewBox="0 0 24 24"><path d="M17 4v16L6 12z"/><rect x="3" y="4" width="3" height="16"/></svg></button>
+    <button class="tl-btn play" id="tlPlay" aria-label="Verlauf abspielen" title="Verlauf abspielen"><svg viewBox="0 0 24 24"><path d="M6 4v16l13-8z"/></svg></button>
+    <div class="tl-track"><span class="tl-line"></span><div class="tl-ticks" id="tlTicks"></div><input class="tl-range" id="tlRange" type="range" min="0" max="1" step="1" value="1" aria-label="Stand wählen"></div>
+    <button class="tl-btn" id="tlNext" aria-label="Nächstes Update" title="Nächstes Update"><svg viewBox="0 0 24 24"><path d="M7 4v16l11-8z"/><rect x="18" y="4" width="3" height="16"/></svg></button>
+  </div>
+  <div class="tl-ends"><span id="tlFirst"></span><span id="tlLast"></span></div>
+</div>
 <div class="card" id="card" hidden></div>
 <div class="toast" id="toast" style="position:fixed;left:50%;bottom:calc(30px + var(--panel-h,0px));transform:translateX(-50%);z-index:30;background:var(--fg);color:var(--bg);font-weight:600;font-size:14px;padding:10px 16px;box-shadow:inset 3px 0 0 var(--volt)" hidden></div>
 
@@ -255,6 +265,75 @@ function panelOffset(){ document.documentElement.style.setProperty("--panel-h", 
 try{ new ResizeObserver(panelOffset).observe($("panel")); }catch(e){}
 mq.addEventListener ? mq.addEventListener("change", panelOffset) : mq.addListener(panelOffset);
 panelOffset();
+
+/* ===== Verlauf: zwischen den Updates spulen ===== */
+(function(){
+  const TL = {list:[], i:-1, cache:{}, live:null, req:0, timer:0};
+  const fmtDT = d=>new Date(d).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+  const fmtD = d=>new Date(d).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"2-digit"});
+  const nfx = new Intl.NumberFormat("de-DE",{maximumFractionDigits:1});
+  const standText = $("stand").textContent;
+  function sumText(s){ if(!s || !s.n) return "keine Frontänderung";
+    const p = []; if(s.ru) p.push("+" + nfx.format(s.ru) + " km² ru"); if(s.ua) p.push("+" + nfx.format(s.ua) + " km² ua"); if(s.grau) p.push(nfx.format(s.grau) + " km² Grauzone");
+    return p.join(" · ") || s.n + " Änderungen"; }
+  function load(st){ if(TL.cache[st.id]) return Promise.resolve(TL.cache[st.id]);
+    return fetch(st.datei).then(r=>{ if(!r.ok) throw r.status; return r.json(); }).then(j=>TL.cache[st.id] = j); }
+  function paint(){
+    const n = TL.list.length, st = TL.list[TL.i], last = TL.i === n-1;
+    $("tlRange").value = TL.i;
+    [...$("tlTicks").children].forEach((t,k)=>{ t.classList.toggle("on", k===TL.i); t.classList.toggle("past", k<TL.i); });
+    $("tlPrev").disabled = TL.i <= 0; $("tlNext").disabled = last;
+    document.body.classList.toggle("tl-old", !last);
+    $("tlLbl").innerHTML = last ? "Aktueller Stand" : 'Älterer Stand';
+    $("tlInfo").innerHTML = `<b>${TL.i+1}/${n}</b> · ${fmtDT(st.datum)}${st.titel ? " · " + esc(st.titel) : ""} · ${sumText(st.sum)}`;
+    $("tlInfo").title = $("tlInfo").textContent;
+    $("stand").textContent = last ? standText : "Lagekarte Ukraine · Stand " + new Date(st.datum).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
+    setHash();
+  }
+  function setHash(){ const st = TL.list[TL.i]; try{ history.replaceState(null, "", TL.i === TL.list.length-1 ? location.pathname : "#stand=" + st.id); }catch(e){} }
+  function apply(lage, karte, datum){
+    K.setImportData(map, lage); renderImp(lage); K.setRefDate(map, datum);
+    DATA = karte && karte.elemente ? karte : K.emptyData(); select(null); render(); setHash();
+  }
+  function go(i){
+    i = Math.max(0, Math.min(TL.list.length-1, i)); if(i === TL.i && TL.live) return;
+    if(!TL.live) TL.live = {lage: K.importData(), karte: DATA};
+    TL.i = i; paint();
+    const req = ++TL.req;
+    if(i === TL.list.length-1){ apply(TL.live.lage, TL.live.karte, null); return; }
+    load(TL.list[i]).then(s=>{ if(req === TL.req) apply(s.lage, s.karte, TL.list[i].datum); })
+      .catch(()=>{ if(req === TL.req) toast("Dieser Stand konnte nicht geladen werden."); });
+    if(TL.list[i+1] && i+1 < TL.list.length-1) load(TL.list[i+1]).catch(()=>{});   /* nächsten Stand vorladen */
+  }
+  function stopPlay(){ clearInterval(TL.timer); TL.timer = 0; $("tlPlay").classList.remove("on"); }
+  $("tlPrev").onclick = ()=>{ stopPlay(); go(TL.i-1); };
+  $("tlNext").onclick = ()=>{ stopPlay(); go(TL.i+1); };
+  $("tlRange").addEventListener("input", e=>{ stopPlay(); go(+e.target.value); });
+  $("tlPlay").onclick = ()=>{
+    if(TL.timer){ stopPlay(); return; }
+    if(TL.i >= TL.list.length-1) go(0);
+    $("tlPlay").classList.add("on");
+    TL.timer = setInterval(()=>{ if(TL.i >= TL.list.length-1) return stopPlay(); go(TL.i+1); }, 1800);
+  };
+  function build(){
+    const n = TL.list.length, max = Math.max(1, ...TL.list.map(s=>s.sum ? s.sum.ru + s.sum.ua + s.sum.grau : 0));
+    $("tlRange").max = n-1;
+    $("tlTicks").innerHTML = TL.list.map((s,k)=>{ const a = s.sum ? s.sum.ru + s.sum.ua + s.sum.grau : 0;
+      const h = a ? 10 + Math.round(18*Math.sqrt(a/max)) : 6, col = s.sum && s.sum.ua > s.sum.ru ? "#2f7fe0" : a ? "#d8344a" : "";
+      return `<button class="tl-tick" data-k="${k}" title="${fmtDT(s.datum)}${s.titel ? " · " + esc(s.titel) : ""}" tabindex="-1"><i style="height:${h}px;${col ? "background:" + col : ""}"></i></button>`; }).join("");
+    $("tlTicks").querySelectorAll(".tl-tick").forEach(b=>b.onclick=()=>{ stopPlay(); go(+b.dataset.k); });
+    $("tlFirst").textContent = fmtD(TL.list[0].datum); $("tlLast").textContent = "Aktuell";
+    $("tl").hidden = false;
+  }
+  fetch("archiv/index.json", {cache:"no-cache"}).then(r=>r.ok ? r.json() : null).catch(()=>null).then(ix=>{
+    if(!ix || !Array.isArray(ix.staende) || ix.staende.length < 2) return;
+    TL.list = ix.staende.slice().sort((a,b)=>a.datum < b.datum ? -1 : 1); TL.i = TL.list.length-1;
+    const m = /^#stand=(.+)$/.exec(location.hash);
+    build(); paint();
+    if(m){ const k = TL.list.findIndex(s=>s.id===decodeURIComponent(m[1]));
+      if(k >= 0) K.loadImport().then(()=>setTimeout(()=>go(k), 50)); }
+  });
+})();
 </script>
 </body>
 </html>

@@ -352,7 +352,22 @@ const IMP_LAYERS = ["imp-fill","imp-line","imp-change-fill","imp-change-line","i
 /* Veränderungen werden so lange kräftig gezeigt */
 const CHANGE_DAYS = 14;
 const CHANGE_COL = {ru:"#d8344a", ua:"#2f7fe0", grau:"#d6d6d6"};
-const changeCutoff = ()=>new Date(Date.now() - CHANGE_DAYS*864e5).toISOString().slice(0,10);
+/* Bezugsdatum: beim Zurückspulen gelten "neue Veränderungen" relativ zum angezeigten Stand */
+let refDate = null;
+const changeCutoff = ()=>new Date((refDate ? refDate.getTime() : Date.now()) - CHANGE_DAYS*864e5).toISOString().slice(0,10);
+function setRefDate(map, d){ refDate = d ? new Date(d) : null; try{ if(map && map.getLayer && map.getLayer("imp-change-fill")) applyImportFilters(map); }catch(e){} }
+/* Kurzfassung eines Stands: Veränderungen, die im vorherigen Stand noch nicht da waren */
+function changeKey(f){ const c = f.geometry && f.geometry.coordinates; let p = c; while(Array.isArray(p) && Array.isArray(p[0])) p = p[0];
+  return (f.properties.datum||"") + "|" + (f.properties.richtung||"") + "|" + (Array.isArray(p) ? p.map(v=>(+v).toFixed(5)).join(",") : "") + "|" + JSON.stringify(c).length; }
+function standSummary(lage, prev){
+  const s = {n:0, ru:0, ua:0, grau:0}; if(!lage || !lage.features) return s;
+  const old = new Set(((prev && prev.features) || []).filter(f=>f.properties && f.properties.art==="aenderung").map(changeKey));
+  lage.features.forEach(f=>{ const p = f.properties || {}; if(p.art!=="aenderung" || !f.geometry || old.has(changeKey(f))) return;
+    const polys = f.geometry.type==="Polygon" ? [f.geometry.coordinates] : f.geometry.type==="MultiPolygon" ? f.geometry.coordinates : [];
+    const a = polys.reduce((t,pp)=>t + areaKm2(pp[0]), 0);
+    s.n++; s[p.richtung in s ? p.richtung : "grau"] += a; });
+  ["ru","ua","grau"].forEach(x=>s[x] = Math.round(s[x]*10)/10); return s;
+}
 const isRecentChange = ()=>["all",["==",["get","art"],"aenderung"],[">=",["coalesce",["get","datum"],""],changeCutoff()]];
 function applyImportFilters(map){
   const base = {"imp-fill":["==",["get","art"],"flaeche"], "imp-line":["in",["get","art"],["literal",["flaeche","linie"]]],
@@ -893,6 +908,6 @@ async function exportImage(map, o){
 function emptyData(){ return {version:1, aktualisiert:null, elemente:[]}; }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
-window.Karte = {STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
+window.Karte = {setRefDate, standSummary, STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
   addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage, exportLayout, farbe, loadImport, replaceFront, nearestEdge, applyFrontEdit, undoFrontEdit, setImportData, refreshImport, importData: ()=>importData, importMeta: ()=>importData && importData.meta};
 })();
