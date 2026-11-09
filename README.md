@@ -15,6 +15,7 @@ Satellitenkarte mit Linien, Pfeilen, Flächen und NATO-Symbolen. Startet auf der
 | `karte.html` | Karte für Besucher, nur ansehen |
 | `editor.html` | Bearbeitungs-Seite: Linie, Pfeil, Fläche, NATO-Symbol, Speichern |
 | `karte.json` | Alle Einträge auf der Karte. Der Editor schreibt diese Datei. |
+| `werkzeuge.js` | Werkzeuge für Besucher: Lineal, Fläche, Radius, Koordinate (Grad, GMS, MGRS). Wird nicht gespeichert. |
 | `karte.js` | Gemeinsamer Code: Kartenstile, Farbschema, Symbole |
 | `style.css` | Gemeinsames Design |
 | `fonts/` | Eigene Schrift „Plyus“ (Regular und Bold) |

@@ -17,10 +17,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611091241">
+<link rel="stylesheet" href="style.css?v=202611091359">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611091241"></script>
+<script src="karte.js?v=202611091359"></script>
+<script src="werkzeuge.js?v=202611091359"></script>
 <style>
 /* Leiste ein-/ausblenden */
 .hide-btn{display:grid;place-items:center;width:32px;height:32px;margin-left:auto;border:1px solid var(--line-2);background:none;color:var(--muted);cursor:pointer;padding:0;flex:none}
@@ -140,12 +141,16 @@ const map = K.createMap({onImport: d=>renderImp(d), onNotice: t=>toast(t), globe
   m.on("click","lage-hit", onHit); m.on("click","lage-area-fill", onHit);
   ["lage-hit","lage-area-fill"].forEach(l=>{ m.on("mouseenter",l,()=>m.getCanvas().style.cursor="pointer"); m.on("mouseleave",l,()=>m.getCanvas().style.cursor=""); });
   highlight();
+  if(window.WZ) WZ.ensure(m);
 }});
+/* Werkzeuge für alle: Lineal, Fläche, Radius, Koordinate */
+window.WZ = window.Werkzeuge ? Werkzeuge.init(map, {onStart: ()=>{ select(null); if(mq.matches) $("panel").classList.add("closed"); }}) : null;
 const hideLoading = ()=>$("loading").classList.add("done");
 map.on("load", hideLoading); setTimeout(hideLoading, 8000);
 let hitAt = 0;
-function onHit(e){ if(Date.now()-hitAt<50) return; hitAt = Date.now(); select(DATA.elemente.find(x=>x.id===e.features[0].properties.id)); }
+function onHit(e){ if(window.WZ && WZ.active()) return; if(Date.now()-hitAt<50) return; hitAt = Date.now(); select(DATA.elemente.find(x=>x.id===e.features[0].properties.id)); }
 map.on("click", e=>{
+  if(window.WZ && WZ.active()) return;
   if(!map.getLayer("lage-hit")) return;
   if(!map.queryRenderedFeatures(e.point,{layers:["lage-hit","lage-area-fill"]}).length) select(null);
 });

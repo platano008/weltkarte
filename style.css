@@ -92,3 +92,44 @@ h1{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-heigh
   .card{left:12px;right:12px;width:auto;top:max(60px,calc(env(safe-area-inset-top) + 60px))}
   .mt-logo{left:max(10px,env(safe-area-inset-left))}
 }
+
+/* Werkzeuge (Lineal, Fläche, Radius, Koordinate) */
+.wz-rail{position:fixed;z-index:5;right:max(16px,env(safe-area-inset-right));top:214px;display:flex;flex-direction:column;background:rgba(14,15,17,.97);border:1px solid var(--line-2)}
+.wz-rail button{width:44px;height:44px;display:grid;place-items:center;background:none;border:0;border-top:1px solid var(--line);color:var(--muted);cursor:pointer;padding:0}
+.wz-rail button:first-child{border-top:0}
+.wz-rail button:hover{color:var(--fg);background:var(--surface)}
+.wz-rail button.on{background:var(--volt);color:var(--ink)}
+.wz-rail svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
+.wz-rail .wz-clear{border-top:1px solid var(--line-2)}
+.wz-box{position:fixed;z-index:6;right:calc(max(16px,env(safe-area-inset-right)) + 54px);top:214px;width:min(330px,calc(100vw - 100px));background:rgba(14,15,17,.97);border:1px solid var(--line-2);border-top:2px solid var(--volt);padding:12px 14px 14px}
+.wz-h{display:flex;align-items:center;justify-content:space-between}
+.wz-x{background:none;border:0;color:var(--muted);font-size:14px;cursor:pointer;padding:4px}
+.wz-x:hover{color:var(--fg)}
+.wz-big{font-family:var(--display);font-size:30px;line-height:1.05;margin:6px 0 2px;overflow-wrap:anywhere}
+.wz-sub{font-family:var(--mono);font-size:11.5px;color:var(--muted);line-height:1.5}
+.wz-hint{font-size:12.5px;color:var(--faint);margin-top:10px;line-height:1.4}
+.wz-act{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.wz-act:empty{display:none}
+.wz-act button,.wz-ranges button,.wz-co button{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:7px 10px;background:none;border:1px solid var(--line-2);color:var(--fg);cursor:pointer}
+.wz-act button:hover,.wz-ranges button:hover,.wz-co button:hover{border-color:var(--fg)}
+.wz-act .solid,.wz-ranges button.on{background:var(--volt);color:var(--ink);border-color:var(--volt)}
+.wz-ranges{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.wz-ranges button{padding:6px 8px}
+.wz-ranges input{width:70px;height:100%;min-height:28px;background:var(--surface);border:1px solid var(--line-2);color:var(--fg);font-family:var(--mono);font-size:12px;padding:0 8px}
+.wz-co{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.wz-co div{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:8px}
+.wz-co span{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.wz-co code{font-family:var(--mono);font-size:12px;color:var(--fg);overflow-wrap:anywhere}
+.wz-co button{padding:5px 7px;font-size:10px}
+.wz-lbl{pointer-events:none;font-family:var(--mono);font-size:11px;color:#fff;background:rgba(14,15,17,.88);border:1px solid rgba(255,255,255,.35);padding:3px 6px;white-space:nowrap;margin-bottom:8px}
+.wz-lbl b{font-weight:600;font-size:12px}
+.wz-lbl.seg{background:rgba(14,15,17,.7);border-color:transparent;margin-bottom:2px;color:#d9dbe0}
+.wz-lbl.ctr{margin-bottom:0}
+.wz-lbl.live{margin:0}
+body.wz-on .maplibregl-canvas{cursor:crosshair!important}
+@media (max-width:720px){
+  .wz-rail{top:auto;bottom:calc(var(--panel-h,0px) + 46px);right:12px}
+  .wz-rail button{width:42px;height:42px}
+  .wz-box{left:12px;right:66px;width:auto;top:auto;bottom:calc(var(--panel-h,0px) + 46px);max-height:55vh;overflow:auto}
+  .wz-big{font-size:26px}
+}
