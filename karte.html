@@ -17,12 +17,37 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611091613">
+<link rel="stylesheet" href="style.css?v=202611092044">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611091613"></script>
-<script src="werkzeuge.js?v=202611091613"></script>
+<script src="karte.js?v=202611092044"></script>
+<script src="werkzeuge.js?v=202611092044"></script>
 <style>
+/* Menüs nur bei Bedarf: alles hängt an der Leiste oben rechts */
+.dock{position:fixed;z-index:7;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));display:flex;flex-direction:column;background:rgba(14,15,17,.97);border:1px solid var(--line-2)}
+.dock button{position:relative;width:44px;height:44px;display:grid;place-items:center;background:none;border:0;border-top:1px solid var(--line);color:var(--muted);cursor:pointer;padding:0}
+.dock button:first-child{border-top:0}
+.dock button:hover{color:var(--fg);background:var(--surface)}
+.dock button.on{background:var(--volt);color:var(--ink)}
+.dock svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:square}
+.dock .dot{position:absolute;right:7px;top:7px;width:7px;height:7px;background:#ffb800;display:none}
+body.tl-old .dock .dot{display:block}
+.switches{display:none!important;left:auto!important;right:calc(max(16px,env(safe-area-inset-right)) + 54px)!important;top:max(16px,env(safe-area-inset-top))!important;flex-direction:column!important;align-items:flex-end!important;gap:8px!important;justify-content:flex-start!important}
+body.d-ansicht .switches{display:flex!important}
+.maplibregl-ctrl-top-right{top:calc(max(16px,env(safe-area-inset-top)) + 134px)!important}
+.wz-rail{display:none!important;flex-direction:row!important;top:calc(max(16px,env(safe-area-inset-top)) + 45px)!important;bottom:auto!important;right:calc(max(16px,env(safe-area-inset-right)) + 54px)!important}
+.wz-rail button{border-top:0!important;border-left:1px solid var(--line)}
+.wz-rail button:first-child{border-left:0}
+.wz-rail .wz-clear{border-left:1px solid var(--line-2)!important}
+body.d-wz .wz-rail{display:flex!important}
+.wz-box{top:calc(max(16px,env(safe-area-inset-top)) + 100px)!important;bottom:auto!important;right:calc(max(16px,env(safe-area-inset-right)) + 54px)!important;left:auto!important;width:min(330px,calc(100vw - 90px))!important}
+#tl{display:none}
+body.d-tl #tl:not([hidden]){display:block}
+@media (max-width:720px){
+  .switches .seg button{padding:9px 11px}
+  .wz-box{max-height:calc(100vh - var(--panel-h,0px) - 170px)!important;overflow:auto}
+  .tl{right:12px!important}
+}
 /* Besucher-Leiste schlank: keine Filter-Chips, keine Lagedaten-Schalter, keine Legende */
 #chips,#imp,#legend{display:none!important}
 body.wz-on .nato{pointer-events:none}
@@ -90,6 +115,11 @@ body.panel-gone .reopen{opacity:1;transform:none;pointer-events:auto;transition-
 <a class="mt-logo" id="mtLogo" href="https://www.maptiler.com" target="_blank" rel="noopener"><img src="https://api.maptiler.com/resources/logo.svg" alt="MapTiler logo"></a>
 <div class="loading" id="loading"><div><span>Karte lädt</span><b></b></div></div>
 
+<div class="dock" id="dock" role="toolbar" aria-label="Kartenmenüs">
+  <button data-d="ansicht" title="Ansicht: Satellit, Karte, Gelände" aria-label="Ansicht"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg></button>
+  <button data-d="wz" title="Werkzeuge: Lineal, Fläche, Radius, Koordinate" aria-label="Werkzeuge"><svg viewBox="0 0 24 24"><path d="M2.5 15.5L15.5 2.5l6 6-13 13z"/><path d="M6.5 11.5l2 2M9.5 8.5l2 2M12.5 5.5l2 2"/></svg></button>
+  <button data-d="tl" title="Verlauf: zwischen Updates spulen" aria-label="Verlauf" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg><i class="dot"></i></button>
+</div>
 <div class="switches">
   <div class="seg" id="base"></div>
   <div class="seg" id="view"><button data-v="globe">Globus</button><button data-v="flat">Flach</button></div>
@@ -132,6 +162,14 @@ let DATA = K.emptyData(), sel = null, markers = [], query = "";
 const mq = window.matchMedia("(max-width:720px)");
 if(mq.matches) $("panel").classList.add("closed");
 
+/* Menü-Leiste: immer nur ein Menü offen, damit nichts übereinander liegt */
+function setDock(name){
+  ["ansicht","wz","tl"].forEach(n=>{ const on = n===name; document.body.classList.toggle("d-"+n, on);
+    const b = $("dock").querySelector(`[data-d=${n}]`); if(b) b.classList.toggle("on", on); });
+  if(name !== "wz" && window.WZ && WZ.active()) WZ.stop();
+  if(name) select(null);
+}
+$("dock").querySelectorAll("button").forEach(b=>b.onclick=()=>setDock(document.body.classList.contains("d-"+b.dataset.d) ? null : b.dataset.d));
 /* switches */
 $("base").innerHTML = Object.entries(K.STYLES).map(([k,s])=>`<button data-b="${k}" class="${k==="sat"?"on":""}">${s.name}</button>`).join("");
 $("base").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("base").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setBase(b.dataset.b); });
@@ -163,6 +201,7 @@ const map = K.createMap({onImport: d=>renderImp(d), onNotice: t=>toast(t), globe
   if(window.WZ) WZ.ensure(m);
 }});
 /* Werkzeuge für alle: Lineal, Fläche, Radius, Koordinate */
+map.on("click", ()=>{ if(document.body.classList.contains("d-ansicht")) setDock(null); });
 window.WZ = window.Werkzeuge ? Werkzeuge.init(map, {onStart: ()=>{ select(null); if(mq.matches){ $("panel").classList.add("closed"); panelOffset(); } }}) : null;
 const hideLoading = ()=>$("loading").classList.add("done");
 map.on("load", hideLoading); setTimeout(hideLoading, 8000);
@@ -332,7 +371,7 @@ panelOffset();
       return `<button class="tl-tick" data-k="${k}" title="${fmtDT(s.datum)}${s.titel ? " · " + esc(s.titel) : ""}" tabindex="-1"><i style="height:${h}px;${col ? "background:" + col : ""}"></i></button>`; }).join("");
     $("tlTicks").querySelectorAll(".tl-tick").forEach(b=>b.onclick=()=>{ stopPlay(); go(+b.dataset.k); });
     $("tlFirst").textContent = fmtD(TL.list[0].datum); $("tlLast").textContent = "Aktuell";
-    $("tl").hidden = false;
+    $("tl").hidden = false; $("dock").querySelector("[data-d=tl]").hidden = false;
   }
   fetch("archiv/index.json", {cache:"no-cache"}).then(r=>r.ok ? r.json() : null).catch(()=>null).then(ix=>{
     if(!ix || !Array.isArray(ix.staende) || ix.staende.length < 2) return;
@@ -340,7 +379,7 @@ panelOffset();
     const m = /^#stand=(.+)$/.exec(location.hash);
     build(); paint();
     if(m){ const k = TL.list.findIndex(s=>s.id===decodeURIComponent(m[1]));
-      if(k >= 0) K.loadImport().then(()=>setTimeout(()=>go(k), 50)); }
+      if(k >= 0){ setDock("tl"); K.loadImport().then(()=>setTimeout(()=>go(k), 50)); } }
   });
 })();
 </script>
