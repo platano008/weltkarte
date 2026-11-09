@@ -17,11 +17,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611092044">
+<link rel="stylesheet" href="style.css?v=202611092146">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611092044"></script>
-<script src="werkzeuge.js?v=202611092044"></script>
+<script src="karte.js?v=202611092146"></script>
+<script src="werkzeuge.js?v=202611092146"></script>
 <style>
 /* Menüs nur bei Bedarf: alles hängt an der Leiste oben rechts */
 .dock{position:fixed;z-index:7;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));display:flex;flex-direction:column;background:rgba(14,15,17,.97);border:1px solid var(--line-2)}
@@ -47,6 +47,11 @@ body.d-tl #tl:not([hidden]){display:block}
   .switches .seg button{padding:9px 11px}
   .wz-box{max-height:calc(100vh - var(--panel-h,0px) - 170px)!important;overflow:auto}
   .tl{right:12px!important}
+  /* Handy: nur ein Pfeil; Tippen auf Logo/Kopf klappt die Liste auf */
+  .hide-btn{display:none!important}
+  .brand .toggle{margin-left:auto!important;border:0;width:40px;height:32px;margin-right:-8px;color:var(--fg)}
+  .brand .toggle svg{width:18px;height:18px}
+  .panel.closed .ph{cursor:pointer}
 }
 /* Besucher-Leiste schlank: keine Filter-Chips, keine Lagedaten-Schalter, keine Legende */
 #chips,#imp,#legend{display:none!important}
@@ -303,12 +308,18 @@ function select(el, fly){
 }
 document.addEventListener("keydown", e=>{ if(e.key==="Escape" && sel) select(null); });
 
-$("toggle").onclick = ()=>$("panel").classList.toggle("closed");
+$("toggle").onclick = e=>{ e.stopPropagation(); $("panel").classList.toggle("closed"); panelOffset(); };
+/* Handy: Tippen auf Logo oder Kopf öffnet die zugeklappte Liste */
+$("panel").querySelector(".ph").addEventListener("click", e=>{
+  if(!mq.matches || !$("panel").classList.contains("closed")) return;
+  if(e.target.closest("input,#hide")) return;
+  e.preventDefault(); $("panel").classList.remove("closed"); panelOffset();
+});
 /* Leiste ganz ausblenden (bleibt gemerkt) */
 function setGone(on){ document.body.classList.toggle("panel-gone", on); try{ localStorage.setItem("plyus-leiste", on ? "aus" : "an"); }catch(e){} panelOffset(); }
 $("hide").onclick = ()=>setGone(true);
 $("reopen").onclick = ()=>setGone(false);
-try{ if(localStorage.getItem("plyus-leiste")==="aus") document.body.classList.add("panel-gone"); }catch(e){}
+try{ if(localStorage.getItem("plyus-leiste")==="aus" && !mq.matches) document.body.classList.add("panel-gone"); }catch(e){}
 function panelOffset(){ document.documentElement.style.setProperty("--panel-h", mq.matches && !document.body.classList.contains("panel-gone") ? $("panel").offsetHeight+"px" : "0px"); }
 try{ new ResizeObserver(panelOffset).observe($("panel")); }catch(e){}
 mq.addEventListener ? mq.addEventListener("change", panelOffset) : mq.addListener(panelOffset);
