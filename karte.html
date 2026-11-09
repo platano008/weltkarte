@@ -17,10 +17,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611091014">
+<link rel="stylesheet" href="style.css?v=202611091025">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611091014"></script>
+<script src="karte.js?v=202611091025"></script>
 <style>
 .home-link{color:inherit;text-decoration:none}
 .home-link:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
@@ -132,7 +132,7 @@ map.on("click", e=>{
   if(!map.queryRenderedFeatures(e.point,{layers:["lage-hit","lage-area-fill"]}).length) select(null);
 });
 const fmtLL = (lat,lng)=>`${Math.abs(lat).toFixed(4)}° ${lat>=0?"N":"S"}  ${Math.abs(lng).toFixed(4)}° ${lng>=0?"O":"W"}`;
-map.on("mousemove", e=>{ $("cur").textContent = fmtLL(e.lngLat.lat, e.lngLat.lng); });
+let curLL = null; map.on("mousemove", e=>{ if(!curLL) requestAnimationFrame(()=>{ $("cur").textContent = fmtLL(curLL.lat, curLL.lng); curLL = null; }); curLL = e.lngLat; });
 
 fetch("karte.json", {cache:"no-cache"}).then(r=>r.ok?r.json():K.emptyData()).catch(()=>K.emptyData()).then(d=>{
   DATA = d && d.elemente ? d : K.emptyData();

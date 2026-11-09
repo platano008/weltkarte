@@ -16,12 +16,9 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611091014">
-<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611091014"></script>
+<link rel="stylesheet" href="style.css?v=202611091025">
+<script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
 html,body{overflow-x:hidden}
@@ -42,20 +39,54 @@ a{color:inherit}
 
 /* Hero mit lebender Karte */
 .hero{position:relative;min-height:min(92vh,900px);display:flex;align-items:flex-end;overflow:hidden;border-bottom:1px solid var(--line-2)}
-#hero{position:absolute;inset:0;pointer-events:none}
-#hero .maplibregl-ctrl-top-right,#hero .maplibregl-ctrl-bottom-right .maplibregl-ctrl-scale{display:none}
-#hero .maplibregl-ctrl-attrib{background:rgba(14,15,17,.7);color:var(--faint);font-size:10px;pointer-events:auto}
-#hero .maplibregl-ctrl-attrib a{color:var(--muted)}
+.hero{background:
+  linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px) 0 0/64px 64px,
+  linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px) 0 0/64px 64px,
+  radial-gradient(ellipse at 70% 45%,#171a1f 0%,var(--bg) 70%)}
+#hero{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#viz{position:absolute;right:0;top:4%;width:min(76%,1180px);height:92%;opacity:0;transition:opacity 1.2s}
+#viz.on{opacity:1}
+.scan{position:absolute;top:0;bottom:0;left:0;width:22%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.045),transparent);animation:scan 11s linear infinite;will-change:transform}
+@keyframes scan{from{transform:translateX(-100%)}to{transform:translateX(560%)}}
+.hud{position:absolute;right:max(16px,3vw);top:96px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);text-align:right;line-height:1.9}
+.hud b{color:var(--muted);font-weight:500}
+.brk{position:absolute;width:22px;height:22px;border:solid var(--line-2);border-width:0}
+.brk.a{left:max(16px,2vw);top:84px;border-left-width:1px;border-top-width:1px}
+.brk.b{right:max(16px,2vw);bottom:24px;border-right-width:1px;border-bottom-width:1px}
+/* Kartengrafik */
+.v-grid{stroke:rgba(255,255,255,.07);stroke-width:1;stroke-dasharray:2 6;fill:none}
+.v-lbl{fill:#565b63;font:10px "IBM Plex Mono",monospace;letter-spacing:.08em}
+.v-ua{fill:#15181c;stroke:#4a4f57;stroke-width:1}
+.v-gz{fill:#9aa0a8;fill-opacity:.16}
+.v-ru{fill:#c21d2e;fill-opacity:.34}
+.v-front{fill:none;stroke:#e0485a;stroke-width:1.6;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 2.8s cubic-bezier(.6,0,.2,1) .3s forwards}
+.v-glow{fill:none;stroke:#ff3b52;stroke-opacity:.14;stroke-width:7;stroke-linejoin:round;opacity:0;animation:fade 1.2s 2.6s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes fade{to{opacity:1}}
+.v-unit{opacity:0;animation:fade .5s forwards}
+.v-chg{fill:#ff3b52;fill-opacity:.85}
+.v-pulse{fill:none;stroke:#ff3b52;stroke-width:1.5;transform-box:fill-box;transform-origin:center;animation:pulse2 2.4s ease-out infinite}
+@keyframes pulse2{from{transform:scale(.3);opacity:1}to{transform:scale(2.6);opacity:0}}
+.v-call{stroke:#f2f3f5;stroke-width:1;fill:none}
+.v-callt{fill:#f2f3f5;font:500 12px "IBM Plex Mono",monospace;letter-spacing:.06em}
+.v-calls{fill:#8b9099;font:10px "IBM Plex Mono",monospace;letter-spacing:.08em}
+.paused *{animation-play-state:paused!important}
+/* Einblenden beim Scrollen */
+.rv{opacity:0;transform:translateY(18px);transition:opacity .7s,transform .7s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
 .hero::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(90deg,rgba(14,15,17,.96) 0%,rgba(14,15,17,.82) 34%,rgba(14,15,17,.15) 70%,rgba(14,15,17,0) 100%),
+  background:linear-gradient(90deg,rgba(14,15,17,.92) 0%,rgba(14,15,17,.6) 30%,rgba(14,15,17,0) 55%),
              linear-gradient(0deg,rgba(14,15,17,.95) 0%,rgba(14,15,17,0) 38%)}
 .hero .wrap{position:relative;z-index:2;padding-bottom:64px}
+.hero > .wrap > *{animation:rise .9s cubic-bezier(.2,.7,.2,1) both}
+.hero > .wrap > :nth-child(2){animation-delay:.08s}.hero > .wrap > :nth-child(3){animation-delay:.16s}.hero > .wrap > :nth-child(4){animation-delay:.24s}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}}
 .kicker{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .kicker i{width:8px;height:8px;background:#d8344a;display:inline-block;animation:pulse 2s infinite}
 @keyframes pulse{50%{opacity:.25}}
 .hero h1{font-size:clamp(84px,17vw,220px);line-height:.82;letter-spacing:.01em;margin:18px 0 calc(.2em + 14px) -.04em}
 .lead{max-width:30em;font-size:clamp(16px,1.6vw,19px);color:#c9ccd2;margin:0 0 30px}
-.cta{display:flex;flex-wrap:wrap;gap:10px}
+.cta{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:10px}
 .btn-l{display:inline-flex;align-items:center;gap:12px;padding:15px 22px;font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;border:1px solid var(--line-2);color:var(--fg);background:rgba(14,15,17,.6)}
 .btn-l:hover{border-color:var(--fg)}
 .btn-l.solid{background:var(--volt);color:var(--ink);border-color:var(--volt)}
@@ -120,17 +151,19 @@ footer a{color:var(--muted)}
 }
 @media (max-width:640px){
   .hero{min-height:88vh}
-  .hero::after{background:linear-gradient(0deg,rgba(14,15,17,.98) 0%,rgba(14,15,17,.85) 42%,rgba(14,15,17,.2) 78%,rgba(14,15,17,.5) 100%)}
+  .hero::after{background:linear-gradient(0deg,rgba(14,15,17,.98) 0%,rgba(14,15,17,.9) 40%,rgba(14,15,17,.1) 70%,rgba(14,15,17,.4) 100%)}
   .hero .wrap{padding-bottom:40px}
   .nav a:not(.solid){display:none}
   .stat{padding:20px 14px 22px}
-  .cta{flex-direction:column}
-  .btn-l{justify-content:space-between}
+  .cta{grid-template-columns:repeat(3,1fr)}
+  .cta .btn-l{flex-direction:column;justify-content:center;gap:8px;padding:14px 6px;font-size:11px;letter-spacing:.08em}
+  #viz{width:200%;right:-22%;top:-6%;height:74%}
+  .hud{display:none}
   .blk-h{flex-direction:column;align-items:flex-start;gap:10px}
   .band .wrap{flex-direction:column;align-items:flex-start}
   section.blk{padding-top:56px}
 }
-@media (prefers-reduced-motion:reduce){.kicker i{animation:none}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front{stroke-dasharray:none}.v-glow,.v-unit,.rv,#viz{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -141,20 +174,22 @@ footer a{color:var(--muted)}
 </div></header>
 
 <section class="hero">
-  <div id="hero" aria-hidden="true"></div>
+  <div id="hero" aria-hidden="true"><svg id="viz"></svg><div class="scan"></div><span class="brk a"></span><span class="brk b"></span>
+    <div class="hud"><div>Sektor <b>Ukraine</b></div><div>Lagedaten <b id="hudSrc">–</b></div><div>Veränderungen 14T <b id="hudChg">–</b></div></div></div>
   <div class="wrap">
     <div class="kicker"><i></i><span id="kick">Lagekarte Ukraine</span></div>
     <h1>Plyus</h1>
     <p class="lead">Frontverlauf, Veränderungen, Bewegungen und Einheiten auf einer Karte. Nüchtern dargestellt und regelmäßig aktualisiert.</p>
     <div class="cta">
-      <a class="btn-l solid" href="karte.html">Karte öffnen <svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a>
-      <a class="btn-l" href="#lage">Neueste Veränderungen</a>
+      <a class="btn-l solid" href="karte.html"><svg viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15M15 6v15"/></svg>Karte</a>
+      <a class="btn-l" id="tg" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 3L3 10.5l7 2.5 2.5 7zM10 13l11-10"/></svg>Telegram</a>
+      <a class="btn-l" id="tw" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M4 4l16 16M20 4L4 20"/></svg>Twitter</a>
     </div>
   </div>
 </section>
 
 <div class="wrap">
-  <div class="stats">
+  <div class="stats rv">
     <div class="stat"><span class="eyebrow">Stand</span><b id="sStand">–</b><small id="sStandS">&nbsp;</small></div>
     <div class="stat"><span class="eyebrow">Veränderungen</span><b id="sChg">–</b><small>letzte 14 Tage</small></div>
     <div class="stat"><span class="eyebrow">Fläche verändert</span><b id="sArea">–</b><small id="sAreaS">km², letzte 14 Tage</small></div>
@@ -162,13 +197,13 @@ footer a{color:var(--muted)}
   </div>
 
   <section class="blk" id="lage">
-    <div class="blk-h"><div><span class="eyebrow">Frontverlauf</span><h2>Neueste Veränderungen</h2></div><a href="karte.html">Alle auf der Karte →</a></div>
-    <div class="chg" id="chg"><div class="empty-l">Lädt …</div></div>
+    <div class="blk-h rv"><div><span class="eyebrow">Frontverlauf</span><h2>Neueste Veränderungen</h2></div><a href="karte.html">Alle auf der Karte →</a></div>
+    <div class="chg rv" id="chg"><div class="empty-l">Lädt …</div></div>
   </section>
 
   <section class="blk" id="zeigt">
-    <div class="blk-h"><div><span class="eyebrow">Inhalt</span><h2>Was die Karte zeigt</h2></div></div>
-    <div class="feat">
+    <div class="blk-h rv"><div><span class="eyebrow">Inhalt</span><h2>Was die Karte zeigt</h2></div></div>
+    <div class="feat rv">
       <div class="f">
         <div class="ill"><svg viewBox="0 0 300 120" preserveAspectRatio="xMidYMid slice"><path d="M0 0H170L150 30 175 55 140 80 160 120H0Z" fill="#c21d2e" fill-opacity=".38"/><path d="M170 0L150 30 175 55 140 80 160 120" fill="none" stroke="#c21d2e" stroke-width="2"/><path d="M150 30L175 55 196 40 182 18Z" fill="#d8344a" fill-opacity=".55" stroke="#d8344a" stroke-width="2"/><path d="M175 0 196 40 182 70 200 120" fill="none" stroke="#9aa0a8" stroke-width="1.5" stroke-dasharray="5 4"/></svg></div>
         <span class="eyebrow">01</span><h3>Frontverlauf</h3>
@@ -202,30 +237,80 @@ footer a{color:var(--muted)}
 
 <script>
 (function(){
-const K = window.Karte, $ = id=>document.getElementById(id);
+const $ = id=>document.getElementById(id);
 const LOGO = "M4.5 1.5H9.5V4H4.5Z M14.5 1.5H19.5V4H14.5Z M3.5 5H10.5V9.5H13.5V5H20.5L23 10V22.5H13.5V14H10.5V22.5H1V10Z M3.5 15.5V20H8V15.5Z M16 15.5V20H20.5V15.5Z";
 document.querySelectorAll("#lp,.lp2").forEach(p=>p.setAttribute("d", LOGO));
 const fmtD = d=>new Date(d).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
 const nf = new Intl.NumberFormat("de-DE",{maximumFractionDigits:1});
 
 /* NATO-Beispielsymbole */
-try{
+addEventListener("DOMContentLoaded", ()=>{ try{
   if(window.ms){
     const s = ["SHGPUCI----E---","SFGPUCA----F---","SHGPUCF----G---"].map(c=>new ms.Symbol(c,{size:34,outlineWidth:2,outlineColor:"#0e0f11"}).asSVG());
     $("natoIll").innerHTML = '<div style="display:flex;gap:22px;align-items:center">'+s.join("")+'</div>';
   }
-}catch(e){}
+}catch(e){} });
 
-/* Hintergrundkarte: eigener Kartenstil (OpenFreeMap), verbraucht kein MapTiler-Kontingent */
-let map = null;
-try{
-  const small = innerWidth < 640;
-  map = K.createMap({container:"hero", style:"karte", globe:false, doubleClickZoom:false});
-  map.jumpTo(small ? {center:[35.6,48.1], zoom:5.2} : {center:[33.2,48.4], zoom:5.75});
-  ["scrollZoom","boxZoom","dragRotate","dragPan","keyboard","doubleClickZoom","touchZoomRotate"].forEach(k=>{ try{ map[k].disable(); }catch(e){} });
-  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if(!still) map.once("load", ()=>map.easeTo({center: small ? [36.6,48.0] : [34.6,48.2], zoom: small ? 5.6 : 6.15, duration:40000, easing:t=>t}));
-}catch(e){ console.warn("Hintergrundkarte:", e); }
+/* ===== Eigene Links: hier deine Kanäle eintragen ===== */
+const LINKS = { telegram: "", twitter: "" };
+[["tg","telegram"],["tw","twitter"]].forEach(([id,k])=>{ const a = $(id); if(LINKS[k]) a.href = LINKS[k]; else { a.removeAttribute("target"); a.href = "#"; a.title = "Link folgt"; a.addEventListener("click", e=>e.preventDefault()); } });
+
+/* ===== Lagegrafik im Kopfbereich (SVG aus den Lagedaten, ohne Kartenbibliothek) ===== */
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent){ const e = document.createElementNS(NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); if(parent) parent.appendChild(e); return e; }
+function simplify(pts, tol){ /* Douglas-Peucker */
+  if(pts.length < 4) return pts; const keep = new Uint8Array(pts.length); keep[0] = keep[pts.length-1] = 1; const st = [[0, pts.length-1]];
+  while(st.length){ const [s,e] = st.pop(); let md = 0, mi = -1; const [x1,y1] = pts[s], [x2,y2] = pts[e], dx = x2-x1, dy = y2-y1, L = Math.hypot(dx,dy) || 1e-9;
+    for(let k=s+1;k<e;k++){ const d = Math.abs(dy*pts[k][0] - dx*pts[k][1] + x2*y1 - y2*x1)/L; if(d > md){ md = d; mi = k; } }
+    if(md > tol){ keep[mi] = 1; st.push([s,mi],[mi,e]); } }
+  return pts.filter((p,k)=>keep[k]); }
+function drawViz(imp, recent){
+  const svg = $("viz"), F = (imp && imp.features) || [];
+  const polys = (f)=>!f.geometry ? [] : f.geometry.type==="Polygon" ? [f.geometry.coordinates] : f.geometry.type==="MultiPolygon" ? f.geometry.coordinates : [];
+  const area = F.filter(f=>f.properties && f.properties.art==="flaeche");
+  let x0=180,x1=-180,y0=90,y1=-90;
+  area.filter(f=>/ukraine|russian/.test(f.properties.ebene)).forEach(f=>polys(f).forEach(p=>p[0].forEach(([x,y])=>{ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; })));
+  if(x0 > x1){ x0=22; x1=40.3; y0=44.3; y1=52.4; }
+  x0 = Math.max(x0, 21.8); x1 = Math.min(x1, 41); y0 = Math.max(y0, 44); y1 = Math.min(y1, 52.6);
+  const kx = Math.cos((y0+y1)/2*Math.PI/180), S = 100, pad = 30;
+  const W = (x1-x0)*kx*S + 2*pad, H = (y1-y0)*S + 2*pad;
+  svg.setAttribute("viewBox", `0 0 ${W.toFixed(0)} ${H.toFixed(0)}`); svg.setAttribute("preserveAspectRatio","xMaxYMid meet");
+  const P = ([x,y])=>[pad + (x-x0)*kx*S, pad + (y1-y)*S];
+  const d = (ring, tol)=>{ const q = ring.map(P); let m = 1, md = 0; q.forEach((r,k)=>{ const dd = Math.hypot(r[0]-q[0][0], r[1]-q[0][1]); if(dd > md){ md = dd; m = k; } });
+    const p = simplify(q.slice(0, m+1), tol).concat(simplify(q.slice(m), tol).slice(1)); return "M" + p.map(q=>q[0].toFixed(1)+" "+q[1].toFixed(1)).join("L") + "Z"; };
+  const g = el("g", {}, svg);
+  /* Gradnetz */
+  for(let lon = Math.ceil(x0); lon <= x1; lon += 2){ const [x] = P([lon,y0]); el("line",{x1:x,y1:0,x2:x,y2:H,class:"v-grid"},g); el("text",{x:x+4,y:H-8,class:"v-lbl"},g).textContent = lon+"°O"; }
+  for(let lat = Math.ceil(y0); lat <= y1; lat += 2){ const [,y] = P([x0,lat]); el("line",{x1:0,y1:y,x2:W,y2:y,class:"v-grid"},g); el("text",{x:6,y:y-4,class:"v-lbl"},g).textContent = lat+"°N"; }
+  /* Seite nach Füllfarbe aus der Datei: rötlich = russisch, sonst ukrainisch (manche Ebenen sind in der Quelle gemischt) */
+  const isRed = f=>{ const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(f.properties.fuellung||""); return m ? parseInt(m[1],16) > parseInt(m[3],16) + 40 : f.properties.ebene==="russian-terr"; };
+  const terr = area.filter(f=>/ukraine-terr|russian-terr/.test(f.properties.ebene));
+  terr.filter(f=>!isRed(f)).forEach(f=>polys(f).forEach(p=>el("path",{d:d(p[0],0.8),class:"v-ua"},g)));
+  area.filter(f=>f.properties.ebene==="gray-zone").forEach(f=>polys(f).forEach(p=>el("path",{d:d(p[0],0.8),class:"v-gz"},g)));
+  const ru = terr.filter(isRed);
+  ru.forEach(f=>polys(f).forEach(p=>el("path",{d:d(p[0],0.6),class:"v-ru"},g)));
+  ru.forEach(f=>polys(f).forEach(p=>{ const dd = d(p[0],0.6); el("path",{d:dd,class:"v-glow"},g); el("path",{d:dd,class:"v-front",pathLength:1},g); }));
+  /* Großverbände als Punkte */
+  F.filter(f=>f.properties && f.properties.art==="symbol" && f.properties.ebene==="units" && f.geometry && f.geometry.type==="Point").forEach((f,k)=>{
+    const [x,y] = P(f.geometry.coordinates), sid = (f.properties.sidc||"")[1], col = sid==="H" ? "#ff7685" : sid==="F" ? "#6aa8ff" : "#c9ccd2";
+    el("rect",{x:(x-3).toFixed(1),y:(y-3).toFixed(1),width:6,height:6,fill:col,class:"v-unit",style:`animation-delay:${(2.2+k*0.04).toFixed(2)}s`},g); });
+  /* Veränderungen: kräftig, mit Puls */
+  recent.forEach(x=>{ polys({geometry:x.g}).forEach(p=>el("path",{d:d(p[0],0.3),class:"v-chg"},g)); const [cx,cy] = P(x.c); el("circle",{cx,cy,r:10,class:"v-pulse"},g); });
+  if(recent[0]){ const x = recent.reduce((a,b)=>b.km2>a.km2?b:a), [cx,cy] = P(x.c), tx = Math.max(cx-300, 20), ty = Math.max(cy-80, 40);
+    el("path",{d:`M${cx-6} ${cy-6}L${tx+208} ${ty+8}H${tx}`,class:"v-call"},g);
+    el("text",{x:tx,y:ty,class:"v-callt"},g).textContent = "+" + nf.format(x.km2) + " km² · " + (x.p.datum ? fmtD(x.p.datum).slice(0,6) : "");
+    el("text",{x:tx,y:ty-18,class:"v-calls"},g).textContent = "LETZTE VERÄNDERUNG"; }
+  requestAnimationFrame(()=>svg.classList.add("on"));
+}
+/* Animationen anhalten, wenn der Kopfbereich nicht sichtbar ist (spart Akku) */
+if("IntersectionObserver" in window){
+  new IntersectionObserver(es=>es.forEach(e=>$("hero").classList.toggle("paused", !e.isIntersecting))).observe($("hero"));
+  const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }), {rootMargin:"0px 0px -8% 0px"});
+  document.querySelectorAll(".rv").forEach(n=>io.observe(n));
+} else document.querySelectorAll(".rv").forEach(n=>n.classList.add("in"));
+/* Zahlen hochzählen */
+function countUp(id, v, dec){ const n = $(id); if(!isFinite(v)) return; if(matchMedia("(prefers-reduced-motion: reduce)").matches){ n.textContent = dec ? nf.format(v) : Math.round(v); return; }
+  const t0 = performance.now(), T = 1200; (function step(t){ const k = Math.min(1,(t-t0)/T), e = 1-Math.pow(1-k,3), x = v*e; n.textContent = dec ? nf.format(x) : Math.round(x); if(k<1) requestAnimationFrame(step); })(t0); }
 
 /* Fläche eines Polygons in km² (für kleine Gebiete ausreichend genau) */
 function ringKm2(r){ let a = 0; const lat0 = r.reduce((s,p)=>s+p[1],0)/r.length, kx = 111.32*Math.cos(lat0*Math.PI/180), ky = 110.57;
@@ -236,22 +321,23 @@ function centroid(g){ const r = g.type==="Polygon" ? g.coordinates[0] : g.coordi
 const LBL = {ru:["Russischer Geländegewinn","#d8344a"], ua:["Ukrainischer Geländegewinn","#2f7fe0"], grau:["Neue Grauzone","#d6d6d6"]};
 
 Promise.all([
-  K.loadImport(),
+  fetch("import/lage.geojson",{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null),
   fetch("karte.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null)
 ]).then(([imp, own])=>{
   const dates = [imp && imp.meta && imp.meta.bearbeitet, own && own.aktualisiert].filter(Boolean).map(d=>new Date(d)).filter(d=>!isNaN(d));
   if(dates.length){ const d = new Date(Math.max(...dates)); $("sStand").textContent = d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}); $("sStandS").textContent = d.getFullYear(); $("kick").textContent = "Lagekarte Ukraine · Stand " + fmtD(d); }
-  if(imp && imp.meta && imp.meta.quelle) $("src").textContent = imp.meta.quelle;
+  if(imp && imp.meta && imp.meta.quelle){ $("src").textContent = imp.meta.quelle; $("hudSrc").textContent = imp.meta.quelle; }
   const feats = (imp && imp.features) || [];
-  $("sUnits").textContent = feats.filter(f=>f.properties && f.properties.art==="symbol" && /^units/.test(f.properties.ebene||"")).length || "–";
+  countUp("sUnits", feats.filter(f=>f.properties && f.properties.art==="symbol" && /^units/.test(f.properties.ebene||"")).length);
   const cut = Date.now() - 14*864e5;
   const ch = feats.filter(f=>f.properties && f.properties.art==="aenderung" && f.geometry)
-    .map(f=>({p:f.properties, km2:areaKm2(f.geometry), c:centroid(f.geometry), t:new Date(f.properties.datum||0).getTime()}))
+    .map(f=>({p:f.properties, g:f.geometry, km2:areaKm2(f.geometry), c:centroid(f.geometry), t:new Date(f.properties.datum||0).getTime()}))
     .sort((a,b)=>b.t-a.t);
   const recent = ch.filter(x=>x.t >= cut);
-  $("sChg").textContent = recent.length;
+  countUp("sChg", recent.length); $("hudChg").textContent = recent.length;
   const ru = recent.filter(x=>x.p.richtung==="ru").reduce((s,x)=>s+x.km2,0), ua = recent.filter(x=>x.p.richtung==="ua").reduce((s,x)=>s+x.km2,0);
-  $("sArea").textContent = recent.length ? nf.format(ru+ua) : "0";
+  countUp("sArea", ru+ua, true);
+  try{ drawViz(imp, recent); }catch(e){ console.warn("Lagegrafik:", e); }
   if(recent.length) $("sAreaS").textContent = "km² · " + nf.format(ru) + " ru / " + nf.format(ua) + " ua";
   const list = ch.slice(0,8);
   $("chg").innerHTML = list.length ? list.map(x=>{
