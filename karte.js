@@ -523,7 +523,7 @@ function createMap(opts){
   /* Leistung: Auflösung auf Handys mit sehr hoher Pixeldichte begrenzen, kürzere Überblendung, abgelaufene Kacheln nicht ständig neu laden */
   const map = new maplibregl.Map({container:opts.container, style:styleOf(current), center:START.center, zoom:START.zoom,
     attributionControl:false, doubleClickZoom: opts.doubleClickZoom!==false,
-    pixelRatio: Math.min(window.devicePixelRatio || 1, 2), fadeDuration: 120, refreshExpiredTiles: false, maxTileCacheZoomLevels: 3});
+    pixelRatio: Math.min(window.devicePixelRatio || 1, 2), fadeDuration: 120, clickTolerance: 8, refreshExpiredTiles: false, maxTileCacheZoomLevels: 3});
   map.addControl(new maplibregl.NavigationControl(), "top-right");
   map.addControl(new maplibregl.ScaleControl({unit:"metric"}), "bottom-right");
   map.addControl(new maplibregl.AttributionControl({compact:false}), "bottom-right");

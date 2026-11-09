@@ -164,7 +164,7 @@ function init(map, opts){
     const canUndo = pts.length > 0 && tool!=="punkt";
     box.innerHTML = `<div class="wz-h"><span class="eyebrow">${NAMES[tool]}</span><button class="wz-x" data-x="close" aria-label="Werkzeug schließen">✕</button></div>
       <div class="wz-big">${big}</div>${sub ? `<div class="wz-sub">${sub}</div>` : ""}${extra}
-      <div class="wz-hint">${HINT[tool]}</div>
+      ${pts.length ? "" : `<div class="wz-hint">${HINT[tool]}</div>`}
       <div class="wz-act">${canUndo ? '<button data-x="undo">Rückgängig</button>' : ""}${(tool==="lineal"||tool==="flaeche") && pts.length > 1 ? '<button data-x="finish" class="solid">Fertig</button>' : ""}${pts.length ? '<button data-x="new">Neu</button>' : ""}</div>`;
     const inp = box.querySelector("input");
     if(inp) inp.addEventListener("change", ()=>{ const v = parseFloat(String(inp.value).replace(",", ".")); if(v > 0){ setRadius(v); } });
@@ -226,13 +226,15 @@ function init(map, opts){
   });
 
   let lastClick = 0, lastPt = null;
+  const coarse = window.matchMedia && matchMedia("(pointer:coarse)").matches;
   map.on("click", e=>{
     if(!tool) return;
     const ll = [e.lngLat.lng, e.lngLat.lat], now = Date.now();
     const pt = map.project ? map.project(e.lngLat) : {x:0,y:0};
     const dbl = now - lastClick < 350 && lastPt && Math.hypot(pt.x-lastPt.x, pt.y-lastPt.y) < 12;
     lastClick = now; lastPt = pt;
-    if(dbl && (tool==="lineal" || tool==="flaeche")){ finish(true); return; }
+    /* Doppelklick beendet nur mit Maus; am Handy tippt man oft schnell hintereinander, dort gibt es „Fertig“ */
+    if(dbl && !coarse && (tool==="lineal" || tool==="flaeche")){ finish(true); return; }
     if(tool==="punkt"){ pts = [ll]; refresh(true); return; }
     if(tool==="radius"){
       if(!pts.length || radiusKm != null){ pts = [ll]; radiusKm = null; }

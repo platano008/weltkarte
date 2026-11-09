@@ -17,12 +17,21 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611091547">
+<link rel="stylesheet" href="style.css?v=202611091553">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611091547"></script>
-<script src="werkzeuge.js?v=202611091547"></script>
+<script src="karte.js?v=202611091553"></script>
+<script src="werkzeuge.js?v=202611091553"></script>
 <style>
+/* Besucher-Leiste schlank: keine Filter-Chips, keine Lagedaten-Schalter, keine Legende */
+#chips,#imp,#legend{display:none!important}
+body.wz-on .nato{pointer-events:none}
+@media (max-width:720px){
+  .panel{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  .panel .list{overflow:visible;min-height:auto}
+  .panel .pf{display:none}
+  .panel .grp{position:static}
+}
 /* Leiste ein-/ausblenden */
 .hide-btn{display:grid;place-items:center;width:32px;height:32px;margin-left:auto;border:1px solid var(--line-2);background:none;color:var(--muted);cursor:pointer;padding:0;flex:none}
 .hide-btn:hover{color:var(--fg);border-color:var(--fg)}
@@ -154,7 +163,7 @@ const map = K.createMap({onImport: d=>renderImp(d), onNotice: t=>toast(t), globe
   if(window.WZ) WZ.ensure(m);
 }});
 /* Werkzeuge für alle: Lineal, Fläche, Radius, Koordinate */
-window.WZ = window.Werkzeuge ? Werkzeuge.init(map, {onStart: ()=>{ select(null); if(mq.matches) $("panel").classList.add("closed"); }}) : null;
+window.WZ = window.Werkzeuge ? Werkzeuge.init(map, {onStart: ()=>{ select(null); if(mq.matches){ $("panel").classList.add("closed"); panelOffset(); } }}) : null;
 const hideLoading = ()=>$("loading").classList.add("done");
 map.on("load", hideLoading); setTimeout(hideLoading, 8000);
 let hitAt = 0;
