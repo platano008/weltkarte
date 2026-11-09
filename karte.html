@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Karte · Plyus</title>
+<meta name="description" content="Plyus: Lagekarte Ukraine mit Satellitenbildern, Frontlinien, Bewegungen und NATO-Symbolen.">
+<meta name="theme-color" content="#0b0b0a">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Plyus · Lagekarte Ukraine">
+<meta property="og:description" content="Plyus: Lagekarte Ukraine mit Satellitenbildern, Frontlinien, Bewegungen und NATO-Symbolen.">
+<meta property="og:url" content="https://platano008.github.io/weltkarte/karte.html">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230e0f11'/%3E%3Cpath transform='translate%284 4%29' fill='%23ffffff' fill-rule='evenodd' d='M4.5 1.5H9.5V4H4.5Z M14.5 1.5H19.5V4H14.5Z M3.5 5H10.5V9.5H13.5V5H20.5L23 10V22.5H13.5V14H10.5V22.5H1V10Z M3.5 15.5V20H8V15.5Z M16 15.5V20H20.5V15.5Z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://api.maptiler.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css?v=202611091014">
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
+<script src="karte.js?v=202611091014"></script>
+<style>
+.home-link{color:inherit;text-decoration:none}
+.home-link:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.panel{border-top:2px solid var(--volt)}
+.search{position:relative}
+.search input{width:100%;background:var(--bg);border:1px solid var(--line-2);padding:8px 10px 8px 32px;font-size:14px}
+.search input:focus{border-color:var(--volt);outline:none}
+.search svg{position:absolute;left:10px;top:50%;width:14px;height:14px;transform:translateY(-50%);color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:9px;height:9px;display:block;border:1px solid rgba(0,0,0,.6)}
+.grp{position:sticky;top:0;z-index:1;padding:8px 18px 6px;background:rgba(21,23,26,.98);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
+.pf{display:flex;justify-content:space-between;gap:12px;padding:8px 18px;border-top:1px solid var(--line-2);font-family:var(--mono);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pf a{color:var(--muted);text-decoration:none}
+.pf a:hover{color:var(--fg)}
+.card{animation:cardIn .22s cubic-bezier(.2,.9,.25,1)}
+@keyframes cardIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.card .big{display:flex;align-items:center;justify-content:center;min-height:76px;background:var(--surface-2);border:1px solid var(--line)}
+.card .stripe{height:4px}
+.card .stripe.dash{background-size:14px 4px!important}
+.card .acts{display:flex;gap:8px;flex-wrap:wrap;padding-top:2px}
+.card .acts button{font-size:13px;font-weight:600;padding:6px 10px;border:1px solid var(--line-2);color:var(--muted)}
+.card .acts button:hover{color:var(--fg);border-color:var(--fg)}
+.card .coords{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.loading{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:#000;transition:opacity .4s}
+.loading.done{opacity:0;pointer-events:none}
+.loading div{display:flex;flex-direction:column;align-items:center;gap:14px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.loading b{display:block;width:140px;height:2px;background:var(--line-2);position:relative;overflow:hidden}
+.loading b::after{content:"";position:absolute;inset:0;width:40%;background:var(--volt);animation:load 1s ease-in-out infinite}
+@keyframes load{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+@media (max-width:720px){ .pf .cur{display:none} .panel.closed .search,.panel.closed .legend,.panel.closed .pf{display:none} }
+@media (prefers-reduced-motion:reduce){ .card{animation:none} .loading b::after{animation:none} }
+.imp{display:flex;flex-direction:column;gap:6px}
+.imp .eyebrow{display:flex;justify-content:space-between}
+.chip i{width:10px;height:10px;display:inline-block;border:1px solid rgba(0,0,0,.5)}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<a class="mt-logo" id="mtLogo" href="https://www.maptiler.com" target="_blank" rel="noopener"><img src="https://api.maptiler.com/resources/logo.svg" alt="MapTiler logo"></a>
+<div class="loading" id="loading"><div><span>Karte lädt</span><b></b></div></div>
+
+<div class="switches">
+  <div class="seg" id="base"></div>
+  <div class="seg" id="view"><button data-v="globe">Globus</button><button data-v="flat">Flach</button></div>
+</div>
+
+<section class="panel" id="panel">
+  <div class="ph">
+    <div class="brand"><span class="eyebrow" id="stand">Lagekarte Ukraine</span><button class="toggle" id="toggle" aria-label="Liste ein- oder ausklappen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M6 9l6 6 6-6"/></svg></button></div>
+    <h1><a href="./" class="home-link" title="Zur Startseite">Plyus</a></h1>
+    <div class="chips" id="chips"></div>
+    <div class="imp" id="imp" hidden><div class="eyebrow"><span>Lagedaten</span><span id="impSrc"></span></div><div class="chips" id="impChips"></div></div>
+    <div class="search" id="searchWrap" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM15 15l6 6"/></svg><input id="q" type="search" placeholder="Suchen …" autocomplete="off" aria-label="Einträge durchsuchen"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+  <div class="list" id="list"><div class="empty">Lädt …</div></div>
+  <div class="pf"><span class="cur" id="cur">Koordinaten: Maus über die Karte</span><span id="count"></span></div>
+</section>
+
+<div class="card" id="card" hidden></div>
+<div class="toast" id="toast" style="position:fixed;left:50%;bottom:calc(30px + var(--panel-h,0px));transform:translateX(-50%);z-index:30;background:var(--fg);color:var(--bg);font-weight:600;font-size:14px;padding:10px 16px;box-shadow:inset 3px 0 0 var(--volt)" hidden></div>
+
+<script>
+const K = Karte, $ = id => document.getElementById(id), esc = K.esc;
+const GROUPS = {symbol:"Symbole", linie:"Linien & Pfeile", flaeche:"Flächen"};
+const CHIP = {symbol:"Symbole", linie:"Linien", flaeche:"Flächen"};
+const groupOf = el => el.typ==="pfeil" ? "linie" : el.typ;
+const active = new Set(Object.keys(GROUPS));
+let DATA = K.emptyData(), sel = null, markers = [], query = "";
+const mq = window.matchMedia("(max-width:720px)");
+if(mq.matches) $("panel").classList.add("closed");
+
+/* switches */
+$("base").innerHTML = Object.entries(K.STYLES).map(([k,s])=>`<button data-b="${k}" class="${k==="sat"?"on":""}">${s.name}</button>`).join("");
+$("base").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("base").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setBase(b.dataset.b); });
+$("view").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("view").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setGlobe(b.dataset.v==="globe"); });
+$("legend").innerHTML = Object.values(K.SIDES).map(s=>`<span><i style="background:${s.color}"></i>${s.short}</span>`).join("") + `<span>- - - vermutet</span>`;
+
+/* Lagedaten-Ebenen (Import) */
+const impOff = new Set();
+function renderImp(d){
+  const meta = d && d.meta; if(!meta || !meta.ebenen || !meta.ebenen.length) return;
+  const col = id=>{ if(id==="aenderungen") return "linear-gradient(135deg,#ff1f3d 50%,#1f8bff 50%)";
+    const fs = d.features.filter(x=>x.properties.ebene===id); if(!fs.length) return "#888";
+    const area = fs.find(x=>x.properties.art==="flaeche");
+    if(area && fs.every(x=>x.properties.art!=="symbol")) return area.properties.fuellung;
+    const sides = [...new Set(fs.filter(x=>x.properties.art==="symbol").map(x=>x.properties.sidc[1]))].map(k=>(K.SIDES[k]||K.SIDES.U).color);
+    return sides.length > 1 ? `linear-gradient(135deg,${sides[0]} 50%,${sides[1]} 50%)` : sides[0]; };
+  $("imp").hidden = false;
+  $("impSrc").textContent = meta.quelle || "";
+  $("impChips").innerHTML = meta.ebenen.map(l=>`<button class="chip${impOff.has(l.id)?"":" on"}" data-imp="${esc(l.id)}" aria-pressed="${!impOff.has(l.id)}"><i style="background:${esc(col(l.id))}"></i>${esc(l.name)}</button>`).join("");
+  $("impChips").querySelectorAll("[data-imp]").forEach(b=>b.onclick=()=>{ const id=b.dataset.imp; impOff.has(id)?impOff.delete(id):impOff.add(id); map.setImportHidden([...impOff]); renderImp(d); });
+}
+const startGlobe = !window.matchMedia("(max-width:720px)").matches;
+document.querySelector(`#view [data-v="${startGlobe?"globe":"flat"}"]`).classList.add("on");
+const map = K.createMap({onImport: d=>renderImp(d), onNotice: t=>toast(t), globe:startGlobe, container:"map", style:"sat", onStyle: m=>{
+  K.addDataLayers(m, "lage", K.toFeatures(visible()));
+  m.on("click","lage-hit", onHit); m.on("click","lage-area-fill", onHit);
+  ["lage-hit","lage-area-fill"].forEach(l=>{ m.on("mouseenter",l,()=>m.getCanvas().style.cursor="pointer"); m.on("mouseleave",l,()=>m.getCanvas().style.cursor=""); });
+  highlight();
+}});
+const hideLoading = ()=>$("loading").classList.add("done");
+map.on("load", hideLoading); setTimeout(hideLoading, 8000);
+let hitAt = 0;
+function onHit(e){ if(Date.now()-hitAt<50) return; hitAt = Date.now(); select(DATA.elemente.find(x=>x.id===e.features[0].properties.id)); }
+map.on("click", e=>{
+  if(!map.getLayer("lage-hit")) return;
+  if(!map.queryRenderedFeatures(e.point,{layers:["lage-hit","lage-area-fill"]}).length) select(null);
+});
+const fmtLL = (lat,lng)=>`${Math.abs(lat).toFixed(4)}° ${lat>=0?"N":"S"}  ${Math.abs(lng).toFixed(4)}° ${lng>=0?"O":"W"}`;
+map.on("mousemove", e=>{ $("cur").textContent = fmtLL(e.lngLat.lat, e.lngLat.lng); });
+
+fetch("karte.json", {cache:"no-cache"}).then(r=>r.ok?r.json():K.emptyData()).catch(()=>K.emptyData()).then(d=>{
+  DATA = d && d.elemente ? d : K.emptyData();
+  if(DATA.aktualisiert) $("stand").textContent = "Lagekarte Ukraine · Stand " + new Date(DATA.aktualisiert).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
+  $("searchWrap").hidden = DATA.elemente.length < 6;
+  render();
+  const id = decodeURIComponent(location.hash.slice(1));
+  const at = /^@(-?[\d.]+),(-?[\d.]+)(?:,([\d.]+))?$/.exec(id);
+  if(at){ const go = ()=>map.jumpTo({center:[+at[1], +at[2]], zoom:+(at[3]||10)}); map.loaded() ? go() : map.once("load", go); }
+  else if(id){ const el = DATA.elemente.find(x=>x.id===id); if(el){ const go = ()=>select(el, true); map.loaded() ? go() : map.once("load", go); } }
+});
+
+const matches = el => !query || ((el.name||"")+" "+(el.text||"")+" "+K.describe(el)+" "+(el.zusatz||"")).toLowerCase().includes(query);
+function visible(){ return DATA.elemente.filter(el=>active.has(groupOf(el))); }
+function render(){
+  let src = null; try{ src = map.getSource("lage"); }catch(e){}
+  if(src) src.setData(K.toFeatures(visible()));
+  markers.forEach(m=>m.remove());
+  markers = visible().filter(el=>el.typ==="symbol").map(el=>{ const m = K.symbolMarker(map, el, {onClick:select}); m._id = el.id; return m; });
+  renderChips(); renderList(); highlight();
+}
+function renderChips(){
+  const n = g => DATA.elemente.filter(el=>groupOf(el)===g).length;
+  $("chips").innerHTML = Object.entries(CHIP).map(([k,v])=>`<button class="chip${active.has(k)?" on":""}" data-k="${k}" aria-pressed="${active.has(k)}">${v} <b>${n(k)}</b></button>`).join("");
+  $("chips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{ const k=b.dataset.k; active.has(k)?active.delete(k):active.add(k); if(sel && !active.has(groupOf(sel))) select(null); render(); });
+}
+function icon(el){
+  if(el.typ==="symbol") return `<span class="ic">${K.symbolSVG(el,18).svg}</span>`;
+  return `<span class="ic"><i class="sw${el.typ==="flaeche"?" area":""}" style="background:${esc(K.farbe(el.farbe))}"></i></span>`;
+}
+function measure(el){
+  if(el.typ==="linie"||el.typ==="pfeil") return Math.round(K.lineKm(el.koordinaten)).toLocaleString("de-DE")+" km";
+  if(el.typ==="flaeche") return Math.round(K.areaKm2(el.koordinaten)).toLocaleString("de-DE")+" km²";
+  return "";
+}
+const fmtDate = d => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d||""); return m ? `${m[3]}.${m[2]}.${m[1]}` : (d||""); };
+function renderList(){
+  const items = visible().filter(matches);
+  let html = "";
+  for(const [g,label] of Object.entries(GROUPS)){
+    const its = items.filter(el=>groupOf(el)===g); if(!its.length) continue;
+    html += `<div class="grp"><span>${label}</span><span>${its.length}</span></div>` + its.map(el=>`<button class="item${sel&&sel.id===el.id?" sel":""}" data-id="${esc(el.id)}">${icon(el)}<span><b>${esc(el.name||K.describe(el))}</b>${el.name?`<span class="c">${esc(K.describe(el))}</span>`:""}</span><span class="km">${measure(el)||fmtDate(el.datum)}</span></button>`).join("");
+  }
+  $("list").innerHTML = html || `<div class="empty">${!DATA.elemente.length ? "Noch keine Einträge auf der Karte." : query ? "Nichts gefunden." : "Keine Kategorie ausgewählt."}</div>`;
+  $("list").querySelectorAll(".item[data-id]").forEach(b=>b.onclick=()=>{ select(DATA.elemente.find(x=>x.id===b.dataset.id), true); if(mq.matches) $("panel").classList.add("closed"); });
+  $("count").textContent = `${DATA.elemente.length} Einträge`;
+}
+$("q").oninput = e=>{ query = e.target.value.trim().toLowerCase(); renderList(); };
+function highlight(){
+  if(map.getLayer && map.getLayer("lage-sel")) map.setFilter("lage-sel",["==",["get","id"], sel && sel.typ!=="symbol" ? sel.id : "__none"]);
+  markers.forEach(m=>m.getElement().classList.toggle("sel", !!sel && sel.id===m._id));
+}
+function center(el){
+  const c = el.typ==="symbol" ? [el.koordinaten] : el.koordinaten;
+  const lng = c.reduce((a,p)=>a+p[0],0)/c.length, lat = c.reduce((a,p)=>a+p[1],0)/c.length;
+  return [lng, lat];
+}
+function toast(t){ const el=$("toast"); el.textContent=t; el.hidden=false; clearTimeout(el._t); el._t=setTimeout(()=>el.hidden=true,2200); }
+function select(el, fly){
+  sel = el || null; highlight(); renderList();
+  try{ history.replaceState(null, "", sel ? "#"+encodeURIComponent(sel.id) : location.pathname); }catch(e){}
+  const card = $("card");
+  if(!sel){ card.hidden = true; return; }
+  const m = measure(sel), [lng,lat] = center(sel);
+  const visual = sel.typ==="symbol" ? `<div class="big">${K.symbolSVG(sel,40).svg}</div>`
+    : `<div class="stripe${sel.stil==="gestrichelt"?" dash":""}" style="background:${sel.stil==="gestrichelt"?`repeating-linear-gradient(90deg,${esc(K.farbe(sel.farbe))} 0 9px,transparent 9px 14px)`:esc(K.farbe(sel.farbe))}"></div>`;
+  card.innerHTML = `<div class="row"><h2>${esc(sel.name||K.describe(sel))}</h2><button class="x" id="cx" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    ${visual}
+    <div class="meta"><span>${esc(K.describe(sel))}</span>${m?`<span>${m}</span>`:""}${sel.datum?`<span>${esc(fmtDate(sel.datum))}</span>`:""}</div>
+    ${sel.text?`<p>${esc(sel.text)}</p>`:""}
+    <div class="coords">${fmtLL(lat,lng)}</div>
+    <div class="acts"><button id="cLink">Link kopieren</button><button id="cZoom">Hinzoomen</button></div>`;
+  card.hidden = false;
+  $("cx").onclick = ()=>select(null);
+  $("cZoom").onclick = ()=>select(sel, true);
+  $("cLink").onclick = ()=>{
+    const url = location.href.split("#")[0] + "#" + encodeURIComponent(sel.id);
+    const ok = ()=>toast("Link kopiert");
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(ok, ()=>prompt("Link:", url));
+    else prompt("Link:", url);
+  };
+  if(fly){
+    const c = sel.typ==="symbol" ? [sel.koordinaten] : sel.koordinaten;
+    if(c.length===1) map.flyTo({center:c[0], zoom:Math.max(map.getZoom(),11), duration:1200});
+    else map.fitBounds(c.reduce((b,p)=>b.extend(p), new maplibregl.LngLatBounds(c[0],c[0])), {padding:{top:120,bottom:mq.matches?120:80,left:mq.matches?40:380,right:mq.matches?40:400}, maxZoom:13, duration:1200});
+  }
+}
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && sel) select(null); });
+
+$("toggle").onclick = ()=>$("panel").classList.toggle("closed");
+function panelOffset(){ document.documentElement.style.setProperty("--panel-h", mq.matches ? $("panel").offsetHeight+"px" : "0px"); }
+try{ new ResizeObserver(panelOffset).observe($("panel")); }catch(e){}
+mq.addEventListener ? mq.addEventListener("change", panelOffset) : mq.addListener(panelOffset);
+panelOffset();
+</script>
+</body>
+</html>

@@ -3,14 +3,16 @@
 Lagekarte Ukraine. 
 Satellitenkarte mit Linien, Pfeilen, Flächen und NATO-Symbolen. Startet auf der Ukraine, zeigt aber die ganze Welt.
 
-- **Ansicht für alle:** https://platano008.github.io/weltkarte/
+- **Startseite:** https://platano008.github.io/weltkarte/
+- **Karte für alle:** https://platano008.github.io/weltkarte/karte.html
 - **Bearbeiten (nur mit GitHub-Schlüssel):** https://platano008.github.io/weltkarte/editor.html
 
 ## Dateien
 
 | Datei | Inhalt |
 |---|---|
-| `index.html` | Seite für Besucher, nur ansehen |
+| `index.html` | Startseite mit Kennzahlen und neuesten Veränderungen |
+| `karte.html` | Karte für Besucher, nur ansehen |
 | `editor.html` | Bearbeitungs-Seite: Linie, Pfeil, Fläche, NATO-Symbol, Speichern |
 | `karte.json` | Alle Einträge auf der Karte. Der Editor schreibt diese Datei. |
 | `karte.js` | Gemeinsamer Code: Kartenstile, Farbschema, Symbole |
