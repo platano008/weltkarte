@@ -89,9 +89,11 @@ function init(map, opts){
       if(!m.getSource("wz")) m.addSource("wz", {type:"geojson", data: empty});
       if(!m.getLayer("wz-fill")) m.addLayer({id:"wz-fill", type:"fill", source:"wz", filter:["==",["get","k"],"fill"], paint:{"fill-color":"#ffffff","fill-opacity":0.14}});
       if(!m.getLayer("wz-case")) m.addLayer({id:"wz-case", type:"line", source:"wz", filter:["==",["get","k"],"line"], layout:{"line-join":"round","line-cap":"round"}, paint:{"line-color":"#0e0f11","line-width":5,"line-opacity":0.75}});
-      if(!m.getLayer("wz-line")) m.addLayer({id:"wz-line", type:"line", source:"wz", filter:["==",["get","k"],"line"], layout:{"line-join":"round","line-cap":"round"}, paint:{"line-color":"#ffffff","line-width":2.2,"line-dasharray":["case",["get","p"],["literal",[1.5,1.5]],["literal",[1,0]]]}});
+      /* durchgezogene Linie und gestrichelte Vorschau als zwei Ebenen (gestrichelt per Datenwert kann MapLibre 5.0 nicht) */
+      if(!m.getLayer("wz-line")) m.addLayer({id:"wz-line", type:"line", source:"wz", filter:["all",["==",["get","k"],"line"],["!",["get","p"]]], layout:{"line-join":"round","line-cap":"round"}, paint:{"line-color":"#ffffff","line-width":2.4}});
+      if(!m.getLayer("wz-prev")) m.addLayer({id:"wz-prev", type:"line", source:"wz", filter:["all",["==",["get","k"],"line"],["get","p"]], layout:{"line-join":"round"}, paint:{"line-color":"#ffffff","line-width":2.2,"line-dasharray":[1.5,1.5]}});
       if(!m.getLayer("wz-pt")) m.addLayer({id:"wz-pt", type:"circle", source:"wz", filter:["==",["get","k"],"pt"], paint:{"circle-radius":4.5,"circle-color":"#ffffff","circle-stroke-color":"#0e0f11","circle-stroke-width":2}});
-      ["wz-fill","wz-case","wz-line","wz-pt"].forEach(l=>{ try{ m.moveLayer(l); }catch(e){} });
+      ["wz-fill","wz-case","wz-line","wz-prev","wz-pt"].forEach(l=>{ try{ m.moveLayer(l); }catch(e){} });
       draw();
     }catch(e){}
   }
@@ -241,11 +243,11 @@ function init(map, opts){
       else { radiusKm = Math.round(dist(pts[0], ll)*10)/10; }
       refresh(true); return;
     }
-    pts.push(ll); refresh(true);
+    pts.push(ll); hover = null; liveLabel(null); refresh(true);
   });
   let raf = 0, mv = null;
   map.on("mousemove", e=>{
-    if(!tool) return; mv = [e.lngLat.lng, e.lngLat.lat];
+    if(!tool || coarse) return;   /* am Handy erzeugt jedes Tippen auch ein mousemove – keine Vorschau dort */ mv = [e.lngLat.lng, e.lngLat.lat];
     if(!raf) raf = requestAnimationFrame(()=>{ raf = 0; hover = mv; if(tool==="radius" && radiusKm != null) hover = null; draw(); readout(); liveLabel(hover); });
   });
   map.getCanvas && map.getCanvas().addEventListener("mouseleave", ()=>{ if(!tool) return; hover = null; draw(); readout(); liveLabel(null); });

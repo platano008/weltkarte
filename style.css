@@ -131,7 +131,9 @@ body.wz-on .maplibregl-canvas{cursor:crosshair!important}
   .wz-rail{top:auto;bottom:calc(var(--panel-h,0px) + 46px);right:12px}
   .wz-rail button{width:42px;height:42px}
   .wz-box{left:12px;right:66px;width:auto;top:auto;bottom:calc(var(--panel-h,0px) + 46px);max-height:55vh;overflow:auto}
-  .wz-big{font-size:26px}
+  .wz-big{font-size:22px}
+  .wz-box{padding:10px 12px 12px}
+  .wz-co{gap:4px}
 }
 
 /* Verlauf: zwischen Updates spulen */
