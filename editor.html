@@ -12,10 +12,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611101900">
+<link rel="stylesheet" href="style.css?v=202611101928">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611101900"></script>
+<script src="karte.js?v=202611101928"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -577,7 +577,7 @@ function shotOpts(o){
     <div class="row"><button class="btn volt" id="sGo">Bild erstellen</button></div>
     <div class="vidbox">
       <div class="eyebrow"><span>Wochenvideo</span></div>
-      <div class="hint">Die Änderungen eines Zeitraums erscheinen Tag für Tag, Pfeile wachsen herein, die Kamera fährt mit. Mit km²-Zähler, Übersichtskarte und Logo. Der Ausschnitt wird automatisch gewählt.</div>
+      <div class="hint">Die Kamera fliegt von der Übersicht nah an jede Änderung heran und wieder heraus. Pfeile wachsen herein, dann erscheint die Änderung. Mit km²-Zähler, Übersichtskarte und Logo. Das Erstellen dauert je nach PC 20 Sekunden bis wenige Minuten.</div>
       <div class="grid2"><div><label class="lbl" for="vVon">Von</label><input class="f" type="date" id="vVon" value="${esc(vid.von)}"></div>
         <div><label class="lbl" for="vBis">Bis</label><input class="f" type="date" id="vBis" value="${esc(vid.bis)}"></div></div>
       <div><span class="lbl">Format</span>${seg("vfmt", {"16:9":"16:9 · Twitter","1:1":"1:1","9:16":"9:16 · Story"}, vid.format)}</div>
@@ -595,13 +595,13 @@ function shotOpts(o){
   $("sLeg").onchange = e=>{ shot.legend=e.target.checked; saveShot(); };
   $("sOv").onchange = e=>{ shot.overview=e.target.checked; saveShot(); };
   $("sGo").onclick = makeShot;
-  const cnt = ()=>{ const n = K.weekChanges(vid.von, vid.bis).length; $("vCount").textContent = n ? `${n} Änderung${n===1?"":"en"} im Zeitraum · Video etwa ${Math.round(4 + Math.min(31, Math.round((new Date(vid.bis) - new Date(vid.von))/864e5)+1)*1.05)} Sekunden` : "Keine Änderungen in diesem Zeitraum."; $("vGo").disabled = !n || busyVid; };
+  const cnt = ()=>{ const n = K.weekChanges(vid.von, vid.bis).length; $("vCount").textContent = n ? `${n} Änderung${n===1?"":"en"} im Zeitraum · Video etwa ${Math.round(9 + n*3)} Sekunden` : "Keine Änderungen in diesem Zeitraum."; $("vGo").disabled = !n || busyVid; };
   $("vVon").onchange = e=>{ vid.von = e.target.value || vid.von; cnt(); };
   $("vBis").onchange = e=>{ vid.bis = e.target.value || vid.bis; cnt(); };
   $("vTitle").oninput = e=>{ vid.title = e.target.value; };
   o.querySelectorAll("[data-vfmt]").forEach(b=>b.onclick=()=>{ vid.format = b.dataset.vfmt; shotOpts(o); });
   $("vGo").onclick = makeVideo;
-  if(!K.videoMime()){ $("vCount").textContent = "Dieser Browser kann keine Videos aufnehmen. Bitte Chrome, Edge oder Firefox am PC nutzen."; $("vGo").disabled = true; } else cnt();
+  if(!K.canVideo()){ $("vCount").textContent = "Dieser Browser kann keine Videos aufnehmen. Bitte Chrome, Edge oder Firefox am PC nutzen."; $("vGo").disabled = true; } else cnt();
 }
 /* Wochenvideo */
 const vidIso = d=>new Date(d.getTime() - d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
@@ -612,7 +612,7 @@ async function makeVideo(){
   const btn = $("vGo"); btn.disabled = true;
   try{
     const r = await K.exportWeekVideo(map, {von:vid.von, bis:vid.bis, format:vid.format, title:(vid.title||"").trim() || "Wochenrückblick", elements:DATA.elemente, credit:(shot.credit||"").trim() || "Plyus",
-      onProgress:(p, msg)=>{ btn.textContent = p > 0 ? `Aufnahme ${Math.round(p*100)} %` : msg; }});
+      onProgress:(p, msg)=>{ btn.textContent = p > 0 ? `${msg.replace(" …","")} ${Math.round(p*100)} %` : msg; }});
     if(shotUrl) URL.revokeObjectURL(shotUrl);
     shotUrl = URL.createObjectURL(r.blob);
     $("shotImg").hidden = true; const v = $("shotVid"); v.hidden = false; v.src = shotUrl; v.play().catch(()=>{});

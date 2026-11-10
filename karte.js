@@ -240,9 +240,9 @@ function smoothPath(pts, per){
   out.push(pts[pts.length-1]);
   return out;
 }
-function arrow(coords, refL){
+function arrow(coords, refL, planar){
   const n = coords.length; if(n<2) return {axis:coords, body:null};
-  const lat0 = coords.reduce((a,c)=>a+c[1],0)/n, k = Math.cos(lat0*Math.PI/180)||1;
+  const lat0 = coords.reduce((a,c)=>a+c[1],0)/n, k = planar ? 1 : (Math.cos(lat0*Math.PI/180)||1);
   const pts = smoothPath(coords.map(([x,y])=>[x*k, y]), 14);
   const dist = [0]; for(let i=1;i<pts.length;i++) dist.push(dist[i-1] + Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]));
   const L = dist[dist.length-1]; if(!L) return {axis:coords, body:null};
@@ -269,7 +269,7 @@ function arrow(coords, refL){
   const ring = [notchPt, ...left,
     [base.p[0]+bn[0]*headW, base.p[1]+bn[1]*headW], tip, [base.p[0]-bn[0]*headW, base.p[1]-bn[1]*headW],
     ...right.reverse(), notchPt];
-  const back = ([x,y])=>[+(x/k).toFixed(6), +y.toFixed(6)];
+  const back = planar ? (p=>p) : (([x,y])=>[+(x/k).toFixed(6), +y.toFixed(6)]);
   return {axis: pts.filter((_,i)=>i%3===0 || i===pts.length-1).map(back), body: ring.map(back), L};
 }
 /* Farben aus älteren Versionen auf die aktuelle Palette abbilden */
@@ -701,8 +701,8 @@ function videoMime(){
 function weekChanges(von, bis, d){ return changes(d).filter(f=>{ const x = f.properties.datum||""; return x >= von && x <= bis; })
   .sort((a,b)=>(a.properties.datum||"").localeCompare(b.properties.datum||"")); }
 /* Teilstück einer Linie (für wachsende Pfeile), Länge in "lng·cos(lat), lat" gemessen */
-function cutLine(coords, f){
-  const lat0 = coords.reduce((a,c)=>a+c[1],0)/coords.length, k = Math.cos(lat0*Math.PI/180)||1;
+function cutLine(coords, f, planar){
+  const lat0 = coords.reduce((a,c)=>a+c[1],0)/coords.length, k = planar ? 1 : (Math.cos(lat0*Math.PI/180)||1);
   const d = [0]; for(let i=1;i<coords.length;i++) d.push(d[i-1] + Math.hypot((coords[i][0]-coords[i-1][0])*k, coords[i][1]-coords[i-1][1]));
   const target = d[d.length-1]*f, out = [coords[0]];
   for(let i=1;i<coords.length;i++){
@@ -711,20 +711,43 @@ function cutLine(coords, f){
   }
   return out;
 }
+/* Video-Kodierung: Bild für Bild mit WebCodecs (exakt, ruckelfrei, schneller als Echtzeit), sonst Echtzeit-Aufnahme */
+const MUX_URL = "https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.1/build/mp4-muxer.min.js";
+function loadScript(src){ return new Promise((res, rej)=>{ const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+async function avcCodec(W, H){
+  if(!window.VideoEncoder || !window.VideoFrame) return null;
+  for(const codec of ["avc1.640028","avc1.4d0028","avc1.640032","avc1.42002a"]){
+    try{ const s = await VideoEncoder.isConfigSupported({codec, width:W, height:H, bitrate:10e6, framerate:30}); if(s && s.supported) return codec; }catch(e){}
+  }
+  return null;
+}
+function canVideo(){ return !!(window.VideoEncoder || videoMime()); }
+/* Web-Mercator in Pixeln (wie MapLibre, 512er Kacheln) */
+function merc(lng, lat, z){ const s = 512*Math.pow(2, z), sl = Math.sin(lat*Math.PI/180);
+  return [(lng + 180)/360*s, (0.5 - Math.log((1+sl)/(1-sl))/(4*Math.PI))*s]; }
+function waitIdle(m){ return new Promise(res=>{ let done = false; const fin = ()=>{ if(!done){ done = true; res(); } };
+  m.once("idle", fin); setTimeout(fin, 20000); }); }
+
 async function exportWeekVideo(map, o){
-  const mime = videoMime(); if(!mime) throw Object.assign(new Error("kein Video"), {code:"nomedia"});
   const list = weekChanges(o.von, o.bis); if(!list.length) throw Object.assign(new Error("leer"), {code:"empty"});
-  const [W,H] = VIDEO_SIZES[o.format] || VIDEO_SIZES["16:9"], portrait = H > W, u = Math.min(W,H)/1080;
-  /* Ausschnitt: alle Änderungen des Zeitraums; die Karte wird etwas größer gerendert, damit die Kamera Spielraum hat */
+  const [W,H] = VIDEO_SIZES[o.format] || VIDEO_SIZES["16:9"], portrait = H > W, u = Math.min(W,H)/1080, FPS = 30;
+  const codec = await avcCodec(W, H);
+  if(codec && !window.Mp4Muxer){ try{ await loadScript(MUX_URL); }catch(e){} }
+  const exact = !!(codec && window.Mp4Muxer);
+  const mime = exact ? "video/mp4" : videoMime();
+  if(!mime) throw Object.assign(new Error("kein Video"), {code:"nomedia"});
+  const say = (p, msg)=>o.onProgress && o.onProgress(p, msg);
+
+  /* ---------- 1. Karten aufnehmen: Gesamtansicht + Nahaufnahmen (eine Karte, nacheinander) ---------- */
   let bb = [180,90,-180,-90]; list.forEach(f=>{ const b = changeBounds(f); bb = [Math.min(bb[0],b[0][0]),Math.min(bb[1],b[0][1]),Math.max(bb[2],b[1][0]),Math.max(bb[3],b[1][1])]; });
-  const minSpan = 0.25; if(bb[2]-bb[0] < minSpan){ const c = (bb[0]+bb[2])/2; bb[0] = c-minSpan/2; bb[2] = c+minSpan/2; } if(bb[3]-bb[1] < minSpan*0.6){ const c = (bb[1]+bb[3])/2; bb[1] = c-minSpan*0.3; bb[3] = c+minSpan*0.3; }
-  const M = 1.22, cw = Math.round(W*M/2), ch = Math.round(H*M/2), mx = (cw - W/2)/2, my = (ch - H/2)/2;
-  const pad = portrait ? {top:200*u/2+20+my, bottom:620*u/2+my, left:50*u/2+mx, right:50*u/2+mx} : {top:190*u/2+my, bottom:200*u/2+my, left:60*u/2+mx, right:600*u/2+mx};
-  /* Übersichtskarte unten */
+  const ext = Math.max(bb[2]-bb[0], (bb[3]-bb[1])*1.5, 0.5);   /* Gesamtansicht nicht zu nah: mindestens ~35 km Umfeld */
+  const cxL = (bb[0]+bb[2])/2, cyL = (bb[1]+bb[3])/2, wb = [[cxL - ext*0.75, cyL - ext*0.42],[cxL + ext*0.75, cyL + ext*0.42]];
+  const M = 1.2, cw = Math.round(W*M/2), ch = Math.round(H*M/2), mx = (cw - W/2)/2, my = (ch - H/2)/2;
+  const pad = portrait ? {top:190*u/2+my, bottom:600*u/2+my, left:40*u/2+mx, right:40*u/2+mx} : {top:170*u/2+my, bottom:180*u/2+my, left:50*u/2+mx, right:580*u/2+mx};
   const IW = Math.round((portrait ? 300 : 340)*u), IH = Math.round(IW*0.64);
-  o.onProgress && o.onProgress(0, "Karte wird geladen …");
+  say(0, "Karte wird geladen …");
   const hide = ["imp-change-fill","imp-change-line","imp-change-label","lage-sel","chg-sel-fill","chg-sel-line","front-edge","wz-fill","wz-case","wz-line","wz-prev","wz-pt","lage-arrow-casing","lage-arrow-fill","lage-arrow-line","lage-arrow-dash"];
-  const off = offMap({w:cw, h:ch, map:{style:map.getStyle(), bounds:[[bb[0],bb[1]],[bb[2],bb[3]]], fitBoundsOptions:{padding:pad, maxZoom:11.5}},
+  const off = offMap({w:cw, h:ch, map:{style:map.getStyle(), bounds:wb, fitBoundsOptions:{padding:pad, maxZoom:11}},
     onLoad: m=>{ hide.forEach(l=>{ try{ if(m.getLayer(l)) m.setLayoutProperty(l,"visibility","none"); }catch(e){} }); }});
   const ins = offMap({w:Math.round(IW/2), h:Math.round(IH/2), map:{style:styleOf("karte"), bounds:[[22.1,44.3],[40.2,52.4]], fitBoundsOptions:{padding:6}},
     onLoad: m=>{
@@ -735,174 +758,253 @@ async function exportWeekVideo(map, o){
         m.addLayer({id:"ru-fill", type:"fill", source:"ru", paint:{"fill-color":"#e5383b","fill-opacity":0.45}});
         m.addLayer({id:"ru-line", type:"line", source:"ru", paint:{"line-color":"#ff5a5c","line-width":1}}); }catch(e){}
     }});
-  let base, BW, BH, items, arrows = [], attrib, inset = null;
+  const snap = m=>{ const c = document.createElement("canvas"); c.width = cw*2; c.height = ch*2; c.getContext("2d").drawImage(m.getCanvas(), 0, 0, c.width, c.height); return c; };
+  let Z0, O0, BW = cw*2, BH = ch*2, wide, inset = null, attrib, items, arrows = [], clusters = [];
   try{
     await Promise.all([off.ready, ins.ready]);
-    const src = off.m.getCanvas(); BW = cw*2; BH = ch*2;
-    base = document.createElement("canvas"); base.width = BW; base.height = BH;
-    base.getContext("2d").drawImage(src, 0, 0, BW, BH);
-    const P = c=>{ const q = off.m.project(c); return [q.x*2, q.y*2]; };
-    items = list.map(f=>{ const g = f.geometry, polys = g.type==="Polygon" ? [g.coordinates] : g.coordinates;
-      const rings = polys.map(p=>p.map(r=>r.map(P)));
-      const pts = rings.flatMap(p=>p[0]); const cx = pts.reduce((s,q)=>s+q[0],0)/pts.length, cy = pts.reduce((s,q)=>s+q[1],0)/pts.length;
-      const R = Math.max(30*u, ...pts.map(q=>Math.hypot(q[0]-cx, q[1]-cy)));
-      return {p:f.properties, rings, cx, cy, R, km2: changeArea(f)}; });
-    /* Pfeile im Bild: vorab in Wachstumsschritten berechnen */
-    const vb = off.m.getBounds(), inView = c=>c[0]>vb.getWest() && c[0]<vb.getEast() && c[1]>vb.getSouth() && c[1]<vb.getNorth();
-    (o.elements||[]).filter(el=>el.typ==="pfeil" && el.koordinaten && el.koordinaten.length>1 && el.koordinaten.some(inView)).forEach(el=>{
-      const full = arrow(el.koordinaten); if(!full.body) return;
-      const steps = [];
-      for(let s=1;s<=24;s++){ const part = s===24 ? el.koordinaten : cutLine(full.axis, s/24); const a = s===24 ? full : arrow(part, full.L);
-        steps.push(a.body ? a.body.map(P) : null); }
-      const tip = P(el.koordinaten[el.koordinaten.length-1]);
-      arrows.push({steps, tip, col: farbe(el.farbe), dash: el.stil==="gestrichelt"}); });
-    const c = off.m.getCenter(); attrib = attributionFor(map, [c.lng, c.lat], off.m.getZoom());
-    /* Übersicht: Bild und Umrechnung Kartenpixel → Übersichtspixel */
-    const ic = ins.m.getCanvas(); const ib = document.createElement("canvas"); ib.width = IW; ib.height = IH; ib.getContext("2d").drawImage(ic, 0, 0, IW, IH);
-    const tl = ins.m.project(off.m.unproject([0,0])), br = ins.m.project(off.m.unproject([cw,ch]));
+    Z0 = off.m.getZoom(); const nw = off.m.unproject([0,0]); O0 = merc(nw.lng, nw.lat, Z0);
+    const world = c=>{ const p = merc(c[0], c[1], Z0); return [(p[0]-O0[0])*2, (p[1]-O0[1])*2]; };
+    wide = snap(off.m);
+    const c0 = off.m.getCenter(); attrib = attributionFor(map, [c0.lng, c0.lat], off.m.getZoom() + 1.5);
+    /* Übersicht */
+    const ib = document.createElement("canvas"); ib.width = IW; ib.height = IH; ib.getContext("2d").drawImage(ins.m.getCanvas(), 0, 0, IW, IH);
+    const se = off.m.unproject([cw,ch]), tl = ins.m.project(nw), br = ins.m.project(se);
     inset = {img: ib, x0: tl.x*2, y0: tl.y*2, x1: br.x*2, y1: br.y*2};
+    /* Änderungen in Weltkoordinaten */
+    items = list.map(f=>{ const g = f.geometry, polys = g.type==="Polygon" ? [g.coordinates] : g.coordinates;
+      const rings = polys.map(p=>p.map(r=>r.map(world)));
+      const pts = rings.flatMap(p=>p[0]); const cx = pts.reduce((s,q)=>s+q[0],0)/pts.length, cy = pts.reduce((s,q)=>s+q[1],0)/pts.length;
+      return {f, p:f.properties, rings, cx, cy, R: Math.max(4, ...pts.map(q=>Math.hypot(q[0]-cx, q[1]-cy))), km2: changeArea(f), bounds: changeBounds(f)}; });
+    /* Pfeile in Weltkoordinaten */
+    (o.elements||[]).filter(el=>el.typ==="pfeil" && el.koordinaten && el.koordinaten.length>1).forEach(el=>{
+      const full = arrow(el.koordinaten); if(!full.body) return;
+      const axis = full.axis.map(world), fw = arrow(axis, null, true); if(!fw.body) return;
+      const tipLL = el.koordinaten[el.koordinaten.length-1], tip = world(tipLL);
+      if(tip[0] < -BW*0.5 || tip[0] > BW*1.5 || tip[1] < -BH*0.5 || tip[1] > BH*1.5) return;
+      const headLL = cutLine(full.axis, 0.65);
+      arrows.push({axis, L: fw.L, tip, tipLL, headLL: headLL[headLL.length-1], col: farbe(el.farbe), dash: el.stil==="gestrichelt"}); });
+    /* Gruppen: gleicher Tag und nah beieinander → eine Nahaufnahme */
+    const day0 = new Date(o.von + "T12:00:00");
+    items.forEach(it=>it.di = Math.max(0, Math.round((new Date((it.p.datum||o.von) + "T12:00:00") - day0)/864e5)));
+    items.sort((a,b)=>a.di - b.di || a.cx - b.cx);
+    for(const it of items){ const c = clusters[clusters.length-1];
+      if(c && c.di === it.di && Math.hypot(c.cx - it.cx, c.cy - it.cy) < W*0.22 && c.items.length < 4){ c.items.push(it); c.cx = c.items.reduce((s,x)=>s+x.cx,0)/c.items.length; c.cy = c.items.reduce((s,x)=>s+x.cy,0)/c.items.length; }
+      else clusters.push({di: it.di, items:[it], cx: it.cx, cy: it.cy}); }
+    /* Pfeile der nächsten Gruppe zuordnen */
+    arrows.forEach(a=>{ let best = null, bd = Infinity; clusters.forEach(c=>{ c.items.forEach(it=>{ const d = Math.hypot(a.tip[0]-it.cx, a.tip[1]-it.cy); if(d < bd){ bd = d; best = c; } }); });
+      if(best && bd < W*0.3){ a.cl = best; (best.arrows = best.arrows || []).push(a); } });
+    /* Nahaufnahmen rendern */
+    const cpad = portrait ? {top:ch*0.30, bottom:ch*0.42, left:cw*0.24, right:cw*0.24} : {top:ch*0.27, bottom:ch*0.30, left:cw*0.26, right:cw*0.40};
+    for(let i=0;i<clusters.length;i++){ const c = clusters[i];
+      say(0, `Nahaufnahme ${i+1} von ${clusters.length} …`);
+      let b = [180,90,-180,-90]; const add = (x,y)=>{ b = [Math.min(b[0],x),Math.min(b[1],y),Math.max(b[2],x),Math.max(b[3],y)]; };
+      c.items.forEach(it=>{ add(it.bounds[0][0], it.bounds[0][1]); add(it.bounds[1][0], it.bounds[1][1]); });
+      (c.arrows||[]).forEach(a=>{ add(a.tipLL[0], a.tipLL[1]); add(a.headLL[0], a.headLL[1]); });
+      const span = Math.max(b[2]-b[0], b[3]-b[1]); if(span < 0.06){ const d = (0.06 - span)/2; b = [b[0]-d, b[1]-d, b[2]+d, b[3]+d]; }
+      off.m.fitBounds([[b[0],b[1]],[b[2],b[3]]], {padding:cpad, maxZoom:13, duration:0});
+      await waitIdle(off.m);
+      const img = snap(off.m), cnw = off.m.unproject([0,0]), cse = off.m.unproject([cw,ch]);
+      const p0 = world([cnw.lng, cnw.lat]), p1 = world([cse.lng, cse.lat]);
+      /* weiche Ränder, damit der Übergang zur Gesamtansicht nicht sichtbar ist */
+      const gg = img.getContext("2d"); gg.globalCompositeOperation = "destination-out"; const fe = Math.round(Math.min(img.width, img.height)*0.12);
+      [[0,0,fe,0,0,0,fe,img.height],[img.width,0,img.width-fe,0,img.width-fe,0,fe,img.height],[0,0,0,fe,0,0,img.width,fe],[0,img.height,0,img.height-fe,0,img.height-fe,img.width,fe]].forEach(([x0,y0,x1,y1,rx,ry,rw,rh])=>{
+        const gr = gg.createLinearGradient(x0,y0,x1,y1); gr.addColorStop(0,"rgba(0,0,0,1)"); gr.addColorStop(1,"rgba(0,0,0,0)"); gg.fillStyle = gr; gg.fillRect(rx,ry,rw,rh); });
+      gg.globalCompositeOperation = "source-over";
+      c.img = img; c.rect = [p0[0], p0[1], p1[0], p1[1]]; c.native = img.width/(p1[0]-p0[0]);
+      c.view = {x: (p0[0]+p1[0])/2, y: (p0[1]+p1[1])/2, S: c.native};
+    }
   } finally { off.done(); ins.done(); }
 
-  /* Zeitplan */
+  /* ---------- 2. Ablauf ---------- */
   const day0 = new Date(o.von + "T12:00:00"), day1 = new Date(o.bis + "T12:00:00");
   const nDays = Math.max(1, Math.min(31, Math.round((day1 - day0)/864e5) + 1));
-  const INTRO = 1.2, DAY = nDays > 10 ? 0.6 : 1.05, END = INTRO + nDays*DAY, TOTAL = END + 2.8;
-  const perDay = {};
-  items.forEach(it=>{ const di = Math.max(0, Math.min(nDays-1, Math.round((new Date((it.p.datum||o.von) + "T12:00:00") - day0)/864e5)));
-    const k = (perDay[di] = (perDay[di]||0) + 1) - 1; it.di = di; it.ta = INTRO + di*DAY + 0.12 + k*Math.min(0.25, DAY*0.6/Math.max(1,k+1)); });
-  /* Pfeile: kurz vor der nächstgelegenen Änderung hereinwachsen, sonst nacheinander am Anfang */
-  arrows.forEach((a,i)=>{ let best = null, bd = Infinity; items.forEach(it=>{ const d = Math.hypot(a.tip[0]-it.cx, a.tip[1]-it.cy); if(d < bd){ bd = d; best = it; } });
-    a.ta = best && bd < Math.max(260*u, best.R*3) ? Math.max(0.5, best.ta - 0.7) : 0.6 + i*0.35; });
+  const many = clusters.length > 6, FLY = many ? 1.5 : 2.0, HOLD = many ? 1.9 : 2.5, INTRO = 2.0, OUTRO = 2.8;
+  const VIEW0 = {x: BW/2, y: BH/2, S: 1};
+  /* Kamera-Abschnitte: Flug (hoch – rüber – runter) und Halten mit leichtem Heranschieben */
+  const segs = []; let t = 0, prev = VIEW0, prevPos = 0;
+  const dayPos = d=>(d + 0.5)/nDays;
+  segs.push({t0:0, t1:INTRO, hold:prev, pos0:0, pos1:0}); t = INTRO;
+  const introArrows = arrows.filter(a=>!a.cl); introArrows.forEach((a,i)=>a.ta = 0.5 + i*0.3);
+  clusters.forEach((c, ci)=>{
+    /* Zielansicht etwas aus der Mitte, damit die Einblendungen nichts verdecken */
+    const to = {x: c.view.x + (portrait ? 0 : W*0.13/c.native), y: c.view.y + (portrait ? H*0.07/c.native : 0), S: c.native};
+    segs.push({t0:t, t1:t+FLY, from:prev, to, pos0:prevPos, pos1:dayPos(c.di)}); t += FLY;
+    (c.arrows||[]).forEach((a,i)=>a.ta = t - 0.5 + i*0.25);
+    const at = t + (c.arrows && c.arrows.length ? 0.6 : 0.2);
+    c.items.forEach((it,i)=>it.ta = at + i*0.45);
+    const hold = HOLD + (c.items.length-1)*0.45;
+    segs.push({t0:t, t1:t+hold, hold:to, push:true, pos0:dayPos(c.di), pos1:dayPos(c.di)}); t += hold;
+    prev = to; prevPos = dayPos(c.di);
+  });
+  segs.push({t0:t, t1:t+FLY, from:prev, to:VIEW0, pos0:prevPos, pos1:1}); t += FLY;
+  const END = t; segs.push({t0:t, t1:t+OUTRO, hold:VIEW0, pos0:1, pos1:1}); t += OUTRO;
+  const TOTAL = t;
+  const clamp = (v,a=0,b=1)=>Math.max(a,Math.min(b,v)), ease = x=>1-Math.pow(1-x,3), inout = x=>x<.5 ? 4*x*x*x : 1-Math.pow(-2*x+2,3)/2, smooth = x=>x*x*(3-2*x);
+  function camera(tt){
+    const s = segs.find(z=>tt < z.t1) || segs[segs.length-1], p = clamp((tt - s.t0)/(s.t1 - s.t0));
+    let v;
+    if(s.hold){ const k = s.push ? 1 + 0.045*smooth(p) : (s === segs[0] ? 1.045 - 0.045*ease(p) : 1 + 0.02*smooth(p)); v = {x:s.hold.x, y:s.hold.y, S:s.hold.S*k}; }
+    else {
+      const e = inout(p), a = s.from, b = s.to;
+      /* flyTo: auf halbem Weg so weit heraus, dass Start und Ziel ins Bild passen (nicht weiter als die Gesamtansicht) */
+      const dist = Math.hypot(b.x - a.x, b.y - a.y), sFit = Math.max(1, Math.min(a.S, b.S, (Math.min(W,H)*0.85)/Math.max(1, dist)));
+      const la = Math.log(a.S*(a===VIEW0?1:1.045)), lb = Math.log(b.S), lm = Math.log(sFit), ctrl = 2*lm - (la+lb)/2;
+      const ls = Math.min(Math.max(la, lb), (1-e)*(1-e)*la + 2*e*(1-e)*Math.min(ctrl, Math.min(la,lb)) + e*e*lb);
+      /* Mitte: in Bildschirm-Einheiten gleichmäßig bewegen */
+      v = {x: a.x + (b.x - a.x)*e, y: a.y + (b.y - a.y)*e, S: Math.exp(ls)};
+    }
+    const hw = W/(2*v.S), hh = H/(2*v.S);
+    v.x = clamp(v.x, Math.min(hw, BW/2), Math.max(BW - hw, BW/2)); v.y = clamp(v.y, Math.min(hh, BH/2), Math.max(BH - hh, BH/2));
+    v.pos = s.pos0 + (s.pos1 - s.pos0)*inout(p);
+    return v;
+  }
+
+  /* ---------- 3. Zeichnen ---------- */
   const dayLbl = i=>{ const d = new Date(day0.getTime() + i*864e5); return d.toLocaleDateString("de-DE",{weekday:"short"}).replace(".","") + " " + d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}); };
   const rangeTxt = day0.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}) + "–" + day1.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
-  const COL = {ru:[216,52,74], ua:[47,127,224], grau:[214,214,214]};
-  const SEITE_K = {ru:"Russland", ua:"Ukraine", grau:"Grauzone"};
+  const COL = {ru:[216,52,74], ua:[47,127,224], grau:[214,214,214]}, SEITE_K = {ru:"Russland", ua:"Ukraine", grau:"Grauzone"};
   const nf = new Intl.NumberFormat("de-DE",{minimumFractionDigits:1, maximumFractionDigits:1});
-  const clamp = (v,a=0,b=1)=>Math.max(a,Math.min(b,v)), ease = t=>1-Math.pow(1-t,3), smooth = t=>t*t*(3-2*t);
   const F_D = `"Plyus", "Archivo", Arial, sans-serif`, F_M = `"IBM Plex Mono", Menlo, monospace`, F_T = `"Archivo", Arial, sans-serif`;
-  try{ await document.fonts.load(`700 40px "Plyus"`); await document.fonts.load(`500 20px "IBM Plex Mono"`); }catch(e){}
-
-  /* einmal vorbereiten statt in jedem Bild: abgedunkelte Karte und Verläufe für die Schrift */
-  { const bg = base.getContext("2d"); bg.fillStyle = "rgba(10,11,13,.28)"; bg.fillRect(0,0,BW,BH); }
+  try{ await document.fonts.load(`700 40px "Plyus"`); await document.fonts.load(`500 20px "IBM Plex Mono"`); await document.fonts.load(`600 20px "Archivo"`); }catch(e){}
   const shade = document.createElement("canvas"); shade.width = W; shade.height = H;
   { const sg = shade.getContext("2d");
     let gr = sg.createLinearGradient(0,0,0,H*0.3); gr.addColorStop(0,"rgba(14,15,17,.85)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(0,0,W,H*0.3);
-    gr = sg.createLinearGradient(0,H,0,H*(portrait?0.55:0.68)); gr.addColorStop(0,"rgba(14,15,17,.95)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(0,H*0.5,W,H*0.5);
-    if(!portrait){ gr = sg.createLinearGradient(W,0,W-660*u,0); gr.addColorStop(0,"rgba(14,15,17,.92)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(W-660*u,0,660*u,H); } }
+    gr = sg.createLinearGradient(0,H,0,H*(portrait?0.55:0.7)); gr.addColorStop(0,"rgba(14,15,17,.95)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(0,H*0.5,W,H*0.5);
+    if(!portrait){ gr = sg.createLinearGradient(W,0,W-640*u,0); gr.addColorStop(0,"rgba(14,15,17,.9)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(W-640*u,0,640*u,H); }
+    gr = sg.createRadialGradient(W/2,H/2,Math.min(W,H)*0.35,W/2,H/2,Math.max(W,H)*0.75); gr.addColorStop(0,"rgba(0,0,0,0)"); gr.addColorStop(1,"rgba(0,0,0,.35)"); sg.fillStyle = gr; sg.fillRect(0,0,W,H); }
   const cv = document.createElement("canvas"); cv.width = W; cv.height = H; const g = cv.getContext("2d", {alpha:false});
-  const ringPath = (rings)=>{ const P = new Path2D(); rings.forEach(poly=>poly.forEach(r=>{ r.forEach((q,i)=>i ? P.lineTo(q[0],q[1]) : P.moveTo(q[0],q[1])); P.closePath(); })); return P; };
+  g.imageSmoothingQuality = "high";
+  const ringPath = rings=>{ const P = new Path2D(); rings.forEach(poly=>poly.forEach(r=>{ r.forEach((q,i)=>i ? P.lineTo(q[0],q[1]) : P.moveTo(q[0],q[1])); P.closePath(); })); return P; };
   items.forEach(it=>it.path = ringPath(it.rings));
-  arrows.forEach(a=>a.paths = a.steps.map(r=>r ? ringPath([[r]]) : null));
   const rgba = (c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
-  const pill = (txt, x, y, col, a, big)=>{ g.font = `600 ${(big?19:15)*u}px ${F_M}`; const w = g.measureText(txt).width + 22*u, h = (big?36:28)*u;
+  const hexRgb = h=>{ const v = parseInt(String(h).slice(1),16); return [v>>16&255, v>>8&255, v&255]; };
+  const pill = (txt, x, y, col, a, big)=>{ g.font = `600 ${(big?20:15)*u}px ${F_M}`; const w = g.measureText(txt).width + 24*u, h = (big?38:28)*u;
     x = Math.max(16*u, Math.min(W - w - 16*u, x)); y = Math.max(16*u, Math.min(H - h - 16*u, y));
     g.globalAlpha = a; g.fillStyle = "rgba(14,15,17,.92)"; g.fillRect(x, y, w, h); g.fillStyle = col; g.fillRect(x, y, 4*u, h);
-    g.fillStyle = "#f2f3f5"; g.textBaseline = "middle"; g.fillText(txt, x + 13*u, y + h/2 + 1); g.globalAlpha = 1; };
+    g.fillStyle = "#f2f3f5"; g.textBaseline = "middle"; g.fillText(txt, x + 14*u, y + h/2 + 1); g.globalAlpha = 1; };
+  const drawArrow = (a, p, S)=>{
+    const e = 1 - Math.pow(1-p, 2.2), axis = p >= 1 ? a.axis : cutLine(a.axis, Math.max(0.04, e), true);
+    const ar = arrow(axis, a.L, true); if(!ar.body) return;
+    const P = new Path2D(); ar.body.forEach((q,i)=>i ? P.lineTo(q[0],q[1]) : P.moveTo(q[0],q[1])); P.closePath();
+    const c = hexRgb(a.col), lw = u/S;
+    g.save(); g.lineJoin = "miter";
+    g.shadowColor = rgba(c, 0.85); g.shadowBlur = 22*u; g.fillStyle = rgba(c, a.dash ? 0.3 : 0.7); g.fill(P); g.shadowBlur = 0;
+    g.strokeStyle = "rgba(0,0,0,.75)"; g.lineWidth = 6*lw; g.stroke(P);
+    g.strokeStyle = rgba(c.map(v=>Math.min(255, v+60)), 1); g.lineWidth = 2.8*lw; if(a.dash) g.setLineDash([10*lw, 7*lw]); g.stroke(P); g.setLineDash([]);
+    if(p < 1){ const tp = axis[axis.length-1], gr = g.createRadialGradient(tp[0],tp[1],0,tp[0],tp[1],34*lw); gr.addColorStop(0,"rgba(255,255,255,.95)"); gr.addColorStop(0.35, rgba(c.map(v=>Math.min(255,v+90)), .55)); gr.addColorStop(1,"rgba(255,255,255,0)");
+      g.fillStyle = gr; g.beginPath(); g.arc(tp[0], tp[1], 34*lw, 0, Math.PI*2); g.fill(); }
+    g.restore(); };
 
-  /* Kamera: ruhige Fahrt, zoomt leicht auf die gerade erscheinende Änderung */
-  const C0 = [BW/2, BH/2], cam = {x:C0[0], y:C0[1], s:1}; let lastT = 0;
-  function camera(t){
-    const act = items.filter(it=>t >= it.ta - 0.7 && t <= it.ta + 2.0).pop();
-    let tx = C0[0], ty = C0[1], ts = 1.0 + 0.035*clamp(t/TOTAL);
-    if(act && t < END){ tx = C0[0] + (act.cx - C0[0])*0.4; ty = C0[1] + (act.cy - C0[1])*0.4; ts = 1.11; }
-    const dt = Math.max(0, Math.min(0.1, t - lastT)); lastT = t; const k = 1 - Math.exp(-dt*1.5);
-    cam.x += (tx - cam.x)*k; cam.y += (ty - cam.y)*k; cam.s += (ts - cam.s)*k;
-    const intro = 1.08 - 0.08*ease(clamp(t/INTRO)), s = cam.s*intro;
-    const hw = W/(2*s), hh = H/(2*s);
-    return {x: clamp(cam.x, hw, BW - hw), y: clamp(cam.y, hh, BH - hh), s};
-  }
-  function draw(t){
-    const V = camera(t), S = V.s, sx = q=>(q - V.x)*S + W/2, sy = q=>(q - V.y)*S + H/2;
+  function draw(tt){
+    const V = camera(tt), S = V.S, sx = q=>(q - V.x)*S + W/2, sy = q=>(q - V.y)*S + H/2;
     g.setTransform(1,0,0,1,0,0); g.fillStyle = "#0e0f11"; g.fillRect(0,0,W,H);
-    const ki = ease(clamp(t/INTRO));
+    const ki = ease(clamp(tt/1.0));
     g.setTransform(S,0,0,S, W/2 - V.x*S, H/2 - V.y*S);
-    g.globalAlpha = 0.25 + 0.75*ki; g.drawImage(base,0,0); g.globalAlpha = 1;
-    /* Pfeile wachsen herein */
-    for(const a of arrows){ const p = clamp((t - a.ta)/1.0); if(p <= 0) continue; const i = Math.min(a.paths.length-1, Math.floor(smooth(p)*(a.paths.length-1) + 1e-6)), P = a.paths[i]; if(!P) continue;
-      g.lineJoin = "miter"; g.strokeStyle = "rgba(0,0,0,.6)"; g.lineWidth = 4.5*u/S; g.stroke(P);
-      g.fillStyle = a.col; g.globalAlpha = a.dash ? 0.22 : 0.45; g.fill(P); g.globalAlpha = 1;
-      g.strokeStyle = a.col; g.lineWidth = 2.2*u/S; if(a.dash) g.setLineDash([9*u/S, 6*u/S]); g.stroke(P); g.setLineDash([]); }
+    g.globalAlpha = 0.2 + 0.8*ki; g.drawImage(wide, 0, 0); g.globalAlpha = 1;
+    /* scharfe Nahaufnahme einblenden, sobald die Kamera nah genug ist */
+    for(const c of clusters){ const z = Math.log2(S / c.native), a = smooth(clamp((z + 1.15)/0.75)); if(a <= 0.01) continue;
+      g.globalAlpha = a; g.drawImage(c.img, c.rect[0], c.rect[1], c.rect[2]-c.rect[0], c.rect[3]-c.rect[1]); g.globalAlpha = 1; }
+    g.fillStyle = "rgba(10,11,13,.22)"; g.fillRect(-BW, -BH, BW*3, BH*3);
+    for(const a of arrows){ const p = clamp((tt - a.ta)/1.15); if(p > 0) drawArrow(a, p, S); }
     for(const it of items){
-      const p = clamp((t - it.ta)/0.75); if(p <= 0) continue; const c = COL[it.p.richtung] || COL.grau, e = ease(p);
-      g.save(); g.beginPath(); g.arc(it.cx, it.cy, it.R*1.05*e + 1, 0, Math.PI*2); g.clip();
-      g.fillStyle = rgba(c, 0.82); g.fill(it.path, "evenodd");
+      const p = clamp((tt - it.ta)/0.8); if(p <= 0) continue; const c = COL[it.p.richtung] || COL.grau, e = ease(p);
+      g.save(); g.beginPath(); g.arc(it.cx, it.cy, it.R*1.05*e + 0.5, 0, Math.PI*2); g.clip();
+      g.fillStyle = rgba(c, 0.8); g.fill(it.path, "evenodd");
       if(p < 1){ g.fillStyle = `rgba(255,255,255,${(1-p)*(1-p)*0.85})`; g.fill(it.path, "evenodd"); }
       g.restore();
-      g.lineJoin = "round"; g.strokeStyle = p < 1 ? `rgba(255,255,255,${0.4+0.6*(1-p)})` : rgba(c.map(v=>Math.min(255,v+50)), 1); g.lineWidth = 2.2*u/S; g.globalAlpha = e; g.stroke(it.path); g.globalAlpha = 1;
-      const pr = clamp((t - it.ta)/1.3); if(pr < 1){ g.beginPath(); g.arc(it.cx, it.cy, (14*u + pr*80*u)/S, 0, Math.PI*2); g.strokeStyle = rgba(c, (1-pr)*0.9); g.lineWidth = 2.5*u/S; g.stroke(); }
+      g.lineJoin = "round"; g.strokeStyle = p < 1 ? `rgba(255,255,255,${0.45+0.55*(1-p)})` : rgba(c.map(v=>Math.min(255,v+60)), 1); g.lineWidth = 2.4*u/S; g.globalAlpha = e; g.stroke(it.path); g.globalAlpha = 1;
+      const pr = clamp((tt - it.ta)/1.4); if(pr < 1){ g.beginPath(); g.arc(it.cx, it.cy, (16*u + ease(pr)*90*u)/S, 0, Math.PI*2); g.strokeStyle = rgba(c, (1-pr)*0.9); g.lineWidth = 2.5*u/S; g.stroke(); }
     }
     g.setTransform(1,0,0,1,0,0);
     g.drawImage(shade, 0, 0);
-    /* Beschriftungen an den Flächen */
-    for(const it of items){ const a = clamp((t - it.ta - 0.35)/0.4); if(a <= 0) continue; const c = COL[it.p.richtung] || COL.grau;
-      const fresh = t - it.ta < 2.4, txt = (fresh && it.p.name ? it.p.name + " · " : "") + "+" + nf.format(it.km2) + " km²";
-      pill(txt, sx(it.cx) + 18*u, sy(it.cy) - (fresh?52:40)*u, rgba(c,1), a*(fresh ? 1 : 0.8), fresh); }
+    /* Schilder: groß in der Nahaufnahme, klein in der Gesamtansicht */
+    const close = items.filter(it=>tt >= it.ta + 0.3);
+    for(const it of close){ const a = clamp((tt - it.ta - 0.3)/0.4), c = COL[it.p.richtung] || COL.grau, big = tt < (segs.find(z=>z.t1 > it.ta && z.push)||{t1:0}).t1;
+      const txt = (big && it.p.name ? it.p.name + " · " : "") + "+" + nf.format(it.km2) + " km²";
+      pill(txt, sx(it.cx) + (big?26:14)*u, sy(it.cy) - (big?64:42)*u, rgba(c,1), a*(big ? 1 : 0.85), big); }
     /* Kopf */
-    const hx = 56*u, hy = 52*u, ha = clamp((t-0.2)/0.6);
+    const hx = 56*u, hy = 52*u, ha = clamp((tt-0.2)/0.6);
     g.globalAlpha = ha; drawLogo(g, hx, hy - 2*u, 30*u, "#ffffff");
     g.fillStyle = "#ffffff"; g.font = `${26*u}px ${F_D}`; g.textBaseline = "top"; g.fillText((o.credit || "PLYUS").toUpperCase(), hx + 42*u, hy + 2*u);
-    g.font = `${(portrait?78:84)*u}px ${F_D}`; g.fillText(o.title || "Wochenrückblick", hx, hy + 48*u);
-    g.fillStyle = "#a3a8b0"; g.font = `500 ${20*u}px ${F_M}`; g.fillText((rangeTxt + " · Frontänderungen").toUpperCase(), hx, hy + (portrait?138:146)*u);
+    g.font = `${(portrait?74:80)*u}px ${F_D}`; g.fillText(o.title || "Wochenrückblick", hx, hy + 48*u);
+    g.fillStyle = "#a3a8b0"; g.font = `500 ${20*u}px ${F_M}`; g.fillText((rangeTxt + " · Frontänderungen").toUpperCase(), hx, hy + (portrait?134:140)*u);
     g.globalAlpha = 1;
-    /* Zähler */
-    let ru = 0, ua = 0; items.forEach(it=>{ const p = ease(clamp((t - it.ta)/0.9)); if(it.p.richtung==="ru") ru += it.km2*p; else if(it.p.richtung==="ua") ua += it.km2*p; });
-    const shownN = items.filter(it=>t >= it.ta).length;
-    const panel = portrait ? {x:56*u, y:H - 520*u, w:W - 112*u} : {x:W - 560*u, y:220*u, w:500*u};
+    /* Zähler und Liste */
+    let ru = 0, ua = 0; items.forEach(it=>{ const p = ease(clamp((tt - it.ta)/1.0)); if(it.p.richtung==="ru") ru += it.km2*p; else if(it.p.richtung==="ua") ua += it.km2*p; });
+    const shownN = items.filter(it=>tt >= it.ta).length;
+    const panel = portrait ? {x:56*u, y:H - 500*u, w:W - 112*u} : {x:W - 540*u, y:210*u, w:480*u};
     const stat = (lbl, val, col, x, y)=>{ g.fillStyle = col; g.fillRect(x, y + 6*u, 10*u, 10*u); g.fillStyle = "#a3a8b0"; g.font = `500 ${17*u}px ${F_M}`; g.textBaseline = "top"; g.fillText(lbl.toUpperCase(), x + 20*u, y + 3*u);
-      g.fillStyle = "#ffffff"; g.font = `${64*u}px ${F_D}`; g.fillText(val, x, y + 34*u); };
-    g.globalAlpha = clamp((t-0.6)/0.6);
+      g.fillStyle = "#ffffff"; g.font = `${62*u}px ${F_D}`; g.fillText(val, x, y + 34*u); };
+    g.globalAlpha = clamp((tt-0.6)/0.6);
     if(portrait){ stat("Gewinn Russland", "+" + nf.format(ru) + " km²", rgba(COL.ru,1), panel.x, panel.y); stat("Gewinn Ukraine", "+" + nf.format(ua) + " km²", rgba(COL.ua,1), panel.x + panel.w/2, panel.y); }
-    else { stat("Gewinn Russland", "+" + nf.format(ru) + " km²", rgba(COL.ru,1), panel.x, panel.y); stat("Gewinn Ukraine", "+" + nf.format(ua) + " km²", rgba(COL.ua,1), panel.x, panel.y + 130*u); }
-    const ly = portrait ? panel.y + 130*u : panel.y + 280*u, lx = panel.x, lw = panel.w;
+    else { stat("Gewinn Russland", "+" + nf.format(ru) + " km²", rgba(COL.ru,1), panel.x, panel.y); stat("Gewinn Ukraine", "+" + nf.format(ua) + " km²", rgba(COL.ua,1), panel.x, panel.y + 126*u); }
+    const ly = portrait ? panel.y + 126*u : panel.y + 272*u, lx = panel.x, lw = panel.w;
     g.fillStyle = "#6f747c"; g.font = `500 ${15*u}px ${F_M}`; g.fillText(`ÄNDERUNGEN ${shownN}/${items.length}`, lx, ly);
-    const recent = items.filter(it=>t >= it.ta).slice(-(portrait?3:5)).reverse();
-    recent.forEach((it,i)=>{ const a = clamp((t - it.ta)/0.4), y = ly + 34*u + i*58*u, c = COL[it.p.richtung] || COL.grau;
-      g.globalAlpha = a * (i===0 ? 1 : 0.75); g.fillStyle = rgba(c,1); g.fillRect(lx, y + 4*u, 4*u, 40*u);
+    const recent = items.filter(it=>tt >= it.ta).sort((a,b)=>a.ta-b.ta).slice(-(portrait?3:5)).reverse();
+    recent.forEach((it,i)=>{ const a = clamp((tt - it.ta)/0.4), y = ly + 34*u + i*58*u, c = COL[it.p.richtung] || COL.grau;
+      g.globalAlpha = a * (i===0 ? 1 : 0.7); g.fillStyle = rgba(c,1); g.fillRect(lx, y + 4*u, 4*u, 40*u);
       g.fillStyle = "#f2f3f5"; g.font = `600 ${21*u}px ${F_T}`; let nm = it.p.name || ("Gewinn " + SEITE_K[it.p.richtung]); while(g.measureText(nm).width > lw - 30*u && nm.length > 4) nm = nm.slice(0,-2) + "…";
       g.fillText(nm, lx + 18*u, y + 2*u);
       g.fillStyle = "#8b9099"; g.font = `500 ${15*u}px ${F_M}`; g.fillText([it.p.direktion, new Date((it.p.datum||o.von)+"T12:00").toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}), "+" + nf.format(it.km2) + " km²"].filter(Boolean).join(" · "), lx + 18*u, y + 28*u); });
     g.globalAlpha = 1;
-    /* Tagesleiste */
-    const bx = 56*u, bw = W - 112*u, by = H - 92*u, dp = clamp((t - INTRO)/(nDays*DAY), 0, 1);
+    /* Tagesleiste: folgt der Kamera von Tag zu Tag */
+    const bx = 56*u, bw = W - 112*u, by = H - 92*u, dp = clamp(V.pos);
     g.fillStyle = "rgba(255,255,255,.14)"; g.fillRect(bx, by, bw, 3*u);
     g.fillStyle = "#ffffff"; g.fillRect(bx, by, bw*dp, 3*u);
+    g.fillRect(bx + bw*dp - 1.5*u, by - 7*u, 3*u, 17*u);
     const step = bw/nDays;
-    for(let i=0;i<nDays;i++){ const x = bx + step*i + step/2, cur = Math.floor(dp*nDays - 1e-6) === i || (dp>=1 && i===nDays-1), past = dp*nDays > i;
-      g.fillStyle = cur ? "#ffffff" : past ? "#a3a8b0" : "#5a5f68"; g.fillRect(x - (cur?5:3)*u, by - (cur?4:2)*u, (cur?10:6)*u, (cur?11:7)*u);
-      if(nDays <= 10 || cur || i===0 || i===nDays-1){ g.font = `${cur?600:500} ${(cur?17:15)*u}px ${F_M}`; g.textBaseline = "top"; const tl = dayLbl(i).toUpperCase(); const tw = g.measureText(tl).width; g.fillText(tl, Math.max(bx, Math.min(bx+bw-tw, x - tw/2)), by + 16*u); }
-      items.filter(it=>it.di===i && t >= it.ta).forEach((it,k2)=>{ g.fillStyle = rgba(COL[it.p.richtung]||COL.grau,1); g.fillRect(x - 3*u + (k2%3-1)*8*u, by - 22*u - Math.floor(k2/3)*8*u, 6*u, 6*u); }); }
+    for(let i=0;i<nDays;i++){ const x = bx + step*i + step/2, cur = Math.abs(dp*nDays - (i+0.5)) < 0.5, past = dp*nDays > i + 0.5;
+      g.fillStyle = cur ? "#ffffff" : past ? "#a3a8b0" : "#5a5f68"; g.fillRect(x - 3*u, by - 2*u, 6*u, 7*u);
+      if(nDays <= 10 || cur || i===0 || i===nDays-1){ g.font = `${cur?600:500} ${(cur?17:15)*u}px ${F_M}`; g.textBaseline = "top"; const tl = dayLbl(i).toUpperCase(), tw = g.measureText(tl).width; g.fillText(tl, Math.max(bx, Math.min(bx+bw-tw, x - tw/2)), by + 16*u); }
+      items.filter(it=>it.di===i && tt >= it.ta).forEach((it,k2)=>{ g.fillStyle = rgba(COL[it.p.richtung]||COL.grau,1); g.fillRect(x - 3*u + (k2%3-1)*8*u, by - 24*u - Math.floor(k2/3)*8*u, 6*u, 6*u); }); }
     /* Übersichtskarte mit aktuellem Ausschnitt */
-    if(inset){ const ix = portrait ? W - 56*u - IW : 56*u, iy = portrait ? panel.y - 44*u - IH : by - 52*u - IH, ia = clamp((t-0.8)/0.6);
+    if(inset){ const ix = portrait ? W - 56*u - IW : 56*u, iy = portrait ? panel.y - 44*u - IH : by - 56*u - IH, ia = clamp((tt-0.8)/0.6);
       g.globalAlpha = ia; g.fillStyle = "#0e0f11"; g.fillRect(ix-1, iy-1, IW+2, IH+2); g.drawImage(inset.img, ix, iy);
       g.strokeStyle = "rgba(255,255,255,.35)"; g.lineWidth = 1; g.strokeRect(ix+.5, iy+.5, IW-1, IH-1);
       const fx = q=>inset.x0 + (q/BW)*(inset.x1 - inset.x0), fy = q=>inset.y0 + (q/BH)*(inset.y1 - inset.y0);
       const rx0 = fx(V.x - W/(2*S)), rx1 = fx(V.x + W/(2*S)), ry0 = fy(V.y - H/(2*S)), ry1 = fy(V.y + H/(2*S));
-      let rw = Math.max(6*u, rx1 - rx0), rh = Math.max(6*u, ry1 - ry0), rx = (rx0 + rx1)/2 - rw/2, ry = (ry0 + ry1)/2 - rh/2;
+      const rw = Math.max(5*u, rx1 - rx0), rh = Math.max(5*u, ry1 - ry0), rx = (rx0 + rx1)/2 - rw/2, ry = (ry0 + ry1)/2 - rh/2;
       g.save(); g.beginPath(); g.rect(ix, iy, IW, IH); g.clip();
-      g.fillStyle = "rgba(255,255,255,.12)"; g.fillRect(ix + rx, iy + ry, rw, rh);
+      g.fillStyle = "rgba(255,255,255,.14)"; g.fillRect(ix + rx, iy + ry, rw, rh);
       g.strokeStyle = "#ffffff"; g.lineWidth = 2*u; g.strokeRect(ix + rx, iy + ry, rw, rh);
-      /* sehr kleiner Ausschnitt: zusätzlich ein Ring, damit man die Stelle sofort findet */
-      if(rw < 22*u){ g.beginPath(); g.arc(ix + rx + rw/2, iy + ry + rh/2, 16*u, 0, Math.PI*2); g.strokeStyle = "rgba(255,255,255,.85)"; g.lineWidth = 1.5*u; g.stroke(); }
+      if(rw < 22*u){ g.beginPath(); g.arc(ix + rx + rw/2, iy + ry + rh/2, 15*u, 0, Math.PI*2); g.strokeStyle = "rgba(255,255,255,.8)"; g.lineWidth = 1.5*u; g.stroke(); }
       g.restore(); g.globalAlpha = 1; }
     /* Abspann */
-    const ea = clamp((t - END - 0.2)/0.6);
+    const ea = clamp((tt - END - 0.3)/0.6);
     if(ea > 0){ g.globalAlpha = ea; g.fillStyle = "rgba(14,15,17,.9)"; const tx = (o.outro || "Ganze Lage auf der Karte").toUpperCase(); g.font = `600 ${18*u}px ${F_M}`; const tw = g.measureText(tx).width + 40*u;
-      g.fillRect(W/2 - tw/2, by - 86*u, tw, 46*u); g.fillStyle = "#ffffff"; g.textBaseline = "middle"; g.fillText(tx, W/2 - tw/2 + 20*u, by - 63*u); g.globalAlpha = 1; }
-    /* Quellen */
+      g.fillRect(W/2 - tw/2, by - 92*u, tw, 46*u); g.fillStyle = "#ffffff"; g.textBaseline = "middle"; g.fillText(tx, W/2 - tw/2 + 20*u, by - 69*u); g.globalAlpha = 1; }
     g.fillStyle = "rgba(200,204,210,.55)"; g.font = `${11*u}px ${F_T}`; g.textBaseline = "bottom"; g.textAlign = "right"; g.fillText(attrib, W - 16*u, H - 10*u); g.textAlign = "left";
   }
 
-  /* Aufnahme in Echtzeit */
-  const fps = 30, stream = cv.captureStream(fps), chunks = [];
+  /* ---------- 4. Kodieren ---------- */
+  const N = Math.ceil(TOTAL*FPS);
+  if(exact){
+    const muxer = new Mp4Muxer.Muxer({target: new Mp4Muxer.ArrayBufferTarget(), video:{codec:"avc", width:W, height:H, frameRate:FPS}, fastStart:"in-memory"});
+    let fail = null;
+    const enc = new VideoEncoder({output:(chunk, meta)=>muxer.addVideoChunk(chunk, meta), error:e=>{ fail = e; }});
+    enc.configure({codec, width:W, height:H, bitrate: Math.round(12e6*(W*H)/(1920*1080)), framerate:FPS, latencyMode:"quality"});
+    for(let i=0;i<N;i++){
+      if(fail) throw fail;
+      draw(i/FPS);
+      const vf = new VideoFrame(cv, {timestamp: Math.round(i*1e6/FPS), duration: Math.round(1e6/FPS)});
+      enc.encode(vf, {keyFrame: i % (FPS*2) === 0}); vf.close();
+      while(enc.encodeQueueSize > 6) await new Promise(r=>setTimeout(r, 4));
+      if(i % 6 === 0){ say(i/N, "Video wird erstellt …"); await new Promise(r=>setTimeout(r, 0)); }
+    }
+    await enc.flush(); enc.close(); muxer.finalize();
+    if(fail) throw fail;
+    const blob = new Blob([muxer.target.buffer], {type:"video/mp4"});
+    return {blob, type:"video/mp4", ext:"mp4", width:W, height:H, seconds:TOTAL, count:items.length};
+  }
+  /* Ersatz: Echtzeit-Aufnahme (ältere Browser) */
+  const stream = cv.captureStream(FPS), chunks = [];
   const rec = new MediaRecorder(stream, {mimeType: mime, videoBitsPerSecond: Math.round(10e6 * (W*H)/(1920*1080))});
   rec.ondataavailable = e=>{ if(e.data && e.data.size) chunks.push(e.data); };
   const stopped = new Promise(res=>rec.onstop = res);
   draw(0); rec.start(500);
-  await new Promise(res=>{
-    const t0 = performance.now();
-    (function frame(){ const t = (performance.now() - t0)/1000; draw(Math.min(t, TOTAL)); o.onProgress && o.onProgress(Math.min(1, t/TOTAL), "Video wird aufgenommen …");
-      if(t < TOTAL + 0.3) requestAnimationFrame(frame); else res(); })();
-  });
+  await new Promise(res=>{ const t0 = performance.now();
+    (function frame(){ const tt = (performance.now() - t0)/1000; draw(Math.min(tt, TOTAL)); say(Math.min(1, tt/TOTAL), "Video wird aufgenommen …");
+      if(tt < TOTAL + 0.3) requestAnimationFrame(frame); else res(); })(); });
   rec.stop(); await stopped; stream.getTracks().forEach(tr=>tr.stop());
   const type = mime.split(";")[0], blob = new Blob(chunks, {type});
   return {blob, type, ext: type==="video/mp4" ? "mp4" : "webm", width:W, height:H, seconds:TOTAL, count:items.length};
@@ -1143,6 +1245,6 @@ async function exportImage(map, o){
 function emptyData(){ return {version:1, aktualisiert:null, elemente:[]}; }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
-window.Karte = {exportWeekVideo, weekChanges, videoMime, setRefDate, standSummary, SEITE, changes, gruppen, ensureCids, changeArea, changeBounds, STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
+window.Karte = {exportWeekVideo, weekChanges, videoMime, canVideo, setRefDate, standSummary, SEITE, changes, gruppen, ensureCids, changeArea, changeBounds, STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
   addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage, exportLayout, farbe, loadImport, replaceFront, nearestEdge, applyFrontEdit, undoFrontEdit, setImportData, refreshImport, importData: ()=>importData, importMeta: ()=>importData && importData.meta};
 })();
