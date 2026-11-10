@@ -17,11 +17,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611101130">
+<link rel="stylesheet" href="style.css?v=202611101139">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611101130"></script>
-<script src="werkzeuge.js?v=202611101130"></script>
+<script src="karte.js?v=202611101139"></script>
+<script src="werkzeuge.js?v=202611101139"></script>
 <style>
 .item.chg .ic{width:22px}
 .card{right:calc(max(16px,env(safe-area-inset-right)) + 56px)!important}
@@ -58,6 +58,11 @@ body.d-tl #tl:not([hidden]){display:block}
   .brand .toggle{margin-left:auto!important;border:0;width:40px;height:32px;margin-right:-8px;color:var(--fg)}
   .brand .toggle svg{width:18px;height:18px}
   .panel.closed .ph{cursor:pointer}
+  /* Handy zugeklappt: nur das Logo unten in der Ecke; geöffnet geht die Liste weit hoch */
+  body.m-closed .panel{transform:translateY(calc(100% + 8px));opacity:0;pointer-events:none;visibility:hidden;transition:transform .28s cubic-bezier(.2,.7,.2,1),opacity .2s,visibility 0s .28s}
+  body.m-closed .reopen{opacity:1;transform:none;pointer-events:auto;transition-delay:.1s}
+  .panel:not(.closed){max-height:72%!important}
+  body.m-closed .tl{bottom:calc(env(safe-area-inset-bottom) + 100px)!important}
 }
 /* Besucher-Leiste schlank: keine Filter-Chips, keine Lagedaten-Schalter, keine Legende */
 #chips,#imp,#legend{display:none!important}
@@ -383,9 +388,14 @@ $("panel").querySelector(".ph").addEventListener("click", e=>{
 /* Leiste ganz ausblenden (bleibt gemerkt) */
 function setGone(on){ document.body.classList.toggle("panel-gone", on); try{ localStorage.setItem("plyus-leiste", on ? "aus" : "an"); }catch(e){} panelOffset(); }
 $("hide").onclick = ()=>setGone(true);
-$("reopen").onclick = ()=>setGone(false);
+$("reopen").onclick = ()=>{ if(mq.matches){ document.body.classList.remove("panel-gone"); $("panel").classList.remove("closed"); } else setGone(false); };
+/* Handy: Zustand "zugeklappt" an den Body spiegeln, damit statt der Leiste nur das Logo erscheint */
+function syncClosed(){ document.body.classList.toggle("m-closed", mq.matches && $("panel").classList.contains("closed")); panelOffset(); }
+new MutationObserver(syncClosed).observe($("panel"), {attributes:true, attributeFilter:["class"]});
+mq.addEventListener ? mq.addEventListener("change", syncClosed) : mq.addListener(syncClosed);
+syncClosed();
 try{ if(localStorage.getItem("plyus-leiste")==="aus" && !mq.matches) document.body.classList.add("panel-gone"); }catch(e){}
-function panelOffset(){ document.documentElement.style.setProperty("--panel-h", mq.matches && !document.body.classList.contains("panel-gone") ? $("panel").offsetHeight+"px" : "0px"); }
+function panelOffset(){ document.documentElement.style.setProperty("--panel-h", mq.matches && !document.body.classList.contains("panel-gone") && !document.body.classList.contains("m-closed") ? $("panel").offsetHeight+"px" : "0px"); }
 try{ new ResizeObserver(panelOffset).observe($("panel")); }catch(e){}
 mq.addEventListener ? mq.addEventListener("change", panelOffset) : mq.addListener(panelOffset);
 panelOffset();
