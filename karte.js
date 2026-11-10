@@ -691,6 +691,155 @@ async function drawLegendRow(g, it, x, y, u, maxW){
   g.fillText(t, x + sw + 12*u, cy);
 }
 
+/* ===== Wochenvideo: Frontänderungen eines Zeitraums Tag für Tag als Video ===== */
+const VIDEO_SIZES = {"16:9":[1920,1080], "1:1":[1080,1080], "9:16":[1080,1920]};
+function videoMime(){
+  if(!window.MediaRecorder) return null;
+  for(const t of ["video/mp4;codecs=avc1.42E01E","video/mp4;codecs=avc1","video/mp4","video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"]) if(MediaRecorder.isTypeSupported(t)) return t;
+  return null;
+}
+function weekChanges(von, bis, d){ return changes(d).filter(f=>{ const x = f.properties.datum||""; return x >= von && x <= bis; })
+  .sort((a,b)=>(a.properties.datum||"").localeCompare(b.properties.datum||"")); }
+async function exportWeekVideo(map, o){
+  const mime = videoMime(); if(!mime) throw Object.assign(new Error("kein Video"), {code:"nomedia"});
+  const list = weekChanges(o.von, o.bis); if(!list.length) throw Object.assign(new Error("leer"), {code:"empty"});
+  const [W,H] = VIDEO_SIZES[o.format] || VIDEO_SIZES["16:9"], portrait = H > W, u = Math.min(W,H)/1080;
+  /* Kartenausschnitt: alle Änderungen des Zeitraums, mit Platz für die Einblendungen */
+  let bb = [180,90,-180,-90]; list.forEach(f=>{ const b = changeBounds(f); bb = [Math.min(bb[0],b[0][0]),Math.min(bb[1],b[0][1]),Math.max(bb[2],b[1][0]),Math.max(bb[3],b[1][1])]; });
+  const minSpan = 0.25; if(bb[2]-bb[0] < minSpan){ const c = (bb[0]+bb[2])/2; bb[0] = c-minSpan/2; bb[2] = c+minSpan/2; } if(bb[3]-bb[1] < minSpan*0.6){ const c = (bb[1]+bb[3])/2; bb[1] = c-minSpan*0.3; bb[3] = c+minSpan*0.3; }
+  const cw = Math.round(W/2), ch = Math.round(H/2);
+  const pad = portrait ? {top:200*u/2+20, bottom:560*u/2, left:50*u/2, right:50*u/2} : {top:190*u/2, bottom:200*u/2, left:60*u/2, right:600*u/2};
+  o.onProgress && o.onProgress(0, "Karte wird geladen …");
+  const off = offMap({w:cw, h:ch, map:{style:map.getStyle(), bounds:[[bb[0],bb[1]],[bb[2],bb[3]]], fitBoundsOptions:{padding:pad, maxZoom:11.5}},
+    onLoad: m=>{ ["imp-change-fill","imp-change-line","imp-change-label","lage-sel","chg-sel-fill","chg-sel-line","front-edge","wz-fill","wz-case","wz-line","wz-prev","wz-pt"].forEach(l=>{ try{ if(m.getLayer(l)) m.setLayoutProperty(l,"visibility","none"); }catch(e){} }); }});
+  let base, items, attrib;
+  try{
+    await off.ready;
+    const src = off.m.getCanvas();
+    base = document.createElement("canvas"); base.width = W; base.height = H;
+    base.getContext("2d").drawImage(src, 0, 0, W, H);
+    const sx = W / cw, sy = H / ch;
+    items = list.map(f=>{ const g = f.geometry, polys = g.type==="Polygon" ? [g.coordinates] : g.coordinates;
+      const rings = polys.map(p=>p.map(r=>r.map(c=>{ const q = off.m.project(c); return [q.x*sx, q.y*sy]; })));
+      const pts = rings.flatMap(p=>p[0]); const cx = pts.reduce((s,q)=>s+q[0],0)/pts.length, cy = pts.reduce((s,q)=>s+q[1],0)/pts.length;
+      const R = Math.max(30*u, ...pts.map(q=>Math.hypot(q[0]-cx, q[1]-cy)));
+      return {p:f.properties, rings, cx, cy, R, km2: changeArea(f)}; });
+    const c = off.m.getCenter(); attrib = attributionFor(map, [c.lng, c.lat], off.m.getZoom());
+  } finally { off.done(); }
+
+  /* Zeitplan */
+  const day0 = new Date(o.von + "T12:00:00"), day1 = new Date(o.bis + "T12:00:00");
+  const nDays = Math.max(1, Math.min(31, Math.round((day1 - day0)/864e5) + 1));
+  const INTRO = 1.2, DAY = nDays > 10 ? 0.6 : 1.05, END = INTRO + nDays*DAY, TOTAL = END + 2.8;
+  const perDay = {};
+  items.forEach(it=>{ const di = Math.max(0, Math.min(nDays-1, Math.round((new Date((it.p.datum||o.von) + "T12:00:00") - day0)/864e5)));
+    const k = (perDay[di] = (perDay[di]||0) + 1) - 1; it.di = di; it.ta = INTRO + di*DAY + 0.12 + k*Math.min(0.25, DAY*0.6/Math.max(1,k+1)); });
+  const dayLbl = i=>{ const d = new Date(day0.getTime() + i*864e5); return d.toLocaleDateString("de-DE",{weekday:"short"}).replace(".","") + " " + d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}); };
+  const rangeTxt = day0.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}) + "–" + day1.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
+  const COL = {ru:[216,52,74], ua:[47,127,224], grau:[214,214,214]};
+  const SEITE_K = {ru:"Russland", ua:"Ukraine", grau:"Grauzone"};
+  const nf = new Intl.NumberFormat("de-DE",{minimumFractionDigits:1, maximumFractionDigits:1});
+  const clamp = (v,a=0,b=1)=>Math.max(a,Math.min(b,v)), ease = t=>1-Math.pow(1-t,3);
+  const F_D = `"Plyus", "Archivo", Arial, sans-serif`, F_M = `"IBM Plex Mono", Menlo, monospace`, F_T = `"Archivo", Arial, sans-serif`;
+  try{ await document.fonts.load(`700 40px "Plyus"`); await document.fonts.load(`500 20px "IBM Plex Mono"`); }catch(e){}
+
+  /* einmal vorbereiten statt in jedem Bild: abgedunkelte Karte und Verläufe für die Schrift */
+  { const bg = base.getContext("2d"); bg.fillStyle = "rgba(10,11,13,.28)"; bg.fillRect(0,0,W,H); }
+  const shade = document.createElement("canvas"); shade.width = W; shade.height = H;
+  { const sg = shade.getContext("2d");
+    let gr = sg.createLinearGradient(0,0,0,H*0.3); gr.addColorStop(0,"rgba(14,15,17,.85)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(0,0,W,H*0.3);
+    gr = sg.createLinearGradient(0,H,0,H*(portrait?0.55:0.68)); gr.addColorStop(0,"rgba(14,15,17,.95)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(0,H*0.5,W,H*0.5);
+    if(!portrait){ gr = sg.createLinearGradient(W,0,W-660*u,0); gr.addColorStop(0,"rgba(14,15,17,.92)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(W-660*u,0,660*u,H); } }
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H; const g = cv.getContext("2d", {alpha:false});
+  const pathOf = it=>{ const P = new Path2D(); it.rings.forEach(poly=>poly.forEach(r=>{ r.forEach((q,i)=>i ? P.lineTo(q[0],q[1]) : P.moveTo(q[0],q[1])); P.closePath(); })); return P; };
+  items.forEach(it=>it.path = pathOf(it));
+  const rgba = (c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  const pill = (txt, x, y, col, a, big)=>{ g.font = `600 ${(big?19:15)*u}px ${F_M}`; const w = g.measureText(txt).width + 22*u, h = (big?36:28)*u;
+    x = Math.max(16*u, Math.min(W - w - 16*u, x)); y = Math.max(16*u, Math.min(H - h - 16*u, y));
+    g.globalAlpha = a; g.fillStyle = "rgba(14,15,17,.92)"; g.fillRect(x, y, w, h); g.fillStyle = col; g.fillRect(x, y, 4*u, h);
+    g.fillStyle = "#f2f3f5"; g.textBaseline = "middle"; g.fillText(txt, x + 13*u, y + h/2 + 1); g.globalAlpha = 1; };
+
+  function draw(t){
+    g.setTransform(1,0,0,1,0,0); g.fillStyle = "#0e0f11"; g.fillRect(0,0,W,H);
+    /* Karte: Einblenden mit leichtem Zoom */
+    const ki = ease(clamp(t/INTRO)), s = 1.08 - 0.08*ki;
+    g.save(); g.translate(W/2,H/2); g.scale(s,s); g.translate(-W/2,-H/2);
+    g.globalAlpha = 0.25 + 0.75*ki; g.drawImage(base,0,0); g.globalAlpha = 1;
+    for(const it of items){
+      const p = clamp((t - it.ta)/0.75); if(p <= 0) continue; const c = COL[it.p.richtung] || COL.grau, e = ease(p);
+      g.save(); g.beginPath(); g.arc(it.cx, it.cy, it.R*1.05*e + 1, 0, Math.PI*2); g.clip();
+      g.fillStyle = rgba(c, 0.82); g.fill(it.path, "evenodd");
+      if(p < 1){ g.fillStyle = `rgba(255,255,255,${(1-p)*(1-p)*0.85})`; g.fill(it.path, "evenodd"); }
+      g.restore();
+      g.lineJoin = "round"; g.strokeStyle = p < 1 ? `rgba(255,255,255,${0.4+0.6*(1-p)})` : rgba(c.map(v=>Math.min(255,v+50)), 1); g.lineWidth = 2.2*u/s; g.globalAlpha = e; g.stroke(it.path); g.globalAlpha = 1;
+      const pr = clamp((t - it.ta)/1.3); if(pr < 1){ g.beginPath(); g.arc(it.cx, it.cy, 14*u + pr*80*u, 0, Math.PI*2); g.strokeStyle = rgba(c, (1-pr)*0.9); g.lineWidth = 2.5*u; g.stroke(); }
+    }
+    g.restore();
+    g.drawImage(shade, 0, 0);
+    /* Beschriftungen an den Flächen */
+    for(const it of items){ const a = clamp((t - it.ta - 0.35)/0.4); if(a <= 0) continue; const c = COL[it.p.richtung] || COL.grau;
+      const fresh = t - it.ta < 2.4, sc = s, x = (it.cx - W/2)*sc + W/2, y = (it.cy - H/2)*sc + H/2;
+      const txt = (fresh && it.p.name ? it.p.name + " · " : "") + "+" + nf.format(it.km2) + " km²";
+      pill(txt, x + 18*u, y - (fresh?52:40)*u, rgba(c,1), a*(fresh ? 1 : 0.8), fresh); }
+    /* Kopf */
+    const hx = 56*u, hy = 52*u, ha = clamp((t-0.2)/0.6);
+    g.globalAlpha = ha; drawLogo(g, hx, hy - 2*u, 30*u, "#ffffff");
+    g.fillStyle = "#ffffff"; g.font = `${26*u}px ${F_D}`; g.textBaseline = "top"; g.fillText((o.credit || "PLYUS").toUpperCase(), hx + 42*u, hy + 2*u);
+    g.font = `${(portrait?78:84)*u}px ${F_D}`; g.fillText(o.title || "Wochenrückblick", hx, hy + 48*u);
+    g.fillStyle = "#a3a8b0"; g.font = `500 ${20*u}px ${F_M}`; g.fillText((rangeTxt + " · Frontänderungen").toUpperCase(), hx, hy + (portrait?138:146)*u);
+    g.globalAlpha = 1;
+    /* Zähler */
+    let ru = 0, ua = 0; items.forEach(it=>{ const p = ease(clamp((t - it.ta)/0.9)); if(it.p.richtung==="ru") ru += it.km2*p; else if(it.p.richtung==="ua") ua += it.km2*p; });
+    const shownN = items.filter(it=>t >= it.ta).length;
+    const panel = portrait ? {x:56*u, y:H - 520*u, w:W - 112*u} : {x:W - 560*u, y:220*u, w:500*u};
+    const stat = (lbl, val, col, x, y)=>{ g.fillStyle = col; g.fillRect(x, y + 6*u, 10*u, 10*u); g.fillStyle = "#a3a8b0"; g.font = `500 ${17*u}px ${F_M}`; g.textBaseline = "top"; g.fillText(lbl.toUpperCase(), x + 20*u, y + 3*u);
+      g.fillStyle = "#ffffff"; g.font = `${64*u}px ${F_D}`; g.fillText(val, x, y + 34*u); };
+    g.globalAlpha = clamp((t-0.6)/0.6);
+    if(portrait){ stat("Gewinn Russland", "+" + nf.format(ru) + " km²", rgba(COL.ru,1), panel.x, panel.y); stat("Gewinn Ukraine", "+" + nf.format(ua) + " km²", rgba(COL.ua,1), panel.x + panel.w/2, panel.y); }
+    else { stat("Gewinn Russland", "+" + nf.format(ru) + " km²", rgba(COL.ru,1), panel.x, panel.y); stat("Gewinn Ukraine", "+" + nf.format(ua) + " km²", rgba(COL.ua,1), panel.x, panel.y + 130*u); }
+    /* Liste der letzten Änderungen */
+    const ly = portrait ? panel.y + 130*u : panel.y + 280*u, lx = panel.x, lw = portrait ? panel.w : panel.w;
+    g.fillStyle = "#6f747c"; g.font = `500 ${15*u}px ${F_M}`; g.fillText(`ÄNDERUNGEN ${shownN}/${items.length}`, lx, ly);
+    const recent = items.filter(it=>t >= it.ta).slice(-(portrait?3:5)).reverse();
+    recent.forEach((it,i)=>{ const a = clamp((t - it.ta)/0.4), y = ly + 34*u + i*58*u, c = COL[it.p.richtung] || COL.grau;
+      g.globalAlpha = a * (i===0 ? 1 : 0.75); g.fillStyle = rgba(c,1); g.fillRect(lx, y + 4*u, 4*u, 40*u);
+      g.fillStyle = "#f2f3f5"; g.font = `600 ${21*u}px ${F_T}`; let nm = it.p.name || ("Gewinn " + SEITE_K[it.p.richtung]); while(g.measureText(nm).width > lw - 30*u && nm.length > 4) nm = nm.slice(0,-2) + "…";
+      g.fillText(nm, lx + 18*u, y + 2*u);
+      g.fillStyle = "#8b9099"; g.font = `500 ${15*u}px ${F_M}`; g.fillText([it.p.direktion, new Date((it.p.datum||o.von)+"T12:00").toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}), "+" + nf.format(it.km2) + " km²"].filter(Boolean).join(" · "), lx + 18*u, y + 28*u); });
+    g.globalAlpha = 1;
+    /* Tagesleiste */
+    const bx = 56*u, bw = W - 112*u, by = H - 92*u, dp = clamp((t - INTRO)/(nDays*DAY), 0, 1);
+    g.fillStyle = "rgba(255,255,255,.14)"; g.fillRect(bx, by, bw, 3*u);
+    g.fillStyle = "#ffffff"; g.fillRect(bx, by, bw*dp, 3*u);
+    const step = nDays > 1 ? bw/(nDays) : bw;
+    for(let i=0;i<nDays;i++){ const x = bx + step*i + step/2, cur = Math.floor(dp*nDays - 1e-6) === i || (dp>=1 && i===nDays-1), past = dp*nDays > i;
+      g.fillStyle = cur ? "#ffffff" : past ? "#a3a8b0" : "#5a5f68"; g.fillRect(x - (cur?5:3)*u, by - (cur?4:2)*u, (cur?10:6)*u, (cur?11:7)*u);
+      if(nDays <= 10 || cur || i===0 || i===nDays-1){ g.font = `${cur?600:500} ${(cur?17:15)*u}px ${F_M}`; g.textBaseline = "top"; const tl = dayLbl(i).toUpperCase(); const tw = g.measureText(tl).width; g.fillText(tl, Math.max(bx, Math.min(bx+bw-tw, x - tw/2)), by + 16*u); }
+      items.filter(it=>it.di===i && t >= it.ta).forEach((it,k)=>{ g.fillStyle = rgba(COL[it.p.richtung]||COL.grau,1); g.fillRect(x - 3*u + (k%3-1)*8*u, by - 22*u - Math.floor(k/3)*8*u, 6*u, 6*u); }); }
+    /* Abspann */
+    const ea = clamp((t - END - 0.2)/0.6);
+    if(ea > 0){ g.globalAlpha = ea; g.fillStyle = "rgba(14,15,17,.9)"; const tx = (o.outro || "Ganze Lage auf der Karte").toUpperCase(); g.font = `600 ${18*u}px ${F_M}`; const tw = g.measureText(tx).width + 40*u;
+      g.fillRect(W/2 - tw/2, by - 86*u, tw, 46*u); g.fillStyle = "#ffffff"; g.textBaseline = "middle"; g.fillText(tx, W/2 - tw/2 + 20*u, by - 63*u); g.globalAlpha = 1; }
+    /* Quellen */
+    g.fillStyle = "rgba(200,204,210,.55)"; g.font = `${11*u}px ${F_T}`; g.textBaseline = "bottom"; g.textAlign = "right"; g.fillText(attrib, W - 16*u, H - 10*u); g.textAlign = "left";
+  }
+
+  /* Aufnahme in Echtzeit */
+  const fps = 30, stream = cv.captureStream(fps), chunks = [];
+  const rec = new MediaRecorder(stream, {mimeType: mime, videoBitsPerSecond: Math.round(10e6 * (W*H)/(1920*1080))});
+  rec.ondataavailable = e=>{ if(e.data && e.data.size) chunks.push(e.data); };
+  const stopped = new Promise(res=>rec.onstop = res);
+  draw(0); rec.start(500);
+  await new Promise(res=>{
+    const t0 = performance.now();
+    (function frame(){ const t = (performance.now() - t0)/1000; draw(Math.min(t, TOTAL)); o.onProgress && o.onProgress(Math.min(1, t/TOTAL), "Video wird aufgenommen …");
+      if(t < TOTAL + 0.3) requestAnimationFrame(frame); else res(); })();
+  });
+  rec.stop(); await stopped; stream.getTracks().forEach(tr=>tr.stop());
+  const type = mime.split(";")[0], blob = new Blob(chunks, {type});
+  return {blob, type, ext: type==="video/mp4" ? "mp4" : "webm", width:W, height:H, seconds:TOTAL, count:items.length};
+}
+
 async function exportImage(map, o){
   const ratio = o.ratio || 16/9, L = exportLayout(ratio, o.quality || 3, o.layout), u = L.u;
   const fw = o.frame.w, fh = o.frame.h;
@@ -926,6 +1075,6 @@ async function exportImage(map, o){
 function emptyData(){ return {version:1, aktualisiert:null, elemente:[]}; }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
-window.Karte = {setRefDate, standSummary, SEITE, changes, gruppen, ensureCids, changeArea, changeBounds, STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
+window.Karte = {exportWeekVideo, weekChanges, videoMime, setRefDate, standSummary, SEITE, changes, gruppen, ensureCids, changeArea, changeBounds, STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
   addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage, exportLayout, farbe, loadImport, replaceFront, nearestEdge, applyFrontEdit, undoFrontEdit, setImportData, refreshImport, importData: ()=>importData, importMeta: ()=>importData && importData.meta};
 })();

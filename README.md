@@ -78,3 +78,9 @@ mit `karte.html#stand=<id>` verlinken.
 Im Editor steuert der Haken **„Als neues Update im Verlauf“**, ob ein neuer Stand entsteht
 oder der letzte ersetzt wird (für schnelle Korrekturen). Er ist automatisch gesetzt, wenn der
 letzte Stand älter als drei Stunden ist.
+
+## Wochenvideo
+
+Im Editor unter **Bild** → **Wochenvideo** einen Zeitraum wählen. Die Seite nimmt ein kurzes Video auf
+(Tag für Tag erscheinen die Änderungen, mit km²-Zähler, Liste und Logo) und bietet es als MP4 oder WebM
+zum Herunterladen an. Formate: 16:9, 1:1, 9:16. Während der Aufnahme den Tab offen lassen.

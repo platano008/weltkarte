@@ -12,10 +12,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611101355">
+<link rel="stylesheet" href="style.css?v=202611101850">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611101355"></script>
+<script src="karte.js?v=202611101850"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -44,6 +44,7 @@
 .shot{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:24px}
 .shot-in{background:var(--bg);border:1px solid var(--line-2);border-top:2px solid var(--volt);max-width:min(1100px,100%);max-height:100%;display:flex;flex-direction:column;gap:12px;padding:16px;overflow:auto}
 .shot-in img{max-width:100%;max-height:65vh;display:block;object-fit:contain;background:#000}
+.shot-in img[hidden]{display:none}
 .shot-in .row{justify-content:space-between}
 .tools button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;font-size:11px;font-weight:600;color:var(--muted);border-right:1px solid var(--line-2)}
 .tools button:last-child{border-right:0}
@@ -57,6 +58,9 @@
 .f:focus{border-color:var(--volt);outline:none}
 textarea.f{min-height:64px;resize:vertical}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vidbox{display:flex;flex-direction:column;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+#shotVid{max-width:100%;max-height:70vh;display:block;background:#000}
+#shotVid[hidden]{display:none}
 .chgbar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 8px}
 .grp.gedit{display:flex;align-items:center;gap:8px;padding:12px 18px 6px;font-family:var(--mono);font-size:11px;color:var(--muted);border-top:1px solid var(--line)}
 .grp.gedit input{flex:1;min-width:0;background:transparent;border:0;border-bottom:1px dashed var(--line-2);color:var(--fg);font:600 11px var(--mono);letter-spacing:.1em;letter-spacing:inherit;text-transform:uppercase;padding:2px 0}
@@ -148,7 +152,7 @@ details.gh[open] summary{color:var(--fg)}
 <div class="card" id="card" hidden></div>
 <div class="toast" id="toast"></div>
 <div class="frame" id="frame" hidden><i></i><i></i><i></i><i></i><span id="frameLbl"></span></div>
-<div class="shot" id="shot" hidden><div class="shot-in"><img id="shotImg" alt="Exportierter Kartenausschnitt"><div class="row"><span class="status" id="shotInfo"></span><div class="row"><button class="btn sm" id="shotClose">Schließen</button><a class="btn sm volt" id="shotDl" download style="text-decoration:none">Herunterladen</a></div></div></div></div>
+<div class="shot" id="shot" hidden><div class="shot-in"><img id="shotImg" alt="Exportierter Kartenausschnitt"><video id="shotVid" controls playsinline loop muted hidden></video><div class="row"><span class="status" id="shotInfo"></span><div class="row"><button class="btn sm" id="shotClose">Schließen</button><a class="btn sm volt" id="shotDl" download style="text-decoration:none">Herunterladen</a></div></div></div></div>
 
 <script>
 const K = Karte, $ = id => document.getElementById(id), esc = K.esc;
@@ -570,7 +574,17 @@ function shotOpts(o){
     <div class="grid2"><div><label class="lbl" for="sCredit">Logo / Blogname</label><input class="f" id="sCredit" value="${esc(shot.credit)}" placeholder="optional" maxlength="40"></div>
       <div><span class="lbl">Datei</span>${seg("fmt", {png:"PNG", jpg:"JPG"}, shot.format)}</div></div>
     <label class="check"><input type="checkbox" id="sLeg" ${shot.legend?"checked":""}> Legende</label><label class="check"><input type="checkbox" id="sOv" ${shot.overview!==false?"checked":""}> Übersichtskarte</label>
-    <div class="row"><button class="btn volt" id="sGo">Bild erstellen</button></div>`;
+    <div class="row"><button class="btn volt" id="sGo">Bild erstellen</button></div>
+    <div class="vidbox">
+      <div class="eyebrow"><span>Wochenvideo</span></div>
+      <div class="hint">Die Änderungen eines Zeitraums erscheinen Tag für Tag, mit km²-Zähler und Logo. Der Ausschnitt wird automatisch gewählt.</div>
+      <div class="grid2"><div><label class="lbl" for="vVon">Von</label><input class="f" type="date" id="vVon" value="${esc(vid.von)}"></div>
+        <div><label class="lbl" for="vBis">Bis</label><input class="f" type="date" id="vBis" value="${esc(vid.bis)}"></div></div>
+      <div><span class="lbl">Format</span>${seg("vfmt", {"16:9":"16:9 · Twitter","1:1":"1:1","9:16":"9:16 · Story"}, vid.format)}</div>
+      <div><label class="lbl" for="vTitle">Titel</label><input class="f" id="vTitle" value="${esc(vid.title)}" maxlength="40"></div>
+      <div class="hint" id="vCount"></div>
+      <div class="row"><button class="btn volt" id="vGo">Video erstellen</button></div>
+    </div>`;
   o.querySelectorAll("[data-lay]").forEach(b=>b.onclick=()=>{ shot.layout=b.dataset.lay; saveShot(); shotOpts(o); placeFrame(); });
   o.querySelectorAll("[data-ratio]").forEach(b=>b.onclick=()=>{ shot.ratio=b.dataset.ratio; saveShot(); shotOpts(o); placeFrame(); });
   o.querySelectorAll("[data-scale]").forEach(b=>b.onclick=()=>{ shot.scale=+b.dataset.scale; saveShot(); shotOpts(o); placeFrame(); });
@@ -581,6 +595,35 @@ function shotOpts(o){
   $("sLeg").onchange = e=>{ shot.legend=e.target.checked; saveShot(); };
   $("sOv").onchange = e=>{ shot.overview=e.target.checked; saveShot(); };
   $("sGo").onclick = makeShot;
+  const cnt = ()=>{ const n = K.weekChanges(vid.von, vid.bis).length; $("vCount").textContent = n ? `${n} Änderung${n===1?"":"en"} im Zeitraum · Video etwa ${Math.round(4 + Math.min(31, Math.round((new Date(vid.bis) - new Date(vid.von))/864e5)+1)*1.05)} Sekunden` : "Keine Änderungen in diesem Zeitraum."; $("vGo").disabled = !n || busyVid; };
+  $("vVon").onchange = e=>{ vid.von = e.target.value || vid.von; cnt(); };
+  $("vBis").onchange = e=>{ vid.bis = e.target.value || vid.bis; cnt(); };
+  $("vTitle").oninput = e=>{ vid.title = e.target.value; };
+  o.querySelectorAll("[data-vfmt]").forEach(b=>b.onclick=()=>{ vid.format = b.dataset.vfmt; shotOpts(o); });
+  $("vGo").onclick = makeVideo;
+  if(!K.videoMime()){ $("vCount").textContent = "Dieser Browser kann keine Videos aufnehmen. Bitte Chrome, Edge oder Firefox am PC nutzen."; $("vGo").disabled = true; } else cnt();
+}
+/* Wochenvideo */
+const vidIso = d=>new Date(d.getTime() - d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const vid = {von: vidIso(new Date(Date.now() - 6*864e5)), bis: vidIso(new Date()), format:"16:9", title:"Wochenrückblick"};
+let busyVid = false;
+async function makeVideo(){
+  if(busyVid) return; busyVid = true;
+  const btn = $("vGo"); btn.disabled = true;
+  try{
+    const r = await K.exportWeekVideo(map, {von:vid.von, bis:vid.bis, format:vid.format, title:(vid.title||"").trim() || "Wochenrückblick", credit:(shot.credit||"").trim() || "Plyus",
+      onProgress:(p, msg)=>{ btn.textContent = p > 0 ? `Aufnahme ${Math.round(p*100)} %` : msg; }});
+    if(shotUrl) URL.revokeObjectURL(shotUrl);
+    shotUrl = URL.createObjectURL(r.blob);
+    $("shotImg").hidden = true; const v = $("shotVid"); v.hidden = false; v.src = shotUrl; v.play().catch(()=>{});
+    $("shotDl").href = shotUrl; $("shotDl").download = `wochenrueckblick-${vid.von}_${vid.bis}.${r.ext}`;
+    $("shotInfo").textContent = `${r.width} × ${r.height} · ${Math.round(r.seconds)} s · ${r.ext.toUpperCase()} · ${(r.blob.size/1048576).toFixed(1).replace(".",",")} MB`;
+    $("shot").hidden = false;
+  }catch(e){
+    toast(e && e.code==="empty" ? "Keine Änderungen in diesem Zeitraum." : e && e.code==="nomedia" ? "Dieser Browser kann keine Videos aufnehmen." : e && e.name==="SecurityError" ? "Ein Kartendienst erlaubt keinen Export. Probier eine andere Kartenart." : "Video konnte nicht erstellt werden.");
+    console.warn(e);
+  }
+  busyVid = false; btn.disabled = false; btn.textContent = "Video erstellen";
 }
 let shotUrl = null;
 async function makeShot(){
@@ -593,7 +636,7 @@ async function makeShot(){
     if(shotUrl) URL.revokeObjectURL(shotUrl);
     shotUrl = URL.createObjectURL(r.blob);
     const d = new Date(), stamp = d.toISOString().slice(0,10);
-    $("shotImg").src = shotUrl;
+    $("shotImg").src = shotUrl; $("shotImg").hidden = false; $("shotVid").hidden = true; $("shotVid").removeAttribute("src");
     $("shotDl").href = shotUrl; $("shotDl").download = `lagekarte-${stamp}.${shot.format==="jpg"?"jpg":"png"}`;
     $("shotInfo").textContent = `${r.width} × ${r.height} px · ${(r.blob.size/1048576).toFixed(1).replace(".",",")} MB`;
     $("shot").hidden = false;
@@ -602,7 +645,7 @@ async function makeShot(){
   }
   btn.disabled = false; btn.textContent = "Bild erstellen";
 }
-$("shotClose").onclick = ()=>$("shot").hidden = true;
+$("shotClose").onclick = ()=>{ $("shot").hidden = true; try{ $("shotVid").pause(); }catch(e){} };
 
 /* ---------- Frontlinie ---------- */
 function ensureFrontEdge(){
