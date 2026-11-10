@@ -12,10 +12,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611101941">
+<link rel="stylesheet" href="style.css?v=202611102009">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611101941"></script>
+<script src="karte.js?v=202611102009"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -612,7 +612,7 @@ async function makeVideo(){
   const btn = $("vGo"); btn.disabled = true;
   try{
     const r = await K.exportWeekVideo(map, {von:vid.von, bis:vid.bis, format:vid.format, title:(vid.title||"").trim() || "Wochenrückblick", elements:DATA.elemente, credit:(shot.credit||"").trim() || "Plyus",
-      onProgress:(p, msg)=>{ btn.textContent = p > 0 ? `${msg.replace(" …","")} ${Math.round(p*100)} %` : msg; }});
+      onProgress:(p, msg)=>{ btn.textContent = p > 0 && p < 1 ? `${msg.replace(" …","")} ${Math.round(p*100)} %` : msg; }});
     if(shotUrl) URL.revokeObjectURL(shotUrl);
     shotUrl = URL.createObjectURL(r.blob);
     $("shotImg").hidden = true; const v = $("shotVid"); v.hidden = false; v.src = shotUrl; v.play().catch(()=>{});
@@ -620,7 +620,7 @@ async function makeVideo(){
     $("shotInfo").textContent = `${r.width} × ${r.height} · ${Math.round(r.seconds)} s · ${r.ext.toUpperCase()} · ${(r.blob.size/1048576).toFixed(1).replace(".",",")} MB`;
     $("shot").hidden = false;
   }catch(e){
-    toast(e && e.code==="empty" ? "Keine Änderungen in diesem Zeitraum." : e && e.code==="nomedia" ? "Dieser Browser kann keine Videos aufnehmen." : e && e.name==="SecurityError" ? "Ein Kartendienst erlaubt keinen Export. Probier eine andere Kartenart." : "Video konnte nicht erstellt werden.");
+    toast(e && e.code==="empty" ? "Keine Änderungen in diesem Zeitraum." : e && e.code==="nomedia" ? "Dieser Browser kann keine Videos aufnehmen." : e && e.code==="stuck" ? "Der Video-Encoder deines Browsers reagiert nicht. Bitte Seite neu laden und nochmal versuchen, am besten in Chrome." : e && e.name==="SecurityError" ? "Ein Kartendienst erlaubt keinen Export. Probier eine andere Kartenart." : "Video konnte nicht erstellt werden.");
     console.warn(e);
   }
   busyVid = false; btn.disabled = false; btn.textContent = "Video erstellen";

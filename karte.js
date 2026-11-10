@@ -714,13 +714,16 @@ function cutLine(coords, f, planar){
 /* Video-Kodierung: Bild für Bild mit WebCodecs (exakt, ruckelfrei, schneller als Echtzeit), sonst Echtzeit-Aufnahme */
 const MUX_URL = "https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.1/build/mp4-muxer.min.js";
 function loadScript(src){ return new Promise((res, rej)=>{ const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+/* Software-Kodierung zuerst: manche Grafiktreiber bleiben beim Abschließen hängen */
 async function avcCodec(W, H){
   if(!window.VideoEncoder || !window.VideoFrame) return null;
-  for(const codec of ["avc1.640028","avc1.4d0028","avc1.640032","avc1.42002a"]){
-    try{ const s = await VideoEncoder.isConfigSupported({codec, width:W, height:H, bitrate:10e6, framerate:30}); if(s && s.supported) return codec; }catch(e){}
-  }
+  for(const hw of ["prefer-software", "no-preference"])
+    for(const codec of ["avc1.640028","avc1.4d0028","avc1.640032","avc1.42002a"]){
+      try{ const s = await VideoEncoder.isConfigSupported({codec, width:W, height:H, bitrate:10e6, framerate:30, hardwareAcceleration:hw}); if(s && s.supported) return {codec, hw}; }catch(e){}
+    }
   return null;
 }
+const withTimeout = (p, ms)=>Promise.race([p.then(()=>true), new Promise(r=>setTimeout(()=>r(false), ms))]);
 function canVideo(){ return !!(window.VideoEncoder || videoMime()); }
 /* Web-Mercator in Pixeln (wie MapLibre, 512er Kacheln) */
 function merc(lng, lat, z){ const s = 512*Math.pow(2, z), sl = Math.sin(lat*Math.PI/180);
@@ -949,19 +952,25 @@ async function exportWeekVideo(map, o){
   const N = Math.ceil(TOTAL*FPS);
   if(exact){
     const muxer = new Mp4Muxer.Muxer({target: new Mp4Muxer.ArrayBufferTarget(), video:{codec:"avc", width:W, height:H, frameRate:FPS}, fastStart:"in-memory"});
-    let fail = null;
-    const enc = new VideoEncoder({output:(chunk, meta)=>muxer.addVideoChunk(chunk, meta), error:e=>{ fail = e; }});
-    enc.configure({codec, width:W, height:H, bitrate: Math.round(14e6*(W*H)/(1920*1080)), framerate:FPS, latencyMode:"quality"});
+    let fail = null, got = 0, lastOut = performance.now();
+    const enc = new VideoEncoder({output:(chunk, meta)=>{ muxer.addVideoChunk(chunk, meta); got++; lastOut = performance.now(); }, error:e=>{ fail = e; }});
+    enc.configure({codec: codec.codec, hardwareAcceleration: codec.hw, width:W, height:H, bitrate: Math.round(14e6*(W*H)/(1920*1080)), framerate:FPS});
     for(let i=0;i<N;i++){
       if(fail) throw fail;
       draw(i/FPS);
       const vf = new VideoFrame(cv, {timestamp: Math.round(i*1e6/FPS), duration: Math.round(1e6/FPS)});
       enc.encode(vf, {keyFrame: i % (FPS*2) === 0}); vf.close();
-      while(enc.encodeQueueSize > 6) await new Promise(r=>setTimeout(r, 4));
+      /* Warteschlange klein halten; reagiert der Encoder 30 s lang nicht, abbrechen statt ewig zu warten */
+      while(enc.encodeQueueSize > 6){ if(fail) throw fail; if(performance.now() - lastOut > 30000) throw Object.assign(new Error("Encoder hängt"), {code:"stuck"}); await new Promise(r=>setTimeout(r, 4)); }
       if(i % 6 === 0){ say(i/N, "Video wird erstellt …"); await new Promise(r=>setTimeout(r, 0)); }
     }
-    await enc.flush(); enc.close(); muxer.finalize();
+    say(1, "Wird gespeichert …");
+    const flushed = await withTimeout(enc.flush(), 20000);
+    try{ enc.close(); }catch(e){}
     if(fail) throw fail;
+    /* Falls das Abschließen hängt: mit allen bis dahin fertigen Bildern speichern (es fehlen höchstens die letzten Bruchteile einer Sekunde) */
+    if(!flushed && got < N*0.95) throw Object.assign(new Error("Encoder hängt"), {code:"stuck"});
+    muxer.finalize();
     const blob = new Blob([muxer.target.buffer], {type:"video/mp4"});
     return {blob, type:"video/mp4", ext:"mp4", width:W, height:H, seconds:TOTAL, count:items.length};
   }
