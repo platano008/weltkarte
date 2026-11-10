@@ -12,10 +12,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611092146">
+<link rel="stylesheet" href="style.css?v=202611101130">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611092146"></script>
+<script src="karte.js?v=202611101130"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -57,6 +57,13 @@
 .f:focus{border-color:var(--volt);outline:none}
 textarea.f{min-height:64px;resize:vertical}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chgbar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 8px}
+.grp.gedit{display:flex;align-items:center;gap:8px;padding:12px 18px 6px;font-family:var(--mono);font-size:11px;color:var(--muted);border-top:1px solid var(--line)}
+.grp.gedit input{flex:1;min-width:0;background:transparent;border:0;border-bottom:1px dashed var(--line-2);color:var(--fg);font:600 11px var(--mono);letter-spacing:.1em;letter-spacing:inherit;text-transform:uppercase;padding:2px 0}
+.grp.gedit input:focus{outline:none;border-bottom-color:var(--fg)}
+.grp.gedit button{color:var(--muted);font-size:12px;padding:2px 4px}
+.grp.gedit button:hover{color:#ff6b7c}
+.chged{display:flex;flex-direction:column;gap:8px;padding:10px 18px 14px;background:var(--surface-2);border-bottom:1px solid var(--line)}
 .sides{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line-2)}
 .sides button{padding:7px 2px;font-size:12px;font-weight:600;border-right:1px solid var(--line-2);color:var(--muted)}
 .sides button:last-child{border-right:0}
@@ -114,7 +121,7 @@ details.gh[open] summary{color:var(--fg)}
       <button data-t="linie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M3 18l6-8 5 4 7-9"/></svg>Linie</button>
       <button data-t="pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M3 19L19 5M10 5h9v9"/></svg>Pfeil</button>
       <button data-t="flaeche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M4 7l9-4 8 7-3 10-12-2z"/></svg>Fläche</button>
-      <button data-t="front"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M3 20V9l5 3 4-6 4 5 5-4v13z" opacity=".35" fill="currentColor"/><path d="M3 9l5 3 4-6 4 5 5-4"/></svg>Front</button>
+      <button data-t="front"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M3 20V9l5 3 4-6 4 5 5-4v13z" opacity=".35" fill="currentColor"/><path d="M3 9l5 3 4-6 4 5 5-4"/></svg>Änderung</button>
       <button data-t="bild"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M3 7h4l2-3h6l2 3h4v13H3zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg>Bild</button>
     </div>
   </div>
@@ -160,6 +167,9 @@ let DATA = K.emptyData(), sha = null, dirty = false, tool = "select", sel = null
 /* Frontlinie */
 let front = null, impSha = null, impDirty = false, undoStack = [], frontEbene = "russian-terr";
 let frontDatum = new Date().toISOString().slice(0,10);
+/* Angaben für die nächste Änderung: Name, Richtung, Gruppe (Richtung und Gruppe bleiben für die nächste stehen) */
+let frontMeta = {name:"", direktion:"", gruppe:""};
+let chgOpen = null, chgDel = null;
 const IMP_PATH = "import/lage.geojson";
 let draft = null; /* {typ, pts:[], replaceId} */
 let prefs = Object.assign({farbe:"#e5383b", stil:"durchgezogen", seite:"H", einheit:"inf", groesse:"F", hq:false, geplant:false}, JSON.parse(store.get(LS.prefs)||"{}"));
@@ -402,7 +412,54 @@ function icon(el){
   if(el.typ==="symbol") return `<span class="ic">${K.symbolSVG(el,18).svg}</span>`;
   return `<span class="ic"><i class="sw${el.typ==="flaeche"?" area":""}" style="background:${esc(K.farbe(el.farbe))}"></i></span>`;
 }
+function newGroup(){
+  const d = K.importData(); const g = {id: "g" + Date.now().toString(36), name: "Neue Gruppe"};
+  K.gruppen(d).push(g); impChange(); return g;
+}
+function renderChgList(){
+  const d = K.importData();
+  if(!d){ $("list").innerHTML = `<div class="empty">Lagedaten werden geladen …</div>`; return; }
+  if(K.ensureCids(d)) K.refreshImport(map);
+  const grp = K.gruppen(d), all = K.changes(d).slice().sort((a,b)=>(b.properties.datum||"").localeCompare(a.properties.datum||""));
+  const dirs = [...new Set(all.map(f=>f.properties.direktion).filter(Boolean))];
+  const nf = new Intl.NumberFormat("de-DE",{maximumFractionDigits:1}), COL = {ru:"#d8344a", ua:"#2f7fe0", grau:"#c9c9c9"};
+  const row = f=>{ const p = f.properties, open = chgOpen===p.cid;
+    let h = `<button class="item chgi${open?" sel":""}" data-cid="${esc(p.cid)}"><span class="ic"><i class="sw area" style="background:${COL[p.richtung]||COL.grau};opacity:1;width:14px;height:14px"></i></span><span><b>${esc(p.name || K.SEITE[p.richtung] || "Änderung")}</b><span class="c">${esc([p.direktion, p.datum].filter(Boolean).join(" · "))}</span></span><span class="km">${nf.format(K.changeArea(f))} km²</span></button>`;
+    if(open) h += `<div class="chged" data-cid="${esc(p.cid)}">
+      <div><label class="lbl">Name</label><input class="f" data-k="name" maxlength="60" placeholder="z. B. Vorstoß bei Myrnohrad" value="${esc(p.name||"")}"></div>
+      <div class="grid2"><div><label class="lbl">Richtung</label><input class="f" data-k="direktion" list="dirList2" maxlength="40" placeholder="z. B. Pokrowsk" value="${esc(p.direktion||"")}"></div>
+        <div><label class="lbl">Gruppe</label><select class="f" data-k="gruppe"><option value="">Keine</option>${grp.map(g=>`<option value="${esc(g.id)}" ${g.id===p.gruppe?"selected":""}>${esc(g.name)}</option>`).join("")}</select></div></div>
+      <div class="grid2"><div><label class="lbl">Datum</label><input class="f" type="date" data-k="datum" value="${esc(p.datum||"")}"></div>
+        <div><label class="lbl">Gewinn für</label><div class="sides" style="grid-template-columns:repeat(3,1fr)">${[["ru","Russland"],["ua","Ukraine"],["grau","Grau"]].map(([k,v])=>`<button data-side="${k}" class="${p.richtung===k?"on":""}" style="${p.richtung===k?`background:${COL[k]}`:""}">${v}</button>`).join("")}</div></div></div>
+      <div class="row"><button class="btn sm" data-a="zoom">Hinzoomen</button><button class="btn sm danger" data-a="del">${chgDel===p.cid?"Wirklich löschen?":"Markierung löschen"}</button></div>
+    </div>`;
+    return h; };
+  let html = `<div class="chgbar"><span class="eyebrow"><span>Änderungen</span></span><button class="btn sm" id="grNew">+ Gruppe</button></div><datalist id="dirList2">${dirs.map(x=>`<option value="${esc(x)}">`).join("")}</datalist>`;
+  grp.forEach(g=>{ const its = all.filter(f=>f.properties.gruppe===g.id);
+    html += `<div class="grp gedit"><input data-gname="${esc(g.id)}" value="${esc(g.name)}" maxlength="50" aria-label="Name der Gruppe"><span>${its.length}</span><button data-gdel="${esc(g.id)}" title="Gruppe löschen (Änderungen bleiben)">✕</button></div>` + (its.map(row).join("") || `<div class="empty" style="padding:10px 18px">Noch leer. Wähle beim Eintragen diese Gruppe oder ordne unten eine Änderung zu.</div>`); });
+  const rest = all.filter(f=>!grp.some(g=>g.id===f.properties.gruppe));
+  if(rest.length || !grp.length) html += `<div class="grp"><span>${grp.length ? "Ohne Gruppe" : "Alle Änderungen"}</span><span>${rest.length}</span></div>` + (rest.map(row).join("") || `<div class="empty">Noch keine Änderungen. Zeichne oben die neue Frontlinie ein.</div>`);
+  $("list").innerHTML = html;
+  const L = $("list");
+  $("grNew").onclick = ()=>{ const g = newGroup(); renderList(); renderOpts(); const i = L.querySelector(`[data-gname="${g.id}"]`); if(i){ i.focus(); i.select(); } };
+  L.querySelectorAll("[data-gname]").forEach(i=>i.onchange=()=>{ const g = grp.find(x=>x.id===i.dataset.gname); if(g){ g.name = i.value.trim() || "Gruppe"; impChange(); renderOpts(); renderList(); } });
+  L.querySelectorAll("[data-gdel]").forEach(b=>b.onclick=()=>{ const id = b.dataset.gdel, k = grp.findIndex(x=>x.id===id); if(k<0) return;
+    grp.splice(k,1); all.forEach(f=>{ if(f.properties.gruppe===id) delete f.properties.gruppe; }); impChange(); renderOpts(); renderList(); toast("Gruppe gelöscht, die Änderungen sind noch da"); });
+  L.querySelectorAll(".item[data-cid]").forEach(b=>b.onclick=()=>{ chgOpen = chgOpen===b.dataset.cid ? null : b.dataset.cid; chgDel = null; renderList();
+    const f = all.find(x=>x.properties.cid===b.dataset.cid); if(f && chgOpen) try{ map.fitBounds(K.changeBounds(f), {padding:60, maxZoom:11.5, duration:700}); }catch(e){} });
+  L.querySelectorAll(".chged").forEach(box=>{
+    const f = all.find(x=>x.properties.cid===box.dataset.cid); if(!f) return; const p = f.properties;
+    const set = (k,v)=>{ v = (v||"").trim(); if(v) p[k] = v; else delete p[k]; impChange(); };
+    box.querySelectorAll("[data-k]").forEach(i=>i.onchange=()=>{ set(i.dataset.k, i.value); renderList(); renderOpts(); });
+    box.querySelectorAll("[data-side]").forEach(b=>b.onclick=()=>{ p.richtung = b.dataset.side; impChange(); renderList(); });
+    box.querySelector('[data-a=zoom]').onclick = ()=>{ try{ map.fitBounds(K.changeBounds(f), {padding:60, maxZoom:11.5, duration:700}); }catch(e){} };
+    box.querySelector('[data-a=del]').onclick = ()=>{
+      if(chgDel!==p.cid){ chgDel = p.cid; renderList(); return; }
+      const i = d.features.indexOf(f); if(i>=0) d.features.splice(i,1); chgOpen = chgDel = null; impChange(); renderList(); toast("Markierung gelöscht. Die Frontlinie selbst bleibt, wie sie ist."); };
+  });
+}
 function renderList(){
+  if(tool==="front"){ renderChgList(); return; }
   $("list").innerHTML = DATA.elemente.slice().reverse().map(el=>`<button class="item${sel&&sel.id===el.id?" sel":""}" data-id="${esc(el.id)}">${icon(el)}<span><b>${esc(el.name||K.describe(el))}</b>${el.name?`<span class="c">${esc(K.describe(el))}</span>`:""}</span><span class="km">${measure(el)}</span></button>`).join("")
     || `<div class="empty">Noch nichts auf der Karte. Wähle oben ein Werkzeug.</div>`;
   $("list").querySelectorAll(".item[data-id]").forEach(b=>b.onclick=()=>{ setTool("select"); select(DATA.elemente.find(x=>x.id===b.dataset.id), true); });
@@ -436,7 +493,7 @@ function setTool(t, opt){
   $("frame").hidden = t!=="bild"; if(t==="bild") placeFrame();
   $("tools").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.t===t));
   if(t!=="select") select(null, false, true);
-  updateDraft(); renderOpts();
+  updateDraft(); renderOpts(); renderList();
 }
 $("tools").querySelectorAll("button").forEach(b=>b.onclick=()=>setTool(b.dataset.t));
 
@@ -577,12 +634,13 @@ function finishFront(){
   const end = K.nearestEdge(map, frontEbene, pts[pts.length-1], front.start.f);
   if(end && end.d <= SNAP) pts.pop();
   if(!end || end.i === front.start.i){ toast("Anfang und Ende liegen auf demselben Punkt. Setz das Ende weiter weg."); return; }
-  const u = K.applyFrontEdit(front.start.f, front.start.i, end.i, pts, {datum:frontDatum});
+  const u = K.applyFrontEdit(front.start.f, front.start.i, end.i, pts, {datum:frontDatum, name:frontMeta.name.trim(), direktion:frontMeta.direktion.trim(), gruppe:frontMeta.gruppe});
   if(!u){ toast("Das hat nicht geklappt. Bitte nochmal versuchen."); return; }
   undoStack.push(u);
   front = {start:null, pts:[]};
-  impChange(); updateDraft(); renderOpts();
-  toast("Frontlinie angepasst: " + RICHTUNG[u.change.properties.richtung]);
+  frontMeta.name = "";
+  impChange(); updateDraft(); renderOpts(); renderList();
+  toast("Änderung eingetragen: " + RICHTUNG[u.change.properties.richtung]);
 }
 function frontOpts(o){
   const d = K.importData();
@@ -592,7 +650,14 @@ function frontOpts(o){
     : !front.pts.length ? `<b>2.</b> Tippe den <b>neuen Verlauf</b> der Front, Punkt für Punkt.`
     : `<b>3.</b> Tippe zum Schluss auf die Frontlinie, wo der Verlauf wieder <b>anschließt</b>, dann „Übernehmen“ oder Doppeltipp.`;
   const last = undoStack[undoStack.length-1];
-  o.innerHTML = `<div class="grid2">
+  const grp = K.gruppen(d), dirs = [...new Set(K.changes(d).map(f=>f.properties.direktion).filter(Boolean))];
+  if(frontMeta.gruppe && !grp.some(g=>g.id===frontMeta.gruppe)) frontMeta.gruppe = "";
+  o.innerHTML = `<div class="eyebrow" style="margin-bottom:2px"><span>Neue Änderung</span></div>
+    <div><label class="lbl" for="fNm">Name</label><input class="f" id="fNm" maxlength="60" placeholder="z. B. Vorstoß bei Myrnohrad" value="${esc(frontMeta.name)}"></div>
+    <div class="grid2">
+      <div><label class="lbl" for="fDir">Richtung</label><input class="f" id="fDir" list="dirList" maxlength="40" placeholder="z. B. Pokrowsk" value="${esc(frontMeta.direktion)}"><datalist id="dirList">${dirs.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
+      <div><label class="lbl" for="fGr">Gruppe</label><div style="display:flex;gap:4px"><select class="f" id="fGr"><option value="">Keine</option>${grp.map(g=>`<option value="${esc(g.id)}" ${g.id===frontMeta.gruppe?"selected":""}>${esc(g.name)}</option>`).join("")}</select><button class="btn sm" id="fGrNew" title="Neue Gruppe anlegen" style="flex:none">+</button></div></div></div>
+    <div class="grid2">
       <div><label class="lbl" for="fEb">Fläche</label><select class="f" id="fEb">${areas.map(l=>`<option value="${esc(l.id)}" ${l.id===frontEbene?"selected":""}>${esc(l.name)}</option>`).join("")}</select></div>
       <div><label class="lbl" for="fDt">Datum</label><input class="f" id="fDt" type="date" value="${esc(frontDatum)}"></div></div>
     <div class="hint">${step}</div>
@@ -602,6 +667,10 @@ function frontOpts(o){
     <div class="hint">Neue Flächen werden ${14} Tage lang kräftig angezeigt, danach wie das übrige Gebiet. Speichern nicht vergessen.</div>`;
   $("fEb").onchange = e=>{ frontEbene = e.target.value; front = {start:null, pts:[]}; ensureFrontEdge(); updateDraft(); renderOpts(); };
   $("fDt").onchange = e=>{ frontDatum = e.target.value || frontDatum; };
+  $("fNm").oninput = e=>{ frontMeta.name = e.target.value; };
+  $("fDir").oninput = e=>{ frontMeta.direktion = e.target.value; };
+  $("fGr").onchange = e=>{ frontMeta.gruppe = e.target.value; };
+  $("fGrNew").onclick = ()=>{ const g = newGroup(); frontMeta.gruppe = g.id; renderOpts(); renderList(); setTimeout(()=>{ const i = $("list").querySelector(`[data-gname="${g.id}"]`); if(i){ i.focus(); i.select(); } }, 30); };
   $("frGo").onclick = finishFront;
   $("frUndoPt").onclick = ()=>{ if(front.pts.length) front.pts.pop(); else front.start = null; updateDraft(); renderOpts(); };
   $("frReset").onclick = ()=>{ front = {start:null, pts:[]}; updateDraft(); renderOpts(); };

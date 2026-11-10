@@ -17,7 +17,7 @@ if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611092146">
+<link rel="stylesheet" href="style.css?v=202611101130">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -339,14 +339,15 @@ Promise.all([
   countUp("sArea", ru+ua, true);
   try{ drawViz(imp, recent); }catch(e){ console.warn("Lagegrafik:", e); }
   if(recent.length) $("sAreaS").textContent = "km² · " + nf.format(ru) + " ru / " + nf.format(ua) + " ua";
-  const list = ch.slice(0,8);
+  const list = ch.slice(0,8), grp = (imp && imp.meta && imp.meta.gruppen) || [], gname = id=>{ const g = grp.find(z=>z.id===id); return g ? g.name : ""; };
+  const esc = t=>String(t).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   $("chg").innerHTML = list.length ? list.map(x=>{
     const [txt,col] = LBL[x.p.richtung] || LBL.grau, [lng,lat] = x.c;
     return '<a class="row" href="karte.html#@'+lng.toFixed(4)+','+lat.toFixed(4)+',11">'
       + '<span class="d">'+(x.p.datum ? fmtD(x.p.datum) : "–")+'</span>'
-      + '<span class="tag"><i style="background:'+col+'"></i>'+txt+'</span>'
+      + '<span class="tag"><i style="background:'+col+'"></i>'+esc(x.p.name || txt)+'</span>'
       + '<span class="a">'+nf.format(x.km2)+'<span>km²</span></span>'
-      + '<span class="c">'+Math.abs(lat).toFixed(3)+'° N · '+Math.abs(lng).toFixed(3)+'° O</span>'
+      + '<span class="c">'+(x.p.direktion || gname(x.p.gruppe) ? esc([x.p.direktion ? (/richtung/i.test(x.p.direktion) ? x.p.direktion : x.p.direktion + "-Richtung") : "", gname(x.p.gruppe)].filter(Boolean).join(" · ")) : Math.abs(lat).toFixed(3)+'° N · '+Math.abs(lng).toFixed(3)+'° O')+'</span>'
       + '<span class="go">Auf der Karte →</span></a>';
   }).join("") : '<div class="empty-l">Noch keine eingetragenen Veränderungen.</div>';
 });

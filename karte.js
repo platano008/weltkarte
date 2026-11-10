@@ -388,7 +388,7 @@ function addImportLayers(map){
   const chCol = ["match",["get","richtung"],"ru",CHANGE_COL.ru,"ua",CHANGE_COL.ua,CHANGE_COL.grau];
   map.addLayer({id:"imp-change-fill", type:"fill", source:"imp", filter:isRecentChange(), paint:{"fill-color":chCol, "fill-opacity":0.3}}, before);
   map.addLayer({id:"imp-change-line", type:"line", source:"imp", filter:isRecentChange(), layout:{"line-join":"round"}, paint:{"line-color":chCol, "line-width":["interpolate",["linear"],["zoom"],5,1.5,10,3]}}, before);
-  map.addLayer({id:"imp-change-label", type:"symbol", source:"imp", minzoom:8, filter:isRecentChange(), layout:{"text-field":["coalesce",["get","datum"],""], "text-font":font, "text-size":11, "symbol-placement":"point"},
+  map.addLayer({id:"imp-change-label", type:"symbol", source:"imp", minzoom:8, filter:isRecentChange(), layout:{"text-field":["coalesce",["get","name"],["get","datum"],""], "text-font":font, "text-size":11, "symbol-placement":"point"},
     paint:{"text-color":"#ffffff","text-halo-color":"rgba(0,0,0,0.9)","text-halo-width":1.5}}, before);
   const sym = (id, minzoom, size)=>({id, type:"symbol", source:"imp", minzoom, layout:{
       "icon-image":["concat","imp-",["get","sidc"]], "icon-size":["interpolate",["linear"],["zoom"],4,size*0.38,6,size*0.55,8,size*0.8,12,size],
@@ -497,7 +497,12 @@ function applyFrontEdit(f, iA, iB, pts, meta){
   const ebene = f.properties.ebene;
   const gainSide = ebene==="ukraine-terr" ? "ua" : ebene==="gray-zone" ? "grau" : "ru";
   const lossSide = ebene==="ukraine-terr" ? "ru" : ebene==="gray-zone" ? "grau" : "ua";
-  const change = {type:"Feature", properties:{art:"aenderung", ebene:"aenderungen", richtung: r.grew ? gainSide : lossSide, datum: meta.datum, von: ebene},
+  const props = {art:"aenderung", ebene:"aenderungen", richtung: r.grew ? gainSide : lossSide, datum: meta.datum, von: ebene,
+    cid: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2,6)};
+  if(meta.name) props.name = meta.name;
+  if(meta.direktion) props.direktion = meta.direktion;
+  if(meta.gruppe) props.gruppe = meta.gruppe;
+  const change = {type:"Feature", properties: props,
     geometry:{type:"Polygon", coordinates:[close(r.change)]}};
   importData.features.push(change);
   const m = importData.meta = importData.meta || {ebenen:[]};
@@ -510,6 +515,19 @@ function undoFrontEdit(u){
   u.f.geometry.coordinates = u.before;
   const i = importData.features.indexOf(u.change); if(i>=0) importData.features.splice(i,1);
 }
+/* Änderungen (Frontgewinne) mit Name, Richtung und Gruppe */
+const SEITE = {ru:"Russischer Gewinn", ua:"Ukrainischer Gewinn", grau:"Neue Grauzone"};
+function changes(d){ d = d || importData; return d && d.features ? d.features.filter(f=>f.properties && f.properties.art==="aenderung" && f.geometry) : []; }
+function gruppen(d){ d = d || importData; if(!d) return []; d.meta = d.meta || {}; return d.meta.gruppen || (d.meta.gruppen = []); }
+/* ältere Änderungen ohne Kennung bekommen eine feste, aus dem Inhalt abgeleitete Kennung */
+function ensureCids(d){ let n = 0; changes(d).forEach(f=>{ if(f.properties.cid) return;
+  const r = f.geometry.type==="Polygon" ? f.geometry.coordinates[0] : f.geometry.coordinates[0][0];
+  let h = 0; const s = (f.properties.datum||"") + JSON.stringify(r[0]) + r.length; for(let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
+  f.properties.cid = "c" + h.toString(36); n++; }); return n; }
+function changeArea(f){ const g = f.geometry; const polys = g.type==="Polygon" ? [g.coordinates] : g.type==="MultiPolygon" ? g.coordinates : [];
+  return polys.reduce((t,p)=>t + areaKm2(p[0]), 0); }
+function changeBounds(f){ let a = [180,90,-180,-90]; const g = f.geometry, polys = g.type==="Polygon" ? [g.coordinates] : g.coordinates;
+  polys.forEach(p=>p[0].forEach(([x,y])=>{ a = [Math.min(a[0],x),Math.min(a[1],y),Math.max(a[2],x),Math.max(a[3],y)]; })); return [[a[0],a[1]],[a[2],a[3]]]; }
 function setImportData(map, d){
   importData = d; importPromise = Promise.resolve(d);
   if(!map) return;
@@ -908,6 +926,6 @@ async function exportImage(map, o){
 function emptyData(){ return {version:1, aktualisiert:null, elemente:[]}; }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
-window.Karte = {setRefDate, standSummary, STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
+window.Karte = {setRefDate, standSummary, SEITE, changes, gruppen, ensureCids, changeArea, changeBounds, STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
   addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage, exportLayout, farbe, loadImport, replaceFront, nearestEdge, applyFrontEdit, undoFrontEdit, setImportData, refreshImport, importData: ()=>importData, importMeta: ()=>importData && importData.meta};
 })();

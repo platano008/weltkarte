@@ -17,12 +17,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611092146">
+<link rel="stylesheet" href="style.css?v=202611101130">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611092146"></script>
-<script src="werkzeuge.js?v=202611092146"></script>
+<script src="karte.js?v=202611101130"></script>
+<script src="werkzeuge.js?v=202611101130"></script>
 <style>
+.item.chg .ic{width:22px}
+.card{right:calc(max(16px,env(safe-area-inset-right)) + 56px)!important}
+.item .cq{display:block;width:14px;height:14px}
+.grp em{font-style:normal;margin-right:6px}
+.grp em.ru{color:#ff6b7c}
+.grp em.ua{color:#6aa8ff}
 /* Menüs nur bei Bedarf: alles hängt an der Leiste oben rechts */
 .dock{position:fixed;z-index:7;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));display:flex;flex-direction:column;background:rgba(14,15,17,.97);border:1px solid var(--line-2)}
 .dock button{position:relative;width:44px;height:44px;display:grid;place-items:center;background:none;border:0;border-top:1px solid var(--line);color:var(--muted);cursor:pointer;padding:0}
@@ -183,7 +189,10 @@ $("legend").innerHTML = Object.values(K.SIDES).map(s=>`<span><i style="backgroun
 
 /* Lagedaten-Ebenen (Import) */
 const impOff = new Set();
+let chgDeep = /^#chg=(.+)$/.exec(location.hash);
 function renderImp(d){
+  setTimeout(()=>{ renderList(); ensureChgLayers();
+    if(chgDeep){ const cid = decodeURIComponent(chgDeep[1]); chgDeep = null; if(K.changes().some(f=>f.properties.cid===cid)) setTimeout(()=>chgSelect(cid, true), 300); } }, 0);
   const meta = d && d.meta; if(!meta || !meta.ebenen || !meta.ebenen.length) return;
   const col = id=>{ if(id==="aenderungen") return "linear-gradient(135deg,#ff1f3d 50%,#1f8bff 50%)";
     const fs = d.features.filter(x=>x.properties.ebene===id); if(!fs.length) return "#888";
@@ -204,9 +213,15 @@ const map = K.createMap({onImport: d=>renderImp(d), onNotice: t=>toast(t), globe
   ["lage-hit","lage-area-fill"].forEach(l=>{ m.on("mouseenter",l,()=>m.getCanvas().style.cursor="pointer"); m.on("mouseleave",l,()=>m.getCanvas().style.cursor=""); });
   highlight();
   if(window.WZ) WZ.ensure(m);
+  ensureChgLayers(m);
 }});
 /* Werkzeuge für alle: Lineal, Fläche, Radius, Koordinate */
 map.on("click", ()=>{ if(document.body.classList.contains("d-ansicht")) setDock(null); });
+map.on("click", e=>{
+  if((window.WZ && WZ.active()) || !map.getLayer("imp-change-fill")) return;
+  const h = map.queryRenderedFeatures(e.point, {layers:["imp-change-fill"]});
+  if(h.length && h[0].properties.cid){ chgSelect(h[0].properties.cid); const it = $("list").querySelector(`[data-cid="${h[0].properties.cid}"]`); if(it && !mq.matches) it.scrollIntoView({block:"nearest"}); }
+});
 window.WZ = window.Werkzeuge ? Werkzeuge.init(map, {onStart: ()=>{ select(null); if(mq.matches){ $("panel").classList.add("closed"); panelOffset(); } }}) : null;
 const hideLoading = ()=>$("loading").classList.add("done");
 map.on("load", hideLoading); setTimeout(hideLoading, 8000);
@@ -255,16 +270,66 @@ function measure(el){
   return "";
 }
 const fmtDate = d => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d||""); return m ? `${m[3]}.${m[2]}.${m[1]}` : (d||""); };
+/* ===== Leiste: Veränderungen der Front, nach Gruppen (Offensiven) ===== */
+let chgSel = null;
+const nfA = new Intl.NumberFormat("de-DE",{maximumFractionDigits:1});
+const CCOL = {ru:"#d8344a", ua:"#2f7fe0", grau:"#c9c9c9"};
+const dirLabel = x=>/richtung/i.test(x) ? x : x + "-Richtung";
+function chgTitle(p){ return p.name || K.SEITE[p.richtung] || "Veränderung"; }
+function chgMatch(f, gname){ if(!query) return true; const p = f.properties;
+  return [p.name, p.direktion, gname, K.SEITE[p.richtung], fmtDate(p.datum)].some(v=>v && String(v).toLowerCase().includes(query)); }
 function renderList(){
-  const items = visible().filter(matches);
+  const d = K.importData(); if(d && K.ensureCids(d)) K.refreshImport(map);
+  const all = K.changes(d).slice().sort((a,b)=>(b.properties.datum||"").localeCompare(a.properties.datum||""));
+  const groups = K.gruppen(d), gName = id=>{ const g = groups.find(x=>x.id===id); return g ? g.name : ""; };
+  const shown = all.filter(f=>chgMatch(f, gName(f.properties.gruppe)));
+  const secs = groups.map(g=>({name:g.name, items: shown.filter(f=>f.properties.gruppe===g.id)}));
+  secs.push({name: groups.length ? "Weitere Veränderungen" : "Veränderungen", items: shown.filter(f=>!groups.some(g=>g.id===f.properties.gruppe))});
   let html = "";
-  for(const [g,label] of Object.entries(GROUPS)){
-    const its = items.filter(el=>groupOf(el)===g); if(!its.length) continue;
-    html += `<div class="grp"><span>${label}</span><span>${its.length}</span></div>` + its.map(el=>`<button class="item${sel&&sel.id===el.id?" sel":""}" data-id="${esc(el.id)}">${icon(el)}<span><b>${esc(el.name||K.describe(el))}</b>${el.name?`<span class="c">${esc(K.describe(el))}</span>`:""}</span><span class="km">${measure(el)||fmtDate(el.datum)}</span></button>`).join("");
+  for(const sec of secs){ if(!sec.items.length) continue;
+    const ru = sec.items.filter(f=>f.properties.richtung==="ru").reduce((t,f)=>t+K.changeArea(f),0), ua = sec.items.filter(f=>f.properties.richtung==="ua").reduce((t,f)=>t+K.changeArea(f),0);
+    html += `<div class="grp"><span>${esc(sec.name)}</span><span>${ru?`<em class="ru">+${nfA.format(ru)}</em>`:""}${ua?`<em class="ua">+${nfA.format(ua)}</em>`:""}${ru||ua?" km²":""} · ${sec.items.length}</span></div>`;
+    html += sec.items.map(f=>{ const p = f.properties;
+      const sub = [p.direktion ? dirLabel(p.direktion) : "", fmtDate(p.datum)].filter(Boolean).join(" · ");
+      return `<button class="item chg${chgSel===p.cid?" sel":""}" data-cid="${esc(p.cid)}"><span class="ic"><i class="cq" style="background:${CCOL[p.richtung]||CCOL.grau}"></i></span><span><b>${esc(chgTitle(p))}</b><span class="c">${esc(sub)}</span></span><span class="km">${nfA.format(K.changeArea(f))} km²</span></button>`; }).join("");
   }
-  $("list").innerHTML = html || `<div class="empty">${!DATA.elemente.length ? "Noch keine Einträge auf der Karte." : query ? "Nichts gefunden." : "Keine Kategorie ausgewählt."}</div>`;
-  $("list").querySelectorAll(".item[data-id]").forEach(b=>b.onclick=()=>{ select(DATA.elemente.find(x=>x.id===b.dataset.id), true); if(mq.matches) $("panel").classList.add("closed"); });
-  $("count").textContent = `${DATA.elemente.length} Einträge`;
+  $("list").innerHTML = html || `<div class="empty">${!all.length ? "In diesem Stand gibt es noch keine eingetragenen Veränderungen." : "Nichts gefunden."}</div>`;
+  $("list").querySelectorAll(".item[data-cid]").forEach(b=>b.onclick=()=>{ chgSelect(chgSel===b.dataset.cid ? null : b.dataset.cid, true); });
+  $("count").textContent = `${all.length} Veränderung${all.length===1?"":"en"}`;
+  $("searchWrap").hidden = all.length < 6;
+}
+function ensureChgLayers(m){
+  m = m || map;
+  try{
+    if(!m.getSource("imp")) return;
+    if(!m.getLayer("chg-sel-fill")) m.addLayer({id:"chg-sel-fill", type:"fill", source:"imp", filter:["==",["get","cid"],"__none"], paint:{"fill-color":"#ffffff","fill-opacity":0.22}});
+    if(!m.getLayer("chg-sel-line")) m.addLayer({id:"chg-sel-line", type:"line", source:"imp", filter:["==",["get","cid"],"__none"], paint:{"line-color":"#ffffff","line-width":2.5}});
+    const f = ["==",["get","cid"], chgSel || "__none"]; m.setFilter("chg-sel-fill", f); m.setFilter("chg-sel-line", f);
+  }catch(e){}
+}
+function chgSelect(cid, fly){
+  if(cid && sel) select(null);
+  chgSel = cid || null; ensureChgLayers(); renderList();
+  const card = $("card"), f = cid ? K.changes().find(x=>x.properties.cid===cid) : null;
+  try{ history.replaceState(null, "", f ? "#chg=" + encodeURIComponent(cid) : location.pathname + (location.hash.startsWith("#stand=") ? location.hash : "")); }catch(e){}
+  if(!f){ if(!sel) card.hidden = true; return; }
+  const p = f.properties, g = K.gruppen().find(x=>x.id===p.gruppe);
+  card.innerHTML = `<div class="row"><h2>${esc(chgTitle(p))}</h2><button class="x" id="cx" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="stripe" style="background:${CCOL[p.richtung]||CCOL.grau}"></div>
+    <div class="meta"><span>${esc(K.SEITE[p.richtung]||"")}</span><span>${nfA.format(K.changeArea(f))} km²</span>${p.datum?`<span>${esc(fmtDate(p.datum))}</span>`:""}</div>
+    ${p.direktion||g ? `<div class="meta">${p.direktion?`<span>${esc(dirLabel(p.direktion))}</span>`:""}${g?`<span>${esc(g.name)}</span>`:""}</div>` : ""}
+    <div class="acts"><button id="cLink">Link kopieren</button><button id="cZoom">Hinzoomen</button></div>`;
+  card.hidden = false;
+  $("cx").onclick = ()=>chgSelect(null);
+  $("cZoom").onclick = ()=>flyChg(f);
+  $("cLink").onclick = ()=>{ const url = location.href.split("#")[0] + "#chg=" + encodeURIComponent(cid);
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(()=>toast("Link kopiert"), ()=>prompt("Link:", url)); else prompt("Link:", url); };
+  if(fly) flyChg(f);
+}
+function flyChg(f){
+  if(mq.matches){ $("panel").classList.add("closed"); panelOffset(); }
+  const pad = mq.matches ? {top:200, bottom:110, left:40, right:70} : {top:80, bottom:80, left: document.body.classList.contains("panel-gone") ? 80 : 400, right:90};
+  try{ map.fitBounds(K.changeBounds(f), {padding:pad, maxZoom:11.5, duration:900}); }catch(e){}
 }
 $("q").oninput = e=>{ query = e.target.value.trim().toLowerCase(); renderList(); };
 function highlight(){
