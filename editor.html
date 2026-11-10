@@ -12,10 +12,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611101850">
+<link rel="stylesheet" href="style.css?v=202611101900">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611101850"></script>
+<script src="karte.js?v=202611101900"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -577,7 +577,7 @@ function shotOpts(o){
     <div class="row"><button class="btn volt" id="sGo">Bild erstellen</button></div>
     <div class="vidbox">
       <div class="eyebrow"><span>Wochenvideo</span></div>
-      <div class="hint">Die Änderungen eines Zeitraums erscheinen Tag für Tag, mit km²-Zähler und Logo. Der Ausschnitt wird automatisch gewählt.</div>
+      <div class="hint">Die Änderungen eines Zeitraums erscheinen Tag für Tag, Pfeile wachsen herein, die Kamera fährt mit. Mit km²-Zähler, Übersichtskarte und Logo. Der Ausschnitt wird automatisch gewählt.</div>
       <div class="grid2"><div><label class="lbl" for="vVon">Von</label><input class="f" type="date" id="vVon" value="${esc(vid.von)}"></div>
         <div><label class="lbl" for="vBis">Bis</label><input class="f" type="date" id="vBis" value="${esc(vid.bis)}"></div></div>
       <div><span class="lbl">Format</span>${seg("vfmt", {"16:9":"16:9 · Twitter","1:1":"1:1","9:16":"9:16 · Story"}, vid.format)}</div>
@@ -611,7 +611,7 @@ async function makeVideo(){
   if(busyVid) return; busyVid = true;
   const btn = $("vGo"); btn.disabled = true;
   try{
-    const r = await K.exportWeekVideo(map, {von:vid.von, bis:vid.bis, format:vid.format, title:(vid.title||"").trim() || "Wochenrückblick", credit:(shot.credit||"").trim() || "Plyus",
+    const r = await K.exportWeekVideo(map, {von:vid.von, bis:vid.bis, format:vid.format, title:(vid.title||"").trim() || "Wochenrückblick", elements:DATA.elemente, credit:(shot.credit||"").trim() || "Plyus",
       onProgress:(p, msg)=>{ btn.textContent = p > 0 ? `Aufnahme ${Math.round(p*100)} %` : msg; }});
     if(shotUrl) URL.revokeObjectURL(shotUrl);
     shotUrl = URL.createObjectURL(r.blob);
