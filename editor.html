@@ -12,10 +12,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611101928">
+<link rel="stylesheet" href="style.css?v=202611101941">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611101928"></script>
+<script src="karte.js?v=202611101941"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -577,7 +577,7 @@ function shotOpts(o){
     <div class="row"><button class="btn volt" id="sGo">Bild erstellen</button></div>
     <div class="vidbox">
       <div class="eyebrow"><span>Wochenvideo</span></div>
-      <div class="hint">Die Kamera fliegt von der Übersicht nah an jede Änderung heran und wieder heraus. Pfeile wachsen herein, dann erscheint die Änderung. Mit km²-Zähler, Übersichtskarte und Logo. Das Erstellen dauert je nach PC 20 Sekunden bis wenige Minuten.</div>
+      <div class="hint">Ruhige Kamerafahrt von der Übersicht leicht an jede Änderung heran und wieder zurück. Pfeile wachsen herein, dann erscheint die Änderung. Mit km²-Zähler, Übersichtskarte und Logo. Das Erstellen kann ein paar Minuten dauern.</div>
       <div class="grid2"><div><label class="lbl" for="vVon">Von</label><input class="f" type="date" id="vVon" value="${esc(vid.von)}"></div>
         <div><label class="lbl" for="vBis">Bis</label><input class="f" type="date" id="vBis" value="${esc(vid.bis)}"></div></div>
       <div><span class="lbl">Format</span>${seg("vfmt", {"16:9":"16:9 · Twitter","1:1":"1:1","9:16":"9:16 · Story"}, vid.format)}</div>
@@ -595,7 +595,7 @@ function shotOpts(o){
   $("sLeg").onchange = e=>{ shot.legend=e.target.checked; saveShot(); };
   $("sOv").onchange = e=>{ shot.overview=e.target.checked; saveShot(); };
   $("sGo").onclick = makeShot;
-  const cnt = ()=>{ const n = K.weekChanges(vid.von, vid.bis).length; $("vCount").textContent = n ? `${n} Änderung${n===1?"":"en"} im Zeitraum · Video etwa ${Math.round(9 + n*3)} Sekunden` : "Keine Änderungen in diesem Zeitraum."; $("vGo").disabled = !n || busyVid; };
+  const cnt = ()=>{ const n = K.weekChanges(vid.von, vid.bis).length; $("vCount").textContent = n ? `${n} Änderung${n===1?"":"en"} im Zeitraum · Video etwa ${Math.round(11 + n*6)} Sekunden` : "Keine Änderungen in diesem Zeitraum."; $("vGo").disabled = !n || busyVid; };
   $("vVon").onchange = e=>{ vid.von = e.target.value || vid.von; cnt(); };
   $("vBis").onchange = e=>{ vid.bis = e.target.value || vid.bis; cnt(); };
   $("vTitle").oninput = e=>{ vid.title = e.target.value; };
