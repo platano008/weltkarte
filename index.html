@@ -17,7 +17,7 @@ if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611101139">
+<link rel="stylesheet" href="style.css?v=202611101355">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -44,8 +44,22 @@ a{color:inherit}
   linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px) 0 0/64px 64px,
   radial-gradient(ellipse at 70% 45%,#171a1f 0%,var(--bg) 70%)}
 #hero{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-#viz{position:absolute;right:0;top:4%;width:min(76%,1180px);height:92%;opacity:0;transition:opacity 1.2s}
-#viz.on{opacity:1}
+/* Lagebild: fliegt schräg in 3D herein, folgt danach leicht der Maus */
+#vizbox{position:absolute;right:0;top:50%;width:min(76%,1180px);aspect-ratio:3/2;transform:translateY(-50%);perspective:1400px}
+.tilt{position:absolute;inset:0;transform-style:preserve-3d;opacity:0;will-change:transform}
+.tilt.on{opacity:1;animation:flyin 2.4s cubic-bezier(.16,.8,.2,1) both}
+.tilt.done{animation:none;opacity:1;will-change:auto}
+.tilt.live{will-change:transform;transform:rotateX(calc(var(--ty,0)*-2.2deg)) rotateY(calc(var(--tx,0)*3.2deg));transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+@keyframes flyin{from{opacity:0;transform:rotateX(62deg) rotateZ(-14deg) scale(.62) translate3d(6%,18%,0)}35%{opacity:1}to{opacity:1;transform:none}}
+#viz{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+/* Radar: dreht sich um den Schwerpunkt der Front (nur transform, läuft auf der Grafikkarte) */
+.radar{position:absolute;width:56%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;opacity:0;animation:fadeIn 1.4s 3.2s both}
+.radar::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,rgba(255,59,82,0) 0deg,rgba(255,59,82,0) 300deg,rgba(255,59,82,.20) 357deg,rgba(255,120,135,.55) 360deg);-webkit-mask:radial-gradient(circle,transparent 0,#000 1%,#000 62%,transparent 70%);mask:radial-gradient(circle,transparent 0,#000 1%,#000 62%,transparent 70%);animation:spin 7s linear infinite;will-change:transform}
+.radar::after{content:"";position:absolute;inset:19%;border-radius:50%;border:1px solid rgba(255,255,255,.08);box-shadow:0 0 0 1px rgba(14,15,17,.4)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes flyin2{from{opacity:0;transform:scale(1.3) translateY(7%)}to{opacity:1;transform:none}}
+@keyframes ping{from{transform:scale(.15);opacity:1}to{transform:scale(1.7);opacity:0}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .scan{position:absolute;top:0;bottom:0;left:0;width:22%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.045),transparent);animation:scan 11s linear infinite;will-change:transform}
 @keyframes scan{from{transform:translateX(-100%)}to{transform:translateX(560%)}}
 .hud{position:absolute;right:max(16px,3vw);top:96px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);text-align:right;line-height:1.9}
@@ -56,21 +70,40 @@ a{color:inherit}
 /* Kartengrafik */
 .v-grid{stroke:rgba(255,255,255,.07);stroke-width:1;stroke-dasharray:2 6;fill:none}
 .v-lbl{fill:#565b63;font:10px "IBM Plex Mono",monospace;letter-spacing:.08em}
-.v-ua{fill:#15181c;stroke:#4a4f57;stroke-width:1}
-.v-gz{fill:#9aa0a8;fill-opacity:.16}
-.v-ru{fill:#c21d2e;fill-opacity:.34}
-.v-front{fill:none;stroke:#e0485a;stroke-width:1.6;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 2.8s cubic-bezier(.6,0,.2,1) .3s forwards}
-.v-glow{fill:none;stroke:#ff3b52;stroke-opacity:.14;stroke-width:7;stroke-linejoin:round;opacity:0;animation:fade 1.2s 2.6s forwards}
-@keyframes draw{to{stroke-dashoffset:0}}
-@keyframes fade{to{opacity:1}}
-.v-unit{opacity:0;animation:fade .5s forwards}
-.v-chg{fill:#ff3b52;fill-opacity:.85}
-.v-pulse{fill:none;stroke:#ff3b52;stroke-width:1.5;transform-box:fill-box;transform-origin:center;animation:pulse2 2.4s ease-out infinite}
+.v-ua{fill:#15181c;stroke:#4a4f57;stroke-width:1;stroke-dasharray:1;animation:draw 1.9s cubic-bezier(.5,0,.2,1) .5s both,fillUa 1.2s 1.5s both}
+@keyframes fillUa{from{fill-opacity:0}to{fill-opacity:1}}
+.v-gz{fill:#9aa0a8;fill-opacity:.16;animation:fadeIn 1s 2.2s both}
+.v-ru{fill:#c21d2e;fill-opacity:.34;animation:fadeIn 1.4s 2s both}
+.v-front{fill:none;stroke:#e0485a;stroke-width:1.6;stroke-linejoin:round;stroke-dasharray:1;animation:draw 2.6s cubic-bezier(.6,0,.2,1) 2s both}
+.v-glow{fill:none;stroke:#ff3b52;stroke-opacity:.14;stroke-width:7;stroke-linejoin:round;animation:fadeIn 1.2s 4.2s both}
+@keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+.v-unit{transform-box:fill-box;transform-origin:center;animation:pop .5s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes pop{from{opacity:0;transform:scale(0) rotate(45deg)}}
+.v-chg{fill:#ff3b52;fill-opacity:.85;animation:flash 1.1s 4.6s both}
+@keyframes flash{0%{opacity:0}30%{opacity:1;fill:#fff}100%{opacity:1}}
+/* Dauer-Effekte liegen als kleine eigene Ebenen über der Grafik: nur transform/opacity, die große Grafik wird nicht neu gezeichnet */
+.ov{position:absolute;left:0;top:0;transform-origin:0 0;pointer-events:none}
+.v-pulse{fill:none;stroke:#ff3b52;stroke-width:1.5;transform-box:fill-box;transform-origin:center;animation:pulse2 2.4s ease-out 4.8s infinite backwards}
 @keyframes pulse2{from{transform:scale(.3);opacity:1}to{transform:scale(2.6);opacity:0}}
+.v-ret{transform-box:fill-box;transform-origin:center;animation:lock 1.1s cubic-bezier(.2,.8,.2,1) 5s both}
+.v-ret path{fill:none;stroke:#f2f3f5;stroke-width:1.6}
+.v-ret circle{fill:none;stroke:#f2f3f5;stroke-width:1;stroke-dasharray:3 5}
+@keyframes lock{from{opacity:0;transform:scale(5) rotate(90deg)}60%{opacity:1}}
+/* Lauflicht: ein Lichtpunkt mit Schweif fährt die Front entlang */
+.ov .run{position:absolute;left:0;top:0;width:46px;height:3px;margin:-1.5px 0 0 -46px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,160,170,.7) 70%,#fff);border-radius:2px;box-shadow:0 0 10px 1px rgba(255,90,110,.55);offset-rotate:auto;offset-anchor:100% 50%;offset-distance:0%;opacity:0;animation:fadeIn .6s 4.4s both,runp 22s linear 4.4s infinite;will-change:transform}
+@keyframes runp{to{offset-distance:100%}}
+/* Sparmodus: schaltet sich selbst ein, wenn das Gerät die Effekte nicht flüssig schafft */
+.lite #vizbox{perspective:none}
+.lite .tilt{transform:none!important;will-change:auto;transition:none;animation:none!important;opacity:1}
+.lite .radar,.lite .ov .run,.lite .scan{display:none}
+.v-callg{animation:fadeIn .7s 5.9s both}
+/* nach dem Intro: Einmal-Animationen ablegen, damit nichts mehr mitgerechnet wird */
+.settled .v-ua,.settled .v-front,.settled .v-gz,.settled .v-ru,.settled .v-glow,.settled .v-unit,.settled .v-chg,.settled .v-callg,.settled .v-ret{animation:none}
+.settled .v-ua,.settled .v-front{stroke-dasharray:none}
 .v-call{stroke:#f2f3f5;stroke-width:1;fill:none}
 .v-callt{fill:#f2f3f5;font:500 12px "IBM Plex Mono",monospace;letter-spacing:.06em}
 .v-calls{fill:#8b9099;font:10px "IBM Plex Mono",monospace;letter-spacing:.08em}
-.paused *{animation-play-state:paused!important}
+.paused *,.paused *::before{animation-play-state:paused!important}
 /* Einblenden beim Scrollen */
 .rv{opacity:0;transform:translateY(18px);transition:opacity .7s,transform .7s cubic-bezier(.2,.7,.2,1)}
 .rv.in{opacity:1;transform:none}
@@ -84,7 +117,13 @@ a{color:inherit}
 .kicker{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .kicker i{width:8px;height:8px;background:#d8344a;display:inline-block;animation:pulse 2s infinite}
 @keyframes pulse{50%{opacity:.25}}
-.hero h1{font-size:clamp(84px,17vw,220px);line-height:.82;letter-spacing:.01em;margin:18px 0 calc(.2em + 14px) -.04em}
+.hero h1{font-size:clamp(84px,17vw,220px);line-height:.82;letter-spacing:.01em;margin:18px 0 calc(.2em + 14px) -.04em;perspective:900px;animation:none!important;display:table}
+.hero h1.done{perspective:none}
+.hero h1.done span,.hero h1.done::after{animation:none}
+.hero h1 span{display:inline-block;transform-origin:50% 100%;animation:letter 1s cubic-bezier(.16,.9,.2,1) both}
+@keyframes letter{from{opacity:0;transform:translateY(55%) rotateX(-85deg) scale(.9)}}
+.hero h1::after{content:"";display:block;height:3px;width:100%;background:var(--volt);margin-top:.16em;transform-origin:0 50%;animation:bar .9s cubic-bezier(.7,0,.2,1) .55s both}
+@keyframes bar{from{transform:scaleX(0)}}
 .lead{max-width:30em;font-size:clamp(16px,1.6vw,19px);color:#c9ccd2;margin:0 0 30px}
 .cta{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:10px}
 .btn-l{display:inline-flex;align-items:center;gap:12px;padding:15px 22px;font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;border:1px solid var(--line-2);color:var(--fg);background:rgba(14,15,17,.6)}
@@ -157,13 +196,18 @@ footer a{color:var(--muted)}
   .stat{padding:20px 14px 22px}
   .cta{grid-template-columns:repeat(3,1fr)}
   .cta .btn-l{flex-direction:column;justify-content:center;gap:8px;padding:14px 6px;font-size:11px;letter-spacing:.08em}
-  #viz{width:200%;right:-22%;top:-6%;height:74%}
+  #vizbox{width:200%;right:-22%;top:-2%;transform:none;perspective:none}
+  /* Handy: gleiche Abfolge, aber ohne 3D-Kippen und mit einfachem Radar-Ping statt drehendem Kegel (schont Akku und Grafik) */
+  .tilt{will-change:auto}
+  .tilt.on{animation:flyin2 1.7s cubic-bezier(.16,.8,.2,1) both}
+  .radar::before{background:none;-webkit-mask:none;mask:none;inset:32%;border:1px solid rgba(255,96,116,.6);animation:ping 3.4s ease-out 3.2s infinite backwards}
+  .radar::after{display:none}
   .hud{display:none}
   .blk-h{flex-direction:column;align-items:flex-start;gap:10px}
   .band .wrap{flex-direction:column;align-items:flex-start}
   section.blk{padding-top:56px}
 }
-@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front{stroke-dasharray:none}.v-glow,.v-unit,.rv,#viz{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front,.v-ua{stroke-dasharray:none}.ov .run,.radar{display:none}.rv,.tilt{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -174,11 +218,11 @@ footer a{color:var(--muted)}
 </div></header>
 
 <section class="hero">
-  <div id="hero" aria-hidden="true"><svg id="viz"></svg><div class="scan"></div><span class="brk a"></span><span class="brk b"></span>
+  <div id="hero" aria-hidden="true"><div id="vizbox"><div class="tilt" id="tilt"><svg id="viz"></svg><div class="radar" id="radar"></div><div class="ov" id="ov"></div></div></div><div class="scan"></div><span class="brk a"></span><span class="brk b"></span>
     <div class="hud"><div>Sektor <b>Ukraine</b></div><div>Lagedaten <b id="hudSrc">–</b></div><div>Veränderungen 14T <b id="hudChg">–</b></div></div></div>
   <div class="wrap">
     <div class="kicker"><i></i><span id="kick">Lagekarte Ukraine</span></div>
-    <h1>Plyus</h1>
+    <h1 aria-label="Plyus"><span aria-hidden="true" style="animation-delay:0.12s">P</span><span aria-hidden="true" style="animation-delay:0.20s">l</span><span aria-hidden="true" style="animation-delay:0.28s">y</span><span aria-hidden="true" style="animation-delay:0.36s">u</span><span aria-hidden="true" style="animation-delay:0.44s">s</span></h1>
     <p class="lead">Frontverlauf, Veränderungen, Bewegungen und Einheiten auf einer Karte. Nüchtern dargestellt und regelmäßig aktualisiert.</p>
     <div class="cta">
       <a class="btn-l solid" href="karte.html"><svg viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15M15 6v15"/></svg>Karte</a>
@@ -274,7 +318,7 @@ function drawViz(imp, recent){
   x0 = Math.max(x0, 21.8); x1 = Math.min(x1, 41); y0 = Math.max(y0, 44); y1 = Math.min(y1, 52.6);
   const kx = Math.cos((y0+y1)/2*Math.PI/180), S = 100, pad = 30;
   const W = (x1-x0)*kx*S + 2*pad, H = (y1-y0)*S + 2*pad;
-  svg.setAttribute("viewBox", `0 0 ${W.toFixed(0)} ${H.toFixed(0)}`); svg.setAttribute("preserveAspectRatio","xMaxYMid meet");
+  svg.setAttribute("viewBox", `0 0 ${W.toFixed(0)} ${H.toFixed(0)}`); svg.setAttribute("preserveAspectRatio","xMidYMid meet"); $("vizbox").style.aspectRatio = W.toFixed(0) + " / " + H.toFixed(0);
   const P = ([x,y])=>[pad + (x-x0)*kx*S, pad + (y1-y)*S];
   const d = (ring, tol)=>{ const q = ring.map(P); let m = 1, md = 0; q.forEach((r,k)=>{ const dd = Math.hypot(r[0]-q[0][0], r[1]-q[0][1]); if(dd > md){ md = dd; m = k; } });
     const p = simplify(q.slice(0, m+1), tol).concat(simplify(q.slice(m), tol).slice(1)); return "M" + p.map(q=>q[0].toFixed(1)+" "+q[1].toFixed(1)).join("L") + "Z"; };
@@ -285,22 +329,50 @@ function drawViz(imp, recent){
   /* Seite nach Füllfarbe aus der Datei: rötlich = russisch, sonst ukrainisch (manche Ebenen sind in der Quelle gemischt) */
   const isRed = f=>{ const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(f.properties.fuellung||""); return m ? parseInt(m[1],16) > parseInt(m[3],16) + 40 : f.properties.ebene==="russian-terr"; };
   const terr = area.filter(f=>/ukraine-terr|russian-terr/.test(f.properties.ebene));
-  terr.filter(f=>!isRed(f)).forEach(f=>polys(f).forEach(p=>el("path",{d:d(p[0],0.8),class:"v-ua"},g)));
+  terr.filter(f=>!isRed(f)).forEach(f=>polys(f).forEach(p=>el("path",{d:d(p[0],0.8),class:"v-ua",pathLength:1},g)));
   area.filter(f=>f.properties.ebene==="gray-zone").forEach(f=>polys(f).forEach(p=>el("path",{d:d(p[0],0.8),class:"v-gz"},g)));
   const ru = terr.filter(isRed);
   ru.forEach(f=>polys(f).forEach(p=>el("path",{d:d(p[0],0.6),class:"v-ru"},g)));
-  ru.forEach(f=>polys(f).forEach(p=>{ const dd = d(p[0],0.6); el("path",{d:dd,class:"v-glow"},g); el("path",{d:dd,class:"v-front",pathLength:1},g); }));
+  let big = null;
+  ru.forEach(f=>polys(f).forEach(p=>{ const dd = d(p[0],0.6); el("path",{d:dd,class:"v-glow"},g); el("path",{d:dd,class:"v-front",pathLength:1},g); if(!big || p[0].length > big.n) big = {n:p[0].length, d:dd, ring:p[0]}; }));
+  /* Überlagerung in Zeichen-Koordinaten, wird mit der Grafik mitskaliert */
+  const ov = $("ov"); ov.innerHTML = ""; ov.style.width = W.toFixed(0) + "px"; ov.style.height = H.toFixed(0) + "px";
+  const fit = ()=>{ ov.style.transform = "scale(" + ($("vizbox").clientWidth / W).toFixed(4) + ")"; };
+  fit(); if("ResizeObserver" in window) new ResizeObserver(fit).observe($("vizbox")); else addEventListener("resize", fit);
+  const hv = (cls, x, y, html)=>{ const n = document.createElement("div"); n.className = cls; n.style.left = x.toFixed(1) + "px"; n.style.top = y.toFixed(1) + "px"; if(html) n.innerHTML = html; ov.appendChild(n); return n; };
+  /* Lauflicht auf der längsten Frontlinie */
+  if(big && window.CSS && CSS.supports && CSS.supports("offset-path", "path('M0 0L1 1')")){ const r = hv("run", 0, 0); r.style.offsetPath = "path('" + big.d + "')"; }
   /* Großverbände als Punkte */
   F.filter(f=>f.properties && f.properties.art==="symbol" && f.properties.ebene==="units" && f.geometry && f.geometry.type==="Point").forEach((f,k)=>{
     const [x,y] = P(f.geometry.coordinates), sid = (f.properties.sidc||"")[1], col = sid==="H" ? "#ff7685" : sid==="F" ? "#6aa8ff" : "#c9ccd2";
-    el("rect",{x:(x-3).toFixed(1),y:(y-3).toFixed(1),width:6,height:6,fill:col,class:"v-unit",style:`animation-delay:${(2.2+k*0.04).toFixed(2)}s`},g); });
+    el("rect",{x:(x-3).toFixed(1),y:(y-3).toFixed(1),width:6,height:6,fill:col,class:"v-unit",style:`animation-delay:${(3.4+k*0.045).toFixed(2)}s`},g); });
   /* Veränderungen: kräftig, mit Puls */
   recent.forEach(x=>{ polys({geometry:x.g}).forEach(p=>el("path",{d:d(p[0],0.3),class:"v-chg"},g)); const [cx,cy] = P(x.c); el("circle",{cx,cy,r:10,class:"v-pulse"},g); });
   if(recent[0]){ const x = recent.reduce((a,b)=>b.km2>a.km2?b:a), [cx,cy] = P(x.c), tx = Math.max(cx-300, 20), ty = Math.max(cy-80, 40);
-    el("path",{d:`M${cx-6} ${cy-6}L${tx+208} ${ty+8}H${tx}`,class:"v-call"},g);
-    el("text",{x:tx,y:ty,class:"v-callt"},g).textContent = "+" + nf.format(x.km2) + " km² · " + (x.p.datum ? fmtD(x.p.datum).slice(0,6) : "");
-    el("text",{x:tx,y:ty-18,class:"v-calls"},g).textContent = "LETZTE VERÄNDERUNG"; }
-  requestAnimationFrame(()=>svg.classList.add("on"));
+    const r = el("g",{class:"v-ret"},g); el("circle",{cx,cy,r:22},r);
+    el("path",{d:`M${cx-30} ${cy-18}V${cy-30}H${cx-18}M${cx+18} ${cy-30}H${cx+30}V${cy-18}M${cx+30} ${cy+18}V${cy+30}H${cx+18}M${cx-18} ${cy+30}H${cx-30}V${cy+18}`},r);
+    const cg = el("g",{class:"v-callg"},g);
+    el("path",{d:`M${cx-30} ${cy-30}L${tx+208} ${ty+8}H${tx}`,class:"v-call"},cg);
+    el("text",{x:tx,y:ty,class:"v-callt"},cg).textContent = "+" + nf.format(x.km2) + " km² · " + (x.p.datum ? fmtD(x.p.datum).slice(0,6) : "");
+    el("text",{x:tx,y:ty-18,class:"v-calls"},cg).textContent = "LETZTE VERÄNDERUNG"; }
+  /* Radar um den Schwerpunkt der Front */
+  const rc = recent[0] ? P(recent.reduce((a,b)=>b.km2>a.km2?b:a).c) : big ? P(big.ring.reduce((s,q)=>[s[0]+q[0]/big.ring.length, s[1]+q[1]/big.ring.length],[0,0])) : [W*.7,H*.5];
+  $("radar").style.left = (rc[0]/W*100).toFixed(2) + "%"; $("radar").style.top = (rc[1]/H*100).toFixed(2) + "%";
+  const tilt = $("tilt");
+  requestAnimationFrame(()=>tilt.classList.add("on"));
+  setTimeout(()=>{ const h = document.querySelector(".hero h1"); if(h) h.classList.add("done"); }, 2200);
+  setTimeout(()=>tilt.classList.add("done"), 2600);
+  setTimeout(()=>svg.classList.add("settled"), 7200);
+  /* Selbsttest: läuft es nach dem Einflug nicht flüssig, werden die Dauer-Effekte abgeschaltet */
+  setTimeout(()=>{ if(document.hidden) return; let n = 0; const t0 = performance.now();
+    (function tick(t){ n++; if(t - t0 < 1600) requestAnimationFrame(tick); else if(n / ((t - t0)/1000) < 42) document.querySelector(".hero").classList.add("lite"); })(t0); }, 7000);
+  /* nach dem Einflug: leichtes Mitkippen mit der Maus (nur mit Maus, nicht am Handy) */
+  if(matchMedia("(hover:hover) and (pointer:fine)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches){
+    setTimeout(()=>{ tilt.classList.add("live"); let raf = 0, mx = 0, my = 0; const hero = document.querySelector(".hero");
+      hero.addEventListener("mousemove", e=>{ const r = hero.getBoundingClientRect(); mx = (e.clientX-r.left)/r.width*2-1; my = (e.clientY-r.top)/r.height*2-1;
+        if(!raf) raf = requestAnimationFrame(()=>{ raf = 0; tilt.style.setProperty("--tx", mx.toFixed(3)); tilt.style.setProperty("--ty", my.toFixed(3)); }); });
+      hero.addEventListener("mouseleave", ()=>{ tilt.style.setProperty("--tx", 0); tilt.style.setProperty("--ty", 0); }); }, 2600);
+  }
 }
 /* Animationen anhalten, wenn der Kopfbereich nicht sichtbar ist (spart Akku) */
 if("IntersectionObserver" in window){
