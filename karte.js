@@ -799,19 +799,19 @@ async function exportWeekVideo(map, o){
   (o.elements||[]).filter(el=>el.typ==="pfeil" && el.koordinaten && el.koordinaten.length>1).forEach(el=>{
     const full = arrow(el.koordinaten); if(!full.body) return;
     const axis = full.axis.map(c=>merc(c[0], c[1], ZR)), fw = arrow(axis, null, true); if(!fw.body) return;
-    const tipLL = el.koordinaten[el.koordinaten.length-1], headLL = cutLine(full.axis, 0.5);
+    const tipLL = el.koordinaten[el.koordinaten.length-1], headLL = cutLine(full.axis, 0.72);
     arrows.push({axis, L: fw.L, tipLL, s0: P0(tipLL), headLL: headLL[headLL.length-1], col: farbe(el.farbe), dash: el.stil==="gestrichelt"}); });
   /* Gebiete: nahe Änderungen zusammenfassen, Reihenfolge entlang der Front */
-  let clusters = []; const near = W*0.2;
+  let clusters = []; const near = W*0.04;
   for(const it of items.slice().sort((a,b)=>a.s0[0] - b.s0[0])){
-    const c = clusters.find(c=>c.items.length < 5 && c.items.some(x=>Math.hypot(x.s0[0]-it.s0[0], x.s0[1]-it.s0[1]) < near));
-    if(c) c.items.push(it); else clusters.push({items:[it]}); }
-  clusters.forEach(c=>{ c.sx = c.items.reduce((s,x)=>s+x.s0[0],0)/c.items.length; c.sy = c.items.reduce((s,x)=>s+x.s0[1],0)/c.items.length; });
+    const c = clusters.find(c=>c.items.length < 4 && Math.hypot(c.sx - it.s0[0], c.sy - it.s0[1]) < near);
+    if(c){ c.items.push(it); c.sx = c.items.reduce((s,x)=>s+x.s0[0],0)/c.items.length; c.sy = c.items.reduce((s,x)=>s+x.s0[1],0)/c.items.length; }
+    else clusters.push({items:[it], sx: it.s0[0], sy: it.s0[1]}); }
   { const rest = clusters.slice().sort((a,b)=>a.sx - b.sx), path = [rest.shift()];
     while(rest.length){ const l = path[path.length-1]; rest.sort((a,b)=>Math.hypot(a.sx-l.sx,a.sy-l.sy) - Math.hypot(b.sx-l.sx,b.sy-l.sy)); path.push(rest.shift()); }
     clusters = path; }
   arrows.forEach(a=>{ let best = null, bd = Infinity; clusters.forEach(c=>c.items.forEach(it=>{ const d = Math.hypot(a.s0[0]-it.s0[0], a.s0[1]-it.s0[1]); if(d < bd){ bd = d; best = c; } }));
-    if(best && bd < near*1.2){ a.cl = best; (best.arrows = best.arrows || []).push(a); } });
+    if(best && bd < W*0.2){ a.cl = best; (best.arrows = best.arrows || []).push(a); } });
   /* Kamera je Gebiet: nah heran, schräg von vorn */
   const PITCH = 50, BEAR = -14;
   clusters.forEach(c=>{ let b = [180,90,-180,-90]; const add = (x,y)=>{ b = [Math.min(b[0],x),Math.min(b[1],y),Math.max(b[2],x),Math.max(b[3],y)]; };
@@ -921,15 +921,16 @@ async function exportWeekVideo(map, o){
   }
   async function drawMap(tt){
     const {cam, P, live, nearCam} = await mapFrame(tt);
-    for(const a of arrows){ const p = clamp((tt - a.ta)/AR); if(p > 0 && nearCam(a.tipLL)) drawArrow(a, p, P); }
     for(const it of live){
       const p = clamp((tt - it.ta)/REV); if(p <= 0) continue; const c = COL[it.p.richtung] || COL.grau, e = sine(p);
       g.save(); g.beginPath(); g.arc(it.sc[0], it.sc[1], it.R*1.05*e + 0.5, 0, Math.PI*2); g.clip();
       g.fillStyle = rgba(c, 0.7); g.fill(it.path, "evenodd"); g.restore();
       g.lineJoin = "round"; g.strokeStyle = rgba(c.map(v=>Math.min(255,v+60)), 1); g.lineWidth = 2.4*u; g.globalAlpha = e; g.stroke(it.path); g.globalAlpha = 1;
     }
+    for(const a of arrows){ const p = clamp((tt - a.ta)/AR); if(p > 0 && nearCam(a.tipLL)) drawArrow(a, p, P); }
     g.drawImage(shade, 0, 0);
     for(const it of live){ const a = smooth(clamp((tt - it.ta - 0.8)/0.8)); if(a <= 0) continue; const c = COL[it.p.richtung] || COL.grau;
+      if(it.sc[0] < 30*u || it.sc[0] > W - 560*u || it.sc[1] < 190*u || it.sc[1] > H - 40*u) continue;   /* Schild nur, wenn die Stelle im freien Bild liegt */
       pill((it.p.name ? it.p.name + " · " : "") + "+" + nf.format(it.km2) + " km²", it.sc[0] + 26*u, it.sc[1] - Math.min(it.R*0.6, 70*u) - 46*u, rgba(c,1), a); }
     head(1);
     /* Zähler und Liste */
@@ -1056,6 +1057,7 @@ async function exportWeekVideo(map, o){
     g.setTransform(1,0,0,1,0,0); g.globalAlpha = 1 - xf; g.drawImage(GL.canvas, 0, 0); g.globalAlpha = 1;
     head(smooth(clamp((tt - 0.4)/1.2)));
   }
+  if(o.camPath){ const out = []; for(let i=0;i<Math.ceil(TOTAL*FPS);i++){ const c = cameraAt(i/FPS); out.push([c.c[0], c.c[1], c.z, c.pitch, c.bearing]); } return {total: TOTAL_ALL, t0: T0, cams: out}; }
   if(o.frames){ const out = []; for(const tf of o.frames){ await draw(tf < 0 ? TOTAL_ALL + tf : tf); out.push(cv.toDataURL("image/jpeg", 0.85)); } return {total: TOTAL_ALL, frames: out}; }
 
   /* ---------- 4. Kodieren, Bild für Bild ---------- */
