@@ -12,10 +12,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611102054">
+<link rel="stylesheet" href="style.css?v=202611110925">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611102054"></script>
+<script src="karte.js?v=202611110925"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -58,6 +58,11 @@
 .f:focus{border-color:var(--volt);outline:none}
 textarea.f{min-height:64px;resize:vertical}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vprog{display:flex;flex-direction:column;gap:6px}
+.vprog[hidden]{display:none}
+.vbar{height:8px;background:var(--surface-2);border:1px solid var(--line-2)}
+.vbar i{display:block;height:100%;width:0;background:var(--volt);transition:width .25s linear}
+.vtxt{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
 .vidbox{display:flex;flex-direction:column;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 #shotVid{max-width:100%;max-height:70vh;display:block;background:#000}
 #shotVid[hidden]{display:none}
@@ -577,13 +582,13 @@ function shotOpts(o){
     <div class="row"><button class="btn volt" id="sGo">Bild erstellen</button></div>
     <div class="vidbox">
       <div class="eyebrow"><span>Wochenvideo</span></div>
-      <div class="hint">Vorspann mit Globus, der sich zur Ukraine dreht und die Vorstöße markiert. Danach fliegt die Kamera in die Karte und zeigt Gebiet für Gebiet: erst die Pfeile, dann das neue Gebiet. Das Erstellen kann einige Minuten dauern.</div>
+      <div class="hint">Format 16:9 für Twitter. Vorspann mit Globus, dann fliegt die Kamera schräg und nah an jedes Gebiet: erst die Pfeile, dann das neue Gebiet. Jedes Bild wird einzeln gerendert, das dauert mehrere Minuten. Tab solange offen lassen.</div>
       <div class="grid2"><div><label class="lbl" for="vVon">Von</label><input class="f" type="date" id="vVon" value="${esc(vid.von)}"></div>
         <div><label class="lbl" for="vBis">Bis</label><input class="f" type="date" id="vBis" value="${esc(vid.bis)}"></div></div>
-      <div><span class="lbl">Format</span>${seg("vfmt", {"16:9":"16:9 · Twitter","1:1":"1:1","9:16":"9:16 · Story"}, vid.format)}</div>
       <div><label class="lbl" for="vTitle">Titel</label><input class="f" id="vTitle" value="${esc(vid.title)}" maxlength="40"></div>
       <div class="hint" id="vCount"></div>
       <div class="row"><button class="btn volt" id="vGo">Video erstellen</button></div>
+      <div class="vprog" id="vProg" hidden><div class="vbar"><i id="vBar"></i></div><div class="vtxt"><span id="vMsg">Wird vorbereitet …</span><span id="vEta"></span></div></div>
     </div>`;
   o.querySelectorAll("[data-lay]").forEach(b=>b.onclick=()=>{ shot.layout=b.dataset.lay; saveShot(); shotOpts(o); placeFrame(); });
   o.querySelectorAll("[data-ratio]").forEach(b=>b.onclick=()=>{ shot.ratio=b.dataset.ratio; saveShot(); shotOpts(o); placeFrame(); });
@@ -595,13 +600,12 @@ function shotOpts(o){
   $("sLeg").onchange = e=>{ shot.legend=e.target.checked; saveShot(); };
   $("sOv").onchange = e=>{ shot.overview=e.target.checked; saveShot(); };
   $("sGo").onclick = makeShot;
-  const cnt = ()=>{ const n = K.weekChanges(vid.von, vid.bis).length; $("vCount").textContent = n ? `${n} Änderung${n===1?"":"en"} im Zeitraum · Video etwa ${Math.round(34 + n*5)} Sekunden` : "Keine Änderungen in diesem Zeitraum."; $("vGo").disabled = !n || busyVid; };
+  const cnt = ()=>{ const n = K.weekChanges(vid.von, vid.bis).length; $("vCount").textContent = n ? `${n} Änderung${n===1?"":"en"} im Zeitraum · Video etwa ${Math.round(32 + n*5)} Sekunden` : "Keine Änderungen in diesem Zeitraum."; $("vGo").disabled = !n || busyVid; };
   $("vVon").onchange = e=>{ vid.von = e.target.value || vid.von; cnt(); };
   $("vBis").onchange = e=>{ vid.bis = e.target.value || vid.bis; cnt(); };
   $("vTitle").oninput = e=>{ vid.title = e.target.value; };
-  o.querySelectorAll("[data-vfmt]").forEach(b=>b.onclick=()=>{ vid.format = b.dataset.vfmt; shotOpts(o); });
   $("vGo").onclick = makeVideo;
-  if(!K.canVideo()){ $("vCount").textContent = "Dieser Browser kann keine Videos aufnehmen. Bitte Chrome, Edge oder Firefox am PC nutzen."; $("vGo").disabled = true; } else cnt();
+  if(!K.canVideo()){ $("vCount").textContent = "Dieser Browser kann das Video nicht erstellen. Bitte Chrome oder Edge am PC nutzen."; $("vGo").disabled = true; } else cnt();
 }
 /* Wochenvideo */
 const vidIso = d=>new Date(d.getTime() - d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
@@ -609,21 +613,27 @@ const vid = {von: vidIso(new Date(Date.now() - 6*864e5)), bis: vidIso(new Date()
 let busyVid = false;
 async function makeVideo(){
   if(busyVid) return; busyVid = true;
-  const btn = $("vGo"); btn.disabled = true;
+  const btn = $("vGo"); btn.disabled = true; btn.textContent = "Video wird erstellt …";
+  const t0 = performance.now(); let tFrames = 0;
+  const fmtT = sec=>sec < 90 ? `${Math.max(1, Math.round(sec))} s` : `${Math.round(sec/60)} min`;
+  const prog = (p, msg)=>{ const box = $("vProg"); if(!box) return; box.hidden = false;
+    $("vBar").style.width = (Math.max(0.01, p)*100).toFixed(1) + "%"; $("vMsg").textContent = msg + (p > 0 && p < 1 ? ` · ${Math.round(p*100)} %` : "");
+    if(p > 0 && !tFrames) tFrames = performance.now();
+    $("vEta").textContent = p > 0.03 && p < 1 ? "noch etwa " + fmtT((performance.now() - tFrames)/1000*(1-p)/p) : ""; };
+  prog(0, "Karte wird geladen …");
   try{
-    const r = await K.exportWeekVideo(map, {von:vid.von, bis:vid.bis, format:vid.format, title:(vid.title||"").trim() || "Wochenrückblick", elements:DATA.elemente, credit:(shot.credit||"").trim() || "Plyus",
-      onProgress:(p, msg)=>{ btn.textContent = p > 0 && p < 1 ? `${msg.replace(" …","")} ${Math.round(p*100)} %` : msg; }});
+    const r = await K.exportWeekVideo(map, {von:vid.von, bis:vid.bis, format:"16:9", title:(vid.title||"").trim() || "Wochenrückblick", elements:DATA.elemente, credit:(shot.credit||"").trim() || "Plyus", onProgress:prog});
     if(shotUrl) URL.revokeObjectURL(shotUrl);
     shotUrl = URL.createObjectURL(r.blob);
     $("shotImg").hidden = true; const v = $("shotVid"); v.hidden = false; v.src = shotUrl; v.play().catch(()=>{});
     $("shotDl").href = shotUrl; $("shotDl").download = `wochenrueckblick-${vid.von}_${vid.bis}.${r.ext}`;
-    $("shotInfo").textContent = `${r.width} × ${r.height} · ${Math.round(r.seconds)} s · ${r.ext.toUpperCase()} · ${(r.blob.size/1048576).toFixed(1).replace(".",",")} MB`;
+    $("shotInfo").textContent = `${r.width} × ${r.height} · ${Math.round(r.seconds)} s · ${r.ext.toUpperCase()} · ${(r.blob.size/1048576).toFixed(1).replace(".",",")} MB · erstellt in ${fmtT((performance.now()-t0)/1000)}`;
     $("shot").hidden = false;
   }catch(e){
-    toast(e && e.code==="empty" ? "Keine Änderungen in diesem Zeitraum." : e && e.code==="nomedia" ? "Dieser Browser kann keine Videos aufnehmen." : e && e.code==="stuck" ? "Der Video-Encoder deines Browsers reagiert nicht. Bitte Seite neu laden und nochmal versuchen, am besten in Chrome." : e && e.name==="SecurityError" ? "Ein Kartendienst erlaubt keinen Export. Probier eine andere Kartenart." : "Video konnte nicht erstellt werden.");
+    toast(e && e.code==="empty" ? "Keine Änderungen in diesem Zeitraum." : e && e.code==="nomedia" ? "Dieser Browser kann das Video nicht erstellen. Bitte Chrome oder Edge am PC nutzen." : e && e.code==="stuck" ? "Der Video-Encoder deines Browsers reagiert nicht. Bitte Seite neu laden und nochmal versuchen, am besten in Chrome." : e && e.name==="SecurityError" ? "Ein Kartendienst erlaubt keinen Export. Probier eine andere Kartenart." : "Video konnte nicht erstellt werden.");
     console.warn(e);
   }
-  busyVid = false; btn.disabled = false; btn.textContent = "Video erstellen";
+  busyVid = false; btn.disabled = false; btn.textContent = "Video erstellen"; const pb = $("vProg"); if(pb) pb.hidden = true;
 }
 let shotUrl = null;
 async function makeShot(){

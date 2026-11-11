@@ -247,7 +247,7 @@ function arrow(coords, refL, planar){
   const dist = [0]; for(let i=1;i<pts.length;i++) dist.push(dist[i-1] + Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]));
   const L = dist[dist.length-1]; if(!L) return {axis:coords, body:null};
   const w = (refL || L)*0.042;             /* halbe Breite des Körpers an der Spitze (refL: feste Breite beim Animieren) */
-  const headLen = Math.min(L*0.28, w*4.2), headW = w*2.6, tailW = w*0.55, notch = w*1.1;
+  const headLen = Math.min((refL || L)*0.28, w*4.2, L*0.92), headW = w*2.6, tailW = w*0.55, notch = Math.min(w*1.1, L*0.2);
   const at = d=>{                           /* Punkt und Richtung bei Strecke d */
     let i = 1; while(i < dist.length-1 && dist[i] < d) i++;
     const a = pts[i-1], b = pts[i], seg = (dist[i]-dist[i-1])||1e-12, t = Math.max(0, Math.min(1, (d-dist[i-1])/seg));
@@ -724,41 +724,45 @@ async function avcCodec(W, H){
   return null;
 }
 const withTimeout = (p, ms)=>Promise.race([p.then(()=>true), new Promise(r=>setTimeout(()=>r(false), ms))]);
-function canVideo(){ return !!(window.VideoEncoder || videoMime()); }
+function canVideo(){ return !!(window.VideoEncoder && window.VideoFrame); }
 /* Web-Mercator in Pixeln (wie MapLibre, 512er Kacheln) */
 function merc(lng, lat, z){ const s = 512*Math.pow(2, z), sl = Math.sin(lat*Math.PI/180);
   return [(lng + 180)/360*s, (0.5 - Math.log((1+sl)/(1-sl))/(4*Math.PI))*s]; }
 function waitIdle(m){ return new Promise(res=>{ let done = false; const fin = ()=>{ if(!done){ done = true; res(); } };
   m.once("idle", fin); setTimeout(fin, 20000); }); }
 
+function unmerc(x, y, z){ const s = 512*Math.pow(2, z); return [x/s*360 - 180, Math.atan(Math.sinh(Math.PI*(1 - 2*y/s)))*180/Math.PI]; }
 async function exportWeekVideo(map, o){
   const list = weekChanges(o.von, o.bis); if(!list.length) throw Object.assign(new Error("leer"), {code:"empty"});
-  const [W,H] = VIDEO_SIZES[o.format] || VIDEO_SIZES["16:9"], portrait = H > W, u = Math.min(W,H)/1080, FPS = 30;
+  const [W,H] = VIDEO_SIZES["16:9"], portrait = false, u = Math.min(W,H)/1080, FPS = 30;
   const codec = await avcCodec(W, H);
   if(codec && !window.Mp4Muxer){ try{ await loadScript(MUX_URL); }catch(e){} }
   const exact = !!(codec && window.Mp4Muxer);
-  const mime = exact ? "video/mp4" : videoMime();
-  if(!mime) throw Object.assign(new Error("kein Video"), {code:"nomedia"});
+  if(!exact && !o.frames) throw Object.assign(new Error("kein Video"), {code:"nomedia"});
   const say = (p, msg)=>o.onProgress && o.onProgress(p, msg);
   const clamp = (v,a=0,b=1)=>Math.max(a,Math.min(b,v)), sine = x=>-(Math.cos(Math.PI*x)-1)/2, smooth = x=>x*x*(3-2*x);
+  const COL = {ru:[216,52,74], ua:[47,127,224], grau:[214,214,214]}, SEITE_K = {ru:"Russland", ua:"Ukraine", grau:"Grauzone"};
+  const nf = new Intl.NumberFormat("de-DE",{minimumFractionDigits:1, maximumFractionDigits:1});
+  const F_D = `"Plyus", "Archivo", Arial, sans-serif`, F_M = `"IBM Plex Mono", Menlo, monospace`, F_T = `"Archivo", Arial, sans-serif`;
+  const rgba = (c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  const hexRgb = h=>{ const v = parseInt(String(h).slice(1),16); return [v>>16&255, v>>8&255, v&255]; };
 
-  /* ---------- 1. Karten aufnehmen ----------
-     Gesamtansicht (QW: etwas größer gerendert) und für jedes Gebiet eine eigene, scharfe Nahaufnahme.
-     Jede Aufnahme zweimal: mit Lagedaten (a) und ohne Gebietsflächen (b). Aus (b) wird der Zustand
-     „vor der Änderung“ ausgeschnitten, damit die neuen Gebiete erst nach den Pfeilen erscheinen. */
-  const QW = 1.3, M = 1.25;
+  /* ---------- 1. Eine echte Karte, die für jedes Bild neu gerendert wird (scharf in jeder Entfernung, schräge Kamera möglich) ---------- */
+  const cw = W/2, ch = H/2, PANEL = 540*u/2;        /* CSS-Pixel; rechts bleibt Platz für die Einblendungen */
   let bb = [180,90,-180,-90]; list.forEach(f=>{ const b = changeBounds(f); bb = [Math.min(bb[0],b[0][0]),Math.min(bb[1],b[0][1]),Math.max(bb[2],b[1][0]),Math.max(bb[3],b[1][1])]; });
-  const ext = Math.max(bb[2]-bb[0], (bb[3]-bb[1])*1.5, 0.45);
-  const cxL = (bb[0]+bb[2])/2, cyL = (bb[1]+bb[3])/2, wb = [[cxL - ext*0.7, cyL - ext*0.4],[cxL + ext*0.7, cyL + ext*0.4]];
-  const cw = Math.round(W*M*QW/2), ch = Math.round(H*M*QW/2), k0 = 1/QW;
-  const mxp = (cw - W*QW/2)/2, myp = (ch - H*QW/2)/2, q = QW/2;
-  const pad = portrait ? {top:200*u*q+myp, bottom:560*u*q+myp, left:60*u*q+mxp, right:60*u*q+mxp} : {top:180*u*q+myp, bottom:120*u*q+myp, left:70*u*q+mxp, right:580*u*q+mxp};
-  const IW = Math.round((portrait ? 300 : 320)*u), IH = Math.round(IW*0.64);
+  const ext = Math.max(bb[2]-bb[0], (bb[3]-bb[1])*1.5, 0.45), cxL = (bb[0]+bb[2])/2, cyL = (bb[1]+bb[3])/2;
+  const wb = [[cxL - ext*0.7, cyL - ext*0.4],[cxL + ext*0.7, cyL + ext*0.4]];
+  const IW = Math.round(320*u), IH = Math.round(IW*0.64);
   say(0, "Karte wird geladen …");
   const hide = ["imp-change-fill","imp-change-line","imp-change-label","lage-sel","chg-sel-fill","chg-sel-line","front-edge","wz-fill","wz-case","wz-line","wz-prev","wz-pt","lage-arrow-casing","lage-arrow-fill","lage-arrow-line","lage-arrow-dash"];
   const AREAS = ["imp-fill","imp-line"];
-  const off = offMap({w:cw, h:ch, map:{style:map.getStyle(), bounds:wb, fitBoundsOptions:{padding:pad, maxZoom:11.5}, maxCanvasSize:[16384,16384]},
-    onLoad: m=>{ hide.forEach(l=>{ try{ if(m.getLayer(l)) m.setLayoutProperty(l,"visibility","none"); }catch(e){} }); }});
+  const off = offMap({w:cw, h:ch, map:{style:map.getStyle(), bounds:wb, fitBoundsOptions:{padding:{top:90*u, bottom:60*u, left:40*u, right:PANEL + 20*u}, maxZoom:11.5}, maxPitch:70},
+    onLoad: m=>{ hide.forEach(l=>{ try{ if(m.getLayer(l)) m.setLayoutProperty(l,"visibility","none"); }catch(e){} });
+      /* ruhiges Bild: nur Orts- und Gewässernamen, keine Straßen- oder POI-Beschriftung; keine Überblendung beim Kachelwechsel */
+      try{ m.getStyle().layers.forEach(l=>{
+        if(l.type==="raster"){ try{ m.setPaintProperty(l.id, "raster-fade-duration", 0); }catch(e){} }
+        if(l.type==="symbol" && l.source!=="imp" && l.source!=="lage" && !/^(imp|lage)/.test(l.id)){ const s = (l["source-layer"]||"") + " " + l.id;
+          if(!/place|country|state|city|town|water|capital|continent/i.test(s)){ try{ m.setLayoutProperty(l.id, "visibility", "none"); }catch(e){} } } }); }catch(e){} }});
   const ins = offMap({w:Math.round(IW/2), h:Math.round(IH/2), map:{style:styleOf("karte"), bounds:[[22.1,44.3],[40.2,52.4]], fitBoundsOptions:{padding:6}},
     onLoad: m=>{
       if(!importData) return;
@@ -768,236 +772,198 @@ async function exportWeekVideo(map, o){
         m.addLayer({id:"ru-fill", type:"fill", source:"ru", paint:{"fill-color":"#e5383b","fill-opacity":0.45}});
         m.addLayer({id:"ru-line", type:"line", source:"ru", paint:{"line-color":"#ff5a5c","line-width":1}}); }catch(e){}
     }});
-  const snap = m=>{ const c = document.createElement("canvas"); c.width = cw*2; c.height = ch*2; c.getContext("2d").drawImage(m.getCanvas(), 0, 0, c.width, c.height); return c; };
-  /* warten, bis wirklich alle Kacheln in voller Auflösung da sind */
-  const settle = async m=>{ await waitIdle(m); const t0 = performance.now();
-    while(!(m.areTilesLoaded && m.areTilesLoaded()) && performance.now() - t0 < 25000){ await new Promise(r=>setTimeout(r, 200)); }
-    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))); };
-  const areas = on=>AREAS.forEach(l=>{ try{ if(off.m.getLayer(l)) off.m.setLayoutProperty(l, "visibility", on ? "visible" : "none"); }catch(e){} });
-  let BW = cw*2, BH = ch*2, wide, inset = null, attrib, items, arrows = [], clusters = [], world, geo = null;
-  /* Ausschnitte von (b) für die Änderungen in einer Aufnahme */
-  const cutPatches = (img, rect, key)=>{ const sx = img.width/(rect[2]-rect[0]), sy = img.height/(rect[3]-rect[1]);
-    items.forEach(it=>{ const [x0,y0,x1,y1] = it.box, px0 = Math.floor((x0-rect[0])*sx) - 4, py0 = Math.floor((y0-rect[1])*sy) - 4, px1 = Math.ceil((x1-rect[0])*sx) + 4, py1 = Math.ceil((y1-rect[1])*sy) + 4;
-      if(px1 <= 0 || py1 <= 0 || px0 >= img.width || py0 >= img.height) return;
-      const w = px1 - px0, h = py1 - py0, c = document.createElement("canvas"); c.width = w; c.height = h; c.getContext("2d").drawImage(img, -px0, -py0);
-      (it.before = it.before || {})[key] = {img:c, x: rect[0] + px0/sx, y: rect[1] + py0/sy, w: w/sx, h: h/sy}; }); };
+  const m = off.m;
+  /* ein Bild rendern lassen und warten, bis alle Kacheln da sind und nichts mehr nachlädt */
+  const settle = ()=>new Promise(res=>{ let done = false; const fin = ()=>{ if(!done){ done = true; res(); } };
+    m.once("idle", fin); try{ m.triggerRepaint(); }catch(e){} setTimeout(fin, 20000); });
+  let areasOn = true;
+  const setAreas = on=>{ if(on === areasOn) return; areasOn = on; AREAS.forEach(l=>{ try{ if(m.getLayer(l)) m.setLayoutProperty(l, "visibility", on ? "visible" : "none"); }catch(e){} }); };
+  let done = false; const cleanup = ()=>{ if(!done){ done = true; off.done(); } };
   try{
-    await Promise.all([off.ready, ins.ready]);
-    await settle(off.m);
-    const Z = off.m.getZoom(), nw = off.m.unproject([0,0]), O = merc(nw.lng, nw.lat, Z);
-    world = c=>{ const p = merc(c[0], c[1], Z); return [(p[0]-O[0])*2, (p[1]-O[1])*2]; };
-    const c0 = off.m.getCenter(); attrib = attributionFor(map, [c0.lng, c0.lat], Z + 2);
-    geo = {Z, lng: c0.lng, lat: c0.lat};
-    const ib = document.createElement("canvas"); ib.width = IW; ib.height = IH; ib.getContext("2d").drawImage(ins.m.getCanvas(), 0, 0, IW, IH);
-    const se = off.m.unproject([cw,ch]), tl = ins.m.project(nw), br = ins.m.project(se);
-    inset = {img: ib, x0: tl.x*2, y0: tl.y*2, x1: br.x*2, y1: br.y*2};
-    items = list.map(f=>{ const g = f.geometry, polys = g.type==="Polygon" ? [g.coordinates] : g.coordinates;
-      const rings = polys.map(p=>p.map(r=>r.map(world)));
-      const pts = rings.flatMap(p=>p[0]); const cx = pts.reduce((s,q)=>s+q[0],0)/pts.length, cy = pts.reduce((s,q)=>s+q[1],0)/pts.length;
-      const xs = pts.map(q=>q[0]), ys = pts.map(q=>q[1]);
-      return {f, p:f.properties, rings, cx, cy, R: Math.max(4, ...pts.map(q=>Math.hypot(q[0]-cx, q[1]-cy))), km2: changeArea(f), bounds: changeBounds(f), box:[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)]}; });
-    wide = snap(off.m); areas(false); await settle(off.m); cutPatches(snap(off.m), [0,0,BW,BH], "wide"); areas(true);
-    (o.elements||[]).filter(el=>el.typ==="pfeil" && el.koordinaten && el.koordinaten.length>1).forEach(el=>{
-      const full = arrow(el.koordinaten); if(!full.body) return;
-      const axis = full.axis.map(world), fw = arrow(axis, null, true); if(!fw.body) return;
-      const tip = axis[axis.length-1];
-      if(tip[0] < -BW*0.3 || tip[0] > BW*1.3 || tip[1] < -BH*0.3 || tip[1] > BH*1.3) return;
-      const headLL = cutLine(full.axis, 0.55);
-      arrows.push({axis, L: fw.L, tip, tipLL: el.koordinaten[el.koordinaten.length-1], headLL: headLL[headLL.length-1], col: farbe(el.farbe), dash: el.stil==="gestrichelt"}); });
-    /* Gebiete: nahe Änderungen zusammenfassen (egal an welchem Tag), Reihenfolge entlang der Front */
-    const near = W*0.2/k0;
-    for(const it of items.slice().sort((a,b)=>a.cx - b.cx)){
-      const c = clusters.find(c=>c.items.length < 5 && c.items.some(x=>Math.hypot(x.cx - it.cx, x.cy - it.cy) < near));
-      if(c) c.items.push(it); else clusters.push({items:[it]}); }
-    clusters.forEach(c=>{ c.cx = c.items.reduce((s,x)=>s+x.cx,0)/c.items.length; c.cy = c.items.reduce((s,x)=>s+x.cy,0)/c.items.length; });
-    { const rest = clusters.slice().sort((a,b)=>a.cx - b.cx), path = [rest.shift()];
-      while(rest.length){ const l = path[path.length-1]; rest.sort((a,b)=>Math.hypot(a.cx-l.cx,a.cy-l.cy) - Math.hypot(b.cx-l.cx,b.cy-l.cy)); path.push(rest.shift()); }
-      clusters = path; }
-    arrows.forEach(a=>{ let best = null, bd = Infinity; clusters.forEach(c=>c.items.forEach(it=>{ const d = Math.hypot(a.tip[0]-it.cx, a.tip[1]-it.cy); if(d < bd){ bd = d; best = c; } }));
-      if(best && bd < near*1.2){ a.cl = best; (best.arrows = best.arrows || []).push(a); } });
-    /* Nahaufnahmen: Gebiet füllt gut die Hälfte des Bildes, Karte in passender Zoomstufe → scharf */
-    for(let i=0;i<clusters.length;i++){ const c = clusters[i];
-      say(0, `Nahaufnahme ${i+1} von ${clusters.length} …`);
-      let b = [180,90,-180,-90]; const add = (x,y)=>{ b = [Math.min(b[0],x),Math.min(b[1],y),Math.max(b[2],x),Math.max(b[3],y)]; };
-      c.items.forEach(it=>{ add(it.bounds[0][0], it.bounds[0][1]); add(it.bounds[1][0], it.bounds[1][1]); });
-      (c.arrows||[]).forEach(a=>{ add(a.tipLL[0], a.tipLL[1]); add(a.headLL[0], a.headLL[1]); });
-      const span = Math.max(b[2]-b[0], (b[3]-b[1])*1.4); if(span < 0.05){ const d = (0.05 - span)/2; b = [b[0]-d, b[1]-d, b[2]+d, b[3]+d]; }
-      /* sichtbares Fenster in der Nahaufnahme: W×H Gerätepixel = W/2×H/2 CSS-Pixel in der Mitte des Kartenbilds */
-      const vw = W/2, vh = H/2, fx = portrait ? 0.62 : 0.5, fy = portrait ? 0.34 : 0.48;
-      const cpad = {left:(cw - vw*fx)/2, right:(cw - vw*fx)/2, top:(ch - vh*fy)/2, bottom:(ch - vh*fy)/2};
-      off.m.fitBounds([[b[0],b[1]],[b[2],b[3]]], {padding:cpad, maxZoom:14.5, duration:0});
-      await settle(off.m);
-      const img = snap(off.m), cnw = off.m.unproject([0,0]), cse = off.m.unproject([cw,ch]);
-      const p0 = world([cnw.lng, cnw.lat]), p1 = world([cse.lng, cse.lat]), rect = [p0[0], p0[1], p1[0], p1[1]];
-      areas(false); await settle(off.m); cutPatches(snap(off.m), rect, "c" + i); areas(true);
-      const gg = img.getContext("2d"); gg.globalCompositeOperation = "destination-out"; const fe = Math.round(Math.min(img.width, img.height)*0.1);
-      [[0,0,fe,0,0,0,fe,img.height],[img.width,0,img.width-fe,0,img.width-fe,0,fe,img.height],[0,0,0,fe,0,0,img.width,fe],[0,img.height,0,img.height-fe,0,img.height-fe,img.width,fe]].forEach(([x0,y0,x1,y1,rx,ry,rw,rh])=>{
-        const gr = gg.createLinearGradient(x0,y0,x1,y1); gr.addColorStop(0,"rgba(0,0,0,1)"); gr.addColorStop(1,"rgba(0,0,0,0)"); gg.fillStyle = gr; gg.fillRect(rx,ry,rw,rh); });
-      gg.globalCompositeOperation = "source-over";
-      c.img = img; c.rect = rect; c.key = "c" + i;
-      c.native = img.width/(rect[2]-rect[0]);                 /* Ausgabepixel je Weltpixel, wenn die Nahaufnahme 1:1 gezeigt wird */
-      c.view = {x: (rect[0]+rect[2])/2 + (portrait ? 0 : W*0.11/c.native), y: (rect[1]+rect[3])/2 + (portrait ? H*0.05/c.native : 0), sc: c.native};
-    }
-  } finally { off.done(); ins.done(); }
+  await Promise.all([off.ready, ins.ready]);
+  await settle();
+  const wideCam = {c:[m.getCenter().lng, m.getCenter().lat], z:m.getZoom(), pitch:0, bearing:0};
+  const gcLL = m.unproject([cw/2, ch/2]), geo = {Z: wideCam.z, lng: gcLL.lng, lat: gcLL.lat};
+  const attrib = attributionFor(map, wideCam.c, wideCam.z + 3);
+  /* Übersichtskarte */
+  const ib = document.createElement("canvas"); ib.width = IW; ib.height = IH; ib.getContext("2d").drawImage(ins.m.getCanvas(), 0, 0, IW, IH);
+  const iz = ins.m.getZoom(), inw = ins.m.unproject([0,0]), iO = merc(inw.lng, inw.lat, iz), iS = IW/Math.round(IW/2);
+  const toInset = ll=>{ const p = merc(ll[0], ll[1], iz); return [(p[0]-iO[0])*iS, (p[1]-iO[1])*iS]; };
+  ins.done();
+  /* Änderungen und Pfeile (in Längen-/Breitengrad; pro Bild neu auf den Bildschirm projiziert) */
+  const P0 = ll=>{ const q = m.project(ll); return [q.x*2, q.y*2]; };
+  const items = list.map(f=>{ const g = f.geometry, polys = g.type==="Polygon" ? [g.coordinates] : g.coordinates;
+    const pts = polys.flatMap(p=>p[0]), c = [pts.reduce((s,q)=>s+q[0],0)/pts.length, pts.reduce((s,q)=>s+q[1],0)/pts.length];
+    return {f, p:f.properties, polys, c, s0: P0(c), km2: changeArea(f), bounds: changeBounds(f)}; });
+  const ZR = 12, arrows = [];
+  (o.elements||[]).filter(el=>el.typ==="pfeil" && el.koordinaten && el.koordinaten.length>1).forEach(el=>{
+    const full = arrow(el.koordinaten); if(!full.body) return;
+    const axis = full.axis.map(c=>merc(c[0], c[1], ZR)), fw = arrow(axis, null, true); if(!fw.body) return;
+    const tipLL = el.koordinaten[el.koordinaten.length-1], headLL = cutLine(full.axis, 0.5);
+    arrows.push({axis, L: fw.L, tipLL, s0: P0(tipLL), headLL: headLL[headLL.length-1], col: farbe(el.farbe), dash: el.stil==="gestrichelt"}); });
+  /* Gebiete: nahe Änderungen zusammenfassen, Reihenfolge entlang der Front */
+  let clusters = []; const near = W*0.2;
+  for(const it of items.slice().sort((a,b)=>a.s0[0] - b.s0[0])){
+    const c = clusters.find(c=>c.items.length < 5 && c.items.some(x=>Math.hypot(x.s0[0]-it.s0[0], x.s0[1]-it.s0[1]) < near));
+    if(c) c.items.push(it); else clusters.push({items:[it]}); }
+  clusters.forEach(c=>{ c.sx = c.items.reduce((s,x)=>s+x.s0[0],0)/c.items.length; c.sy = c.items.reduce((s,x)=>s+x.s0[1],0)/c.items.length; });
+  { const rest = clusters.slice().sort((a,b)=>a.sx - b.sx), path = [rest.shift()];
+    while(rest.length){ const l = path[path.length-1]; rest.sort((a,b)=>Math.hypot(a.sx-l.sx,a.sy-l.sy) - Math.hypot(b.sx-l.sx,b.sy-l.sy)); path.push(rest.shift()); }
+    clusters = path; }
+  arrows.forEach(a=>{ let best = null, bd = Infinity; clusters.forEach(c=>c.items.forEach(it=>{ const d = Math.hypot(a.s0[0]-it.s0[0], a.s0[1]-it.s0[1]); if(d < bd){ bd = d; best = c; } }));
+    if(best && bd < near*1.2){ a.cl = best; (best.arrows = best.arrows || []).push(a); } });
+  /* Kamera je Gebiet: nah heran, schräg von vorn */
+  const PITCH = 50, BEAR = -14;
+  clusters.forEach(c=>{ let b = [180,90,-180,-90]; const add = (x,y)=>{ b = [Math.min(b[0],x),Math.min(b[1],y),Math.max(b[2],x),Math.max(b[3],y)]; };
+    c.items.forEach(it=>{ add(it.bounds[0][0], it.bounds[0][1]); add(it.bounds[1][0], it.bounds[1][1]); });
+    (c.arrows||[]).forEach(a=>{ add(a.tipLL[0], a.tipLL[1]); add(a.headLL[0], a.headLL[1]); });
+    const span = Math.max(b[2]-b[0], (b[3]-b[1])*1.4); if(span < 0.03){ const d = (0.03 - span)/2; b = [b[0]-d, b[1]-d, b[2]+d, b[3]+d]; }
+    let cam = null; try{ cam = m.cameraForBounds([[b[0],b[1]],[b[2],b[3]]], {padding:{top:ch*0.24, bottom:ch*0.2, left:cw*0.13, right:PANEL + cw*0.1}, maxZoom:15.5}); }catch(e){}
+    const cc = cam && cam.center ? (cam.center.lng != null ? [cam.center.lng, cam.center.lat] : cam.center) : [(b[0]+b[2])/2, (b[1]+b[3])/2];
+    c.cam = {c: cc, z: cam && cam.zoom != null ? cam.zoom + 0.1 : wideCam.z + 2, pitch: PITCH, bearing: BEAR}; });
 
-  /* ---------- 2. Ablauf: Gebiet für Gebiet ---------- */
+  /* ---------- 2. Ablauf (Zeit ab Beginn des Kartenteils) ---------- */
   const day0 = new Date(o.von + "T12:00:00"), day1 = new Date(o.bis + "T12:00:00");
-  const FLY = 4.4, INTRO = 2.0, OUTRO = 4.2, AR = 2.2, REV = 1.6;
-  const VIEW0 = {x: BW/2, y: BH/2, sc: k0};
-  const segs = []; let t = 0, prev = VIEW0;
-  segs.push({t0:0, t1:INTRO, hold:VIEW0, drift:0.02}); t = INTRO;
-  arrows.filter(a=>!a.cl).forEach((a,i)=>a.ta = 0.8 + i*0.5);
+  const rangeTxt = day0.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}) + "–" + day1.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
+  const FLY = 5.2, INTRO = 1.6, OUTRO = 4.5, AR = 2.4, REV = 1.6;
+  const endCam = {c: wideCam.c, z: wideCam.z + 0.35, pitch: 38, bearing: -8};
+  const segs = []; let t = 0, prev = wideCam;
+  segs.push({t0:0, t1:INTRO, hold:wideCam, dz:0.04, db:0}); t = INTRO;
+  arrows.filter(a=>!a.cl).forEach((a,i)=>a.ta = 0.6 + i*0.5);
   clusters.forEach(c=>{
-    segs.push({t0:t, t1:t+FLY, from:prev, to:c.view}); t += FLY;
-    let at = t + 0.3;
-    (c.arrows||[]).forEach((a,i)=>a.ta = at + i*0.35);
-    if(c.arrows && c.arrows.length) at += AR + (c.arrows.length-1)*0.35 + 0.2;   /* erst wenn die Pfeile ganz drin sind */
-    c.items.forEach((it,i)=>it.ta = at + i*0.7);
-    const hold = (at - t) + (c.items.length-1)*0.7 + REV + 2.4;
-    segs.push({t0:t, t1:t+hold, hold:c.view, drift:0.035}); t += hold; prev = c.view;
+    segs.push({t0:t, t1:t+FLY, from:prev, to:c.cam, fromDrift: prev === wideCam ? {dz:0.04, db:0} : {dz:0.16, db:5}}); t += FLY;
+    let at = t + 0.4;
+    (c.arrows||[]).forEach((a,i)=>a.ta = at + i*0.4);
+    if(c.arrows && c.arrows.length) at += AR + (c.arrows.length-1)*0.4 + 0.3;
+    c.items.forEach((it,i)=>it.ta = at + i*0.8);
+    const hold = (at - t) + (c.items.length-1)*0.8 + REV + 2.8;
+    segs.push({t0:t, t1:t+hold, hold:c.cam, dz:0.16, db:5}); t += hold; prev = c.cam;
   });
-  segs.push({t0:t, t1:t+FLY, from:prev, to:VIEW0}); t += FLY;
-  const END = t; segs.push({t0:t, t1:t+OUTRO, hold:VIEW0, drift:0.015}); t += OUTRO;
+  segs.push({t0:t, t1:t+FLY, from:prev, to:endCam, fromDrift:{dz:0.16, db:5}}); t += FLY;
+  const END = t; segs.push({t0:t, t1:t+OUTRO, hold:endCam, dz:0.05, db:3}); t += OUTRO;
   const TOTAL = t;
-  /* Kameraflug nach van Wijk & Nibbe (wie flyTo in MapLibre): bei weiten Wegen erst etwas hoch, dann wieder runter */
-  const RHO = 1.15;
+  /* Kameraflug nach van Wijk & Nibbe (wie flyTo): weite Wege erst etwas hoch, dann wieder herunter */
+  const RHO = 1.2;
   function fly(a, b, p){
-    const w0 = W/a.sc, w1 = W/b.sc, u1 = Math.hypot(b.x-a.x, b.y-a.y), r2 = RHO*RHO;
+    const A = merc(a.c[0], a.c[1], 0), B = merc(b.c[0], b.c[1], 0), w0 = cw/Math.pow(2, a.z), w1 = cw/Math.pow(2, b.z), u1 = Math.hypot(B[0]-A[0], B[1]-A[1]), r2 = RHO*RHO;
     let S, wAt, uAt;
-    if(u1 < 1e-6){ const kk = w1 < w0 ? -1 : 1; S = Math.abs(Math.log(w1/w0))/RHO; wAt = s=>w0*Math.exp(kk*RHO*s); uAt = ()=>0; }
-    else {
-      const bb2 = i=>{ const n = w1*w1 - w0*w0 + (i ? -1 : 1)*r2*r2*u1*u1, d = 2*(i ? w1 : w0)*r2*u1; return n/d; };
-      const rr = i=>{ const x = bb2(i); return Math.log(Math.sqrt(x*x+1) - x); };
-      const r0 = rr(0), r1 = rr(1); S = (r1 - r0)/RHO;
-      wAt = s=>w0*Math.cosh(r0)/Math.cosh(RHO*s + r0);
-      uAt = s=>w0*(Math.cosh(r0)*Math.tanh(RHO*s + r0) - Math.sinh(r0))/r2/u1;
-    }
-    const s = S*sine(p), w = wAt(s), f = uAt(s);
-    return {x: a.x + (b.x-a.x)*f, y: a.y + (b.y-a.y)*f, sc: W/w};
+    if(u1 < 1e-9){ const kk = w1 < w0 ? -1 : 1; S = Math.abs(Math.log(w1/w0))/RHO; wAt = s=>w0*Math.exp(kk*RHO*s); uAt = ()=>0; }
+    else { const bq = i=>{ const n = w1*w1 - w0*w0 + (i ? -1 : 1)*r2*r2*u1*u1, d = 2*(i ? w1 : w0)*r2*u1; return n/d; }, rr = i=>{ const x = bq(i); return Math.log(Math.sqrt(x*x+1) - x); };
+      const r0 = rr(0), r1 = rr(1); S = (r1 - r0)/RHO; wAt = s=>w0*Math.cosh(r0)/Math.cosh(RHO*s + r0); uAt = s=>w0*(Math.cosh(r0)*Math.tanh(RHO*s + r0) - Math.sinh(r0))/r2/u1; }
+    const e = sine(p), s = S*e, f = uAt(s);
+    return {c: unmerc(A[0] + (B[0]-A[0])*f, A[1] + (B[1]-A[1])*f, 0), z: Math.log2(cw/wAt(s)), pitch: a.pitch + (b.pitch-a.pitch)*e, bearing: a.bearing + (b.bearing-a.bearing)*e};
   }
-  function camera(tt){
+  function cameraAt(tt){
     const s = segs.find(z=>tt < z.t1) || segs[segs.length-1], p = clamp((tt - s.t0)/(s.t1 - s.t0));
-    let v = s.hold ? {x:s.hold.x, y:s.hold.y, sc:s.hold.sc*(1 + s.drift*sine(p))} : fly(s.from, s.to, p);
-    v.sc = Math.max(k0, v.sc);
-    const hw = W/(2*v.sc), hh = H/(2*v.sc);
-    v.x = clamp(v.x, hw, BW - hw); v.y = clamp(v.y, hh, BH - hh);
-    return v;
+    if(s.hold) return {c:s.hold.c, z:s.hold.z + s.dz*sine(p), pitch:s.hold.pitch, bearing:s.hold.bearing + s.db*sine(p)};
+    const a = Object.assign({}, s.from, {z: s.from.z + s.fromDrift.dz, bearing: s.from.bearing + s.fromDrift.db});
+    return fly(a, s.to, p);
   }
 
   /* ---------- 3. Zeichnen ---------- */
-  const rangeTxt = day0.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}) + "–" + day1.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
-  const COL = {ru:[216,52,74], ua:[47,127,224], grau:[214,214,214]}, SEITE_K = {ru:"Russland", ua:"Ukraine", grau:"Grauzone"};
-  const nf = new Intl.NumberFormat("de-DE",{minimumFractionDigits:1, maximumFractionDigits:1});
-  const F_D = `"Plyus", "Archivo", Arial, sans-serif`, F_M = `"IBM Plex Mono", Menlo, monospace`, F_T = `"Archivo", Arial, sans-serif`;
   try{ await document.fonts.load(`700 40px "Plyus"`); await document.fonts.load(`500 20px "IBM Plex Mono"`); await document.fonts.load(`600 20px "Archivo"`); }catch(e){}
   const shade = document.createElement("canvas"); shade.width = W; shade.height = H;
   { const sg = shade.getContext("2d");
     let gr = sg.createLinearGradient(0,0,0,H*0.28); gr.addColorStop(0,"rgba(14,15,17,.82)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(0,0,W,H*0.28);
-    gr = sg.createLinearGradient(0,H,0,H*(portrait?0.55:0.78)); gr.addColorStop(0,"rgba(14,15,17,.85)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(0,H*0.5,W,H*0.5);
-    if(!portrait){ gr = sg.createLinearGradient(W,0,W-620*u,0); gr.addColorStop(0,"rgba(14,15,17,.88)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(W-620*u,0,620*u,H); }
+    gr = sg.createLinearGradient(0,H,0,H*0.78); gr.addColorStop(0,"rgba(14,15,17,.85)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(0,H*0.5,W,H*0.5);
+    gr = sg.createLinearGradient(W,0,W-640*u,0); gr.addColorStop(0,"rgba(14,15,17,.9)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(W-640*u,0,640*u,H);
     gr = sg.createRadialGradient(W/2,H/2,Math.min(W,H)*0.4,W/2,H/2,Math.max(W,H)*0.78); gr.addColorStop(0,"rgba(0,0,0,0)"); gr.addColorStop(1,"rgba(0,0,0,.3)"); sg.fillStyle = gr; sg.fillRect(0,0,W,H); }
   const cv = document.createElement("canvas"); cv.width = W; cv.height = H; const g = cv.getContext("2d", {alpha:false});
+  const bcv = document.createElement("canvas"); bcv.width = W; bcv.height = H; const bg = bcv.getContext("2d", {alpha:false});
   g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high";
-  const ringPath = rings=>{ const P = new Path2D(); rings.forEach(poly=>poly.forEach(r=>{ r.forEach((q,i)=>i ? P.lineTo(q[0],q[1]) : P.moveTo(q[0],q[1])); P.closePath(); })); return P; };
-  items.forEach(it=>it.path = ringPath(it.rings));
-  const rgba = (c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
-  const hexRgb = h=>{ const v = parseInt(String(h).slice(1),16); return [v>>16&255, v>>8&255, v&255]; };
   const pill = (txt, x, y, col, a)=>{ g.font = `600 ${17*u}px ${F_M}`; const w = g.measureText(txt).width + 22*u, h = 34*u;
     x = Math.max(16*u, Math.min(W - w - 16*u, x)); y = Math.max(16*u, Math.min(H - h - 16*u, y));
     g.globalAlpha = a; g.fillStyle = "rgba(14,15,17,.9)"; g.fillRect(x, y, w, h); g.fillStyle = col; g.fillRect(x, y, 3*u, h);
-    g.fillStyle = "#f2f3f5"; g.textBaseline = "middle"; g.fillText(txt, x + 13*u, y + h/2 + 1); g.globalAlpha = 1; };
-  const drawArrow = (a, p, sc)=>{
-    const e = sine(p), axis = p >= 1 ? a.axis : cutLine(a.axis, Math.max(0.03, e), true);
-    const ar = arrow(axis, a.L, true); if(!ar.body) return;
-    const P = new Path2D(); ar.body.forEach((q,i)=>i ? P.lineTo(q[0],q[1]) : P.moveTo(q[0],q[1])); P.closePath();
-    const c = hexRgb(a.col), lw = u/sc, al = smooth(clamp(p*3));
-    g.save(); g.globalAlpha = al; g.lineJoin = "miter";
-    g.shadowColor = "rgba(0,0,0,.55)"; g.shadowBlur = 14*u; g.shadowOffsetY = 3*u;
-    g.fillStyle = rgba(c, a.dash ? 0.32 : 0.72); g.fill(P);
-    g.shadowColor = "transparent"; g.shadowBlur = 0; g.shadowOffsetY = 0;
-    g.strokeStyle = "rgba(10,10,12,.8)"; g.lineWidth = 5*lw; g.stroke(P);
-    g.strokeStyle = rgba(c.map(v=>Math.min(255, v+55)), 1); g.lineWidth = 2.4*lw; if(a.dash) g.setLineDash([10*lw, 7*lw]); g.stroke(P); g.setLineDash([]);
-    g.restore(); };
-  const closeAlpha = (c, sc)=>smooth(clamp((Math.log2(sc / c.native) + 1.0)/0.7));
-
+    g.fillStyle = "#f2f3f5"; g.textBaseline = "middle"; g.textAlign = "left"; g.fillText(txt, x + 13*u, y + h/2 + 1); g.globalAlpha = 1; };
   function head(a){
     const hx = 56*u, hy = 52*u;
     g.globalAlpha = a; drawLogo(g, hx, hy - 2*u, 28*u, "#ffffff");
     g.fillStyle = "#ffffff"; g.font = `${24*u}px ${F_D}`; g.textBaseline = "top"; g.textAlign = "left"; g.fillText((o.credit || "PLYUS").toUpperCase(), hx + 40*u, hy + 2*u);
-    g.font = `${(portrait?68:72)*u}px ${F_D}`; g.fillText(o.title || "Wochenrückblick", hx, hy + 46*u);
-    g.fillStyle = "#a3a8b0"; g.font = `500 ${18*u}px ${F_M}`; g.fillText((rangeTxt + " · Frontänderungen").toUpperCase(), hx, hy + (portrait?126:130)*u);
+    g.font = `${72*u}px ${F_D}`; g.fillText(o.title || "Wochenrückblick", hx, hy + 46*u);
+    g.fillStyle = "#a3a8b0"; g.font = `500 ${18*u}px ${F_M}`; g.fillText((rangeTxt + " · Frontänderungen").toUpperCase(), hx, hy + 130*u);
     g.globalAlpha = 1;
   }
-  function drawMap(tt){
-    const V = camera(tt), sc = V.sc, sx = q=>(q - V.x)*sc + W/2, sy = q=>(q - V.y)*sc + H/2;
-    g.setTransform(1,0,0,1,0,0); g.fillStyle = "#0e0f11"; g.fillRect(0,0,W,H);
-    g.setTransform(sc,0,0,sc, W/2 - V.x*sc, H/2 - V.y*sc);
-    g.drawImage(wide, 0, 0);
-    const vx0 = V.x - W/(2*sc), vx1 = V.x + W/(2*sc), vy0 = V.y - H/(2*sc), vy1 = V.y + H/(2*sc);
-    const alphas = clusters.map(c=>(c.rect[2] < vx0 || c.rect[0] > vx1 || c.rect[3] < vy0 || c.rect[1] > vy1) ? 0 : closeAlpha(c, sc));
-    clusters.forEach((c,i)=>{ if(alphas[i] <= 0.005) return; g.globalAlpha = alphas[i]; g.drawImage(c.img, c.rect[0], c.rect[1], c.rect[2]-c.rect[0], c.rect[3]-c.rect[1]); g.globalAlpha = 1; });
-    g.fillStyle = "rgba(10,11,13,.18)"; g.fillRect(vx0, vy0, vx1-vx0, vy1-vy0);
-    /* Zustand vor der Änderung: neues Gebiet zunächst „wegnehmen“ */
-    for(const it of items){ const rp = clamp((tt - it.ta)/REV); if(rp >= 1) continue;
-      g.save(); g.clip(it.path, "evenodd");
-      if(it.p.richtung==="ru" && it.before){
-        if(it.before.wide){ const b = it.before.wide; g.drawImage(b.img, b.x, b.y, b.w, b.h); }
-        clusters.forEach((c,i)=>{ const b = it.before[c.key]; if(b && alphas[i] > 0.005){ g.globalAlpha = alphas[i]; g.drawImage(b.img, b.x, b.y, b.w, b.h); g.globalAlpha = 1; } });
-        g.fillStyle = "rgba(10,11,13,.18)"; g.fillRect(it.box[0]-2, it.box[1]-2, it.box[2]-it.box[0]+4, it.box[3]-it.box[1]+4);
-      } else if(it.p.richtung==="ua"){ g.fillStyle = "rgba(194,29,46,.32)"; g.fill(it.path, "evenodd"); }
-      g.restore(); }
-    for(const a of arrows){ const p = clamp((tt - a.ta)/AR); if(p > 0) drawArrow(a, p, sc); }
-    for(const it of items){
-      const p = clamp((tt - it.ta)/REV); if(p <= 0) continue; const c = COL[it.p.richtung] || COL.grau, e = sine(p);
-      g.save(); g.beginPath(); g.arc(it.cx, it.cy, it.R*1.05*e + 0.5, 0, Math.PI*2); g.clip();
-      g.fillStyle = rgba(c, 0.72); g.fill(it.path, "evenodd");
-      g.restore();
-      g.lineJoin = "round"; g.strokeStyle = rgba(c.map(v=>Math.min(255,v+60)), 1); g.lineWidth = 2.2*u/sc; g.globalAlpha = e; g.stroke(it.path); g.globalAlpha = 1;
+  /* Kartenbild für einen Zeitpunkt rendern; liefert die Projektion für die Einblendungen */
+  let lastKey = "";
+  async function mapFrame(tt){
+    const cam = cameraAt(tt), key = [cam.c[0].toFixed(7), cam.c[1].toFixed(7), cam.z.toFixed(5), cam.pitch.toFixed(3), cam.bearing.toFixed(3)].join("|");
+    setAreas(true);
+    if(key !== lastKey){ m.jumpTo({center:cam.c, zoom:cam.z, pitch:cam.pitch, bearing:cam.bearing}); await settle(); lastKey = key; }
+    const src = m.getCanvas();
+    g.setTransform(1,0,0,1,0,0); g.globalAlpha = 1; g.drawImage(src, 0, 0, W, H);
+    /* sichtbar und nicht zu weit weg? (weit entfernte Punkte lassen sich bei schräger Kamera nicht sauber projizieren) */
+    const C = merc(cam.c[0], cam.c[1], cam.z), nearCam = ll=>{ const q = merc(ll[0], ll[1], cam.z); return Math.hypot(q[0]-C[0], q[1]-C[1]) < cw*2.2; };
+    const P = ll=>{ const q = m.project(ll); return [q.x*2, q.y*2]; };
+    const live = items.filter(it=>nearCam(it.c));
+    live.forEach(it=>{ const path = new Path2D(); let R = 0; const c = P(it.c);
+      it.polys.forEach(poly=>poly.forEach(r=>{ r.forEach((ll,i)=>{ const q = P(ll); R = Math.max(R, Math.hypot(q[0]-c[0], q[1]-c[1])); i ? path.lineTo(q[0],q[1]) : path.moveTo(q[0],q[1]); }); path.closePath(); }));
+      it.path = path; it.sc = c; it.R = R; });
+    /* Zustand vor der Änderung: Karte ohne Gebietsflächen an der Stelle des neuen Gebiets */
+    const pending = live.filter(it=>tt < it.ta + REV && it.p.richtung==="ru");
+    if(pending.length){
+      setAreas(false); await settle(); bg.drawImage(m.getCanvas(), 0, 0, W, H); lastKey = "";
+      const clip = new Path2D(); pending.forEach(it=>clip.addPath(it.path));
+      g.save(); g.clip(clip, "nonzero"); g.drawImage(bcv, 0, 0); g.restore();
     }
-    g.setTransform(1,0,0,1,0,0);
+    live.filter(it=>tt < it.ta + REV && it.p.richtung==="ua").forEach(it=>{ g.fillStyle = "rgba(194,29,46,.32)"; g.fill(it.path, "evenodd"); });
+    return {cam, P, live, nearCam};
+  }
+  function drawArrow(a, p, P){
+    const hl = a.L*0.1764, fmin = Math.min(0.6, hl*1.35/a.L), e = sine(p), f = fmin + (1-fmin)*e;
+    const axis = f >= 0.999 ? a.axis : cutLine(a.axis, f, true), ar = arrow(axis, a.L, true); if(!ar.body) return;
+    const path = new Path2D(); ar.body.forEach((q,i)=>{ const s = P(unmerc(q[0], q[1], ZR)); i ? path.lineTo(s[0],s[1]) : path.moveTo(s[0],s[1]); }); path.closePath();
+    const c = hexRgb(a.col);
+    g.save(); g.globalAlpha = smooth(clamp(p*4)); g.lineJoin = "round";
+    g.strokeStyle = "rgba(8,9,11,.6)"; g.lineWidth = 6*u; g.stroke(path);
+    g.fillStyle = rgba(c, a.dash ? 0.45 : 0.96); g.fill(path);
+    g.strokeStyle = "rgba(255,255,255,.92)"; g.lineWidth = 1.8*u; if(a.dash) g.setLineDash([9*u, 6*u]); g.stroke(path); g.setLineDash([]);
+    g.restore();
+  }
+  async function drawMap(tt){
+    const {cam, P, live, nearCam} = await mapFrame(tt);
+    for(const a of arrows){ const p = clamp((tt - a.ta)/AR); if(p > 0 && nearCam(a.tipLL)) drawArrow(a, p, P); }
+    for(const it of live){
+      const p = clamp((tt - it.ta)/REV); if(p <= 0) continue; const c = COL[it.p.richtung] || COL.grau, e = sine(p);
+      g.save(); g.beginPath(); g.arc(it.sc[0], it.sc[1], it.R*1.05*e + 0.5, 0, Math.PI*2); g.clip();
+      g.fillStyle = rgba(c, 0.7); g.fill(it.path, "evenodd"); g.restore();
+      g.lineJoin = "round"; g.strokeStyle = rgba(c.map(v=>Math.min(255,v+60)), 1); g.lineWidth = 2.4*u; g.globalAlpha = e; g.stroke(it.path); g.globalAlpha = 1;
+    }
     g.drawImage(shade, 0, 0);
-    for(const it of items){ const a = smooth(clamp((tt - it.ta - 0.8)/0.8)); if(a <= 0) continue; const c = COL[it.p.richtung] || COL.grau;
-      const txt = (it.p.name ? it.p.name + " · " : "") + "+" + nf.format(it.km2) + " km²";
-      pill(txt, sx(it.cx) + 22*u, sy(it.cy) - 54*u, rgba(c,1), a); }
+    for(const it of live){ const a = smooth(clamp((tt - it.ta - 0.8)/0.8)); if(a <= 0) continue; const c = COL[it.p.richtung] || COL.grau;
+      pill((it.p.name ? it.p.name + " · " : "") + "+" + nf.format(it.km2) + " km²", it.sc[0] + 26*u, it.sc[1] - Math.min(it.R*0.6, 70*u) - 46*u, rgba(c,1), a); }
     head(1);
     /* Zähler und Liste */
     let ru = 0, ua = 0; items.forEach(it=>{ const p = sine(clamp((tt - it.ta)/1.8)); if(it.p.richtung==="ru") ru += it.km2*p; else if(it.p.richtung==="ua") ua += it.km2*p; });
-    const shownN = items.filter(it=>tt >= it.ta).length;
-    const panel = portrait ? {x:56*u, y:H - 470*u, w:W - 112*u} : {x:W - 520*u, y:200*u, w:460*u};
+    const shownN = items.filter(it=>tt >= it.ta).length, panel = {x:W - 520*u, y:200*u, w:460*u};
     const stat = (lbl, val, col, x, y)=>{ g.fillStyle = col; g.fillRect(x, y + 6*u, 9*u, 9*u); g.fillStyle = "#a3a8b0"; g.font = `500 ${16*u}px ${F_M}`; g.textBaseline = "top"; g.fillText(lbl.toUpperCase(), x + 19*u, y + 3*u);
       g.fillStyle = "#ffffff"; g.font = `${56*u}px ${F_D}`; g.fillText(val, x, y + 32*u); };
-    g.globalAlpha = smooth(clamp((tt-0.8)/1.0));
-    if(portrait){ stat("Gewinn Russland", "+" + nf.format(ru) + " km²", rgba(COL.ru,1), panel.x, panel.y); stat("Gewinn Ukraine", "+" + nf.format(ua) + " km²", rgba(COL.ua,1), panel.x + panel.w/2, panel.y); }
-    else { stat("Gewinn Russland", "+" + nf.format(ru) + " km²", rgba(COL.ru,1), panel.x, panel.y); stat("Gewinn Ukraine", "+" + nf.format(ua) + " km²", rgba(COL.ua,1), panel.x, panel.y + 118*u); }
-    const ly = portrait ? panel.y + 118*u : panel.y + 256*u, lx = panel.x, lw = panel.w;
+    g.globalAlpha = smooth(clamp((tt-0.4)/1.0));
+    stat("Gewinn Russland", "+" + nf.format(ru) + " km²", rgba(COL.ru,1), panel.x, panel.y); stat("Gewinn Ukraine", "+" + nf.format(ua) + " km²", rgba(COL.ua,1), panel.x, panel.y + 118*u);
+    const ly = panel.y + 256*u, lx = panel.x, lw = panel.w;
     g.fillStyle = "#6f747c"; g.font = `500 ${14*u}px ${F_M}`; g.fillText(`ÄNDERUNGEN ${shownN}/${items.length}`, lx, ly);
-    const recent = items.filter(it=>tt >= it.ta).sort((a,b)=>a.ta-b.ta).slice(-(portrait?3:5)).reverse();
-    recent.forEach((it,i)=>{ const a = smooth(clamp((tt - it.ta)/0.8)), y = ly + 32*u + i*56*u, c = COL[it.p.richtung] || COL.grau;
+    items.filter(it=>tt >= it.ta).sort((a,b)=>a.ta-b.ta).slice(-5).reverse().forEach((it,i)=>{ const a = smooth(clamp((tt - it.ta)/0.8)), y = ly + 32*u + i*56*u, c = COL[it.p.richtung] || COL.grau;
       g.globalAlpha = a * (i===0 ? 1 : 0.7); g.fillStyle = rgba(c,1); g.fillRect(lx, y + 4*u, 3*u, 38*u);
       g.fillStyle = "#f2f3f5"; g.font = `600 ${20*u}px ${F_T}`; let nm = it.p.name || ("Gewinn " + SEITE_K[it.p.richtung]); while(g.measureText(nm).width > lw - 30*u && nm.length > 4) nm = nm.slice(0,-2) + "…";
       g.fillText(nm, lx + 16*u, y + 2*u);
       g.fillStyle = "#8b9099"; g.font = `500 ${14*u}px ${F_M}`; g.fillText([it.p.direktion, "+" + nf.format(it.km2) + " km²"].filter(Boolean).join(" · "), lx + 16*u, y + 27*u); });
     g.globalAlpha = 1;
-    /* Übersichtskarte mit aktuellem Ausschnitt */
-    if(inset){ const ix = portrait ? W - 56*u - IW : 56*u, iy = portrait ? panel.y - 44*u - IH : H - 56*u - IH, ia = smooth(clamp((tt-1.0)/1.0));
-      g.globalAlpha = ia; g.fillStyle = "#0e0f11"; g.fillRect(ix-1, iy-1, IW+2, IH+2); g.drawImage(inset.img, ix, iy);
+    /* Übersichtskarte: Blickfeld der Kamera */
+    { const ix = 56*u, iy = H - 56*u - IH, ia = smooth(clamp((tt-0.5)/1.0));
+      g.globalAlpha = ia; g.fillStyle = "#0e0f11"; g.fillRect(ix-1, iy-1, IW+2, IH+2); g.drawImage(ib, ix, iy);
       g.strokeStyle = "rgba(255,255,255,.3)"; g.lineWidth = 1; g.strokeRect(ix+.5, iy+.5, IW-1, IH-1);
-      const fx = q=>inset.x0 + (q/BW)*(inset.x1 - inset.x0), fy = q=>inset.y0 + (q/BH)*(inset.y1 - inset.y0);
-      const rx0 = fx(vx0), rx1 = fx(vx1), ry0 = fy(vy0), ry1 = fy(vy1);
-      const rw = Math.max(5*u, rx1 - rx0), rh = Math.max(5*u, ry1 - ry0), rx = (rx0 + rx1)/2 - rw/2, ry = (ry0 + ry1)/2 - rh/2;
+      const top = cam.pitch > 30 ? ch*0.18 : 0, q = [[0,top],[cw,top],[cw,ch],[0,ch]].map(c=>{ const ll = m.unproject(c); return toInset([ll.lng, ll.lat]); });
+      const mx = q.reduce((s,p)=>s+p[0],0)/4, my = q.reduce((s,p)=>s+p[1],0)/4, sz = Math.max(...q.map(p=>Math.hypot(p[0]-mx, p[1]-my)));
       g.save(); g.beginPath(); g.rect(ix, iy, IW, IH); g.clip();
-      g.fillStyle = "rgba(255,255,255,.12)"; g.fillRect(ix + rx, iy + ry, rw, rh);
-      g.strokeStyle = "#ffffff"; g.lineWidth = 1.6*u; g.strokeRect(ix + rx, iy + ry, rw, rh);
-      if(rw < 20*u){ g.beginPath(); g.arc(ix + rx + rw/2, iy + ry + rh/2, 14*u, 0, Math.PI*2); g.strokeStyle = "rgba(255,255,255,.75)"; g.lineWidth = 1.2*u; g.stroke(); }
+      g.beginPath(); q.forEach((p,i)=>i ? g.lineTo(ix+p[0], iy+p[1]) : g.moveTo(ix+p[0], iy+p[1])); g.closePath();
+      g.fillStyle = "rgba(255,255,255,.14)"; g.fill(); g.strokeStyle = "#ffffff"; g.lineWidth = 1.6*u; g.lineJoin = "round"; g.stroke();
+      if(sz < 9*u){ g.beginPath(); g.arc(ix + mx, iy + my, 13*u, 0, Math.PI*2); g.strokeStyle = "rgba(255,255,255,.75)"; g.lineWidth = 1.2*u; g.stroke(); }
       g.restore(); g.globalAlpha = 1; }
     const ea = smooth(clamp((tt - END - 0.4)/1.0));
     if(ea > 0){ g.globalAlpha = ea; g.fillStyle = "rgba(14,15,17,.9)"; const tx = (o.outro || "Ganze Lage auf der Karte").toUpperCase(); g.font = `600 ${17*u}px ${F_M}`; const tw = g.measureText(tx).width + 40*u;
-      const ox = portrait ? W/2 - tw/2 : W/2 - tw/2 - 120*u, oy = H - 100*u;
-      g.fillRect(ox, oy, tw, 44*u); g.fillStyle = "#ffffff"; g.textBaseline = "middle"; g.fillText(tx, ox + 20*u, oy + 23*u); g.globalAlpha = 1; }
+      const ox = W/2 - tw/2 - 120*u, oy = H - 100*u; g.fillRect(ox, oy, tw, 44*u); g.fillStyle = "#ffffff"; g.textBaseline = "middle"; g.fillText(tx, ox + 20*u, oy + 23*u); g.globalAlpha = 1; }
     g.fillStyle = "rgba(200,204,210,.55)"; g.font = `${11*u}px ${F_T}`; g.textBaseline = "bottom"; g.textAlign = "right"; g.fillText(attrib, W - 16*u, H - 10*u); g.textAlign = "left";
   }
 
-  /* ---------- 4. Kodieren ---------- */
   /* ---------- Vorspann: Globus dreht sich zur Ukraine, Markierungen, dann Flug in die Karte ---------- */
   let land = null; try{ land = await fetch("daten/land.json").then(r=>r.ok ? r.json() : null); }catch(e){}
   const GL = land && geo ? (()=>{
@@ -1012,7 +978,7 @@ async function exportWeekVideo(map, o){
       polys.forEach(pl=>{ const r = simp(pl[0], 0.006); (isRed(p.fuellung) ? ru : ua).push(r); r.forEach(([x,y])=>{ ub = [Math.min(ub[0],x),Math.min(ub[1],y),Math.max(ub[2],x),Math.max(ub[3],y)]; }); }); });
     const uc = ub[0] < ub[2] ? [(ub[0]+ub[2])/2, (ub[1]+ub[3])/2] : [31.5, 48.6];
     /* Markierungen: je Gebiet eine */
-    const marks = clusters.map((c,i)=>{ let x = 0, y = 0; c.items.forEach(it=>{ x += (it.bounds[0][0]+it.bounds[1][0])/2; y += (it.bounds[0][1]+it.bounds[1][1])/2; });
+    const marks = clusters.map((c,i)=>{ let x = 0, y = 0; c.items.forEach(it=>{ x += it.c[0]; y += it.c[1]; });
       const top = c.items.slice().sort((a,b)=>b.km2-a.km2)[0], km = c.items.reduce((s,it)=>s+it.km2,0);
       return {ll:[x/c.items.length, y/c.items.length], txt: (top.p.name || top.p.direktion || ("Gebiet " + (i+1))) + " · +" + nf.format(km) + " km²", col: COL[top.p.richtung] || COL.grau}; });
     /* Zeiten */
@@ -1020,7 +986,7 @@ async function exportWeekVideo(map, o){
     const tMark0 = T_ROT + T_ZOOM - 0.8, tDive = T_ROT + T_ZOOM + T_MARK - 0.8, T0 = tDive + T_DIVE;
     marks.forEach((m,i)=>m.t = tMark0 + i*0.9);
     const R0 = Math.min(W,H)*0.36, R1 = Math.min(W,H)*0.41, R2 = (portrait ? W*0.62 : H*0.62)/((ub[2]-ub[0] || 18)*Math.cos(uc[1]*D2R)*D2R || 0.21);
-    const sDeg = 2*512*Math.pow(2, geo.Z)/360*k0, R3 = sDeg*180/(Math.PI*Math.cos(geo.lat*D2R));
+    const sDeg = 2*512*Math.pow(2, geo.Z)/360, R3 = sDeg*180/(Math.PI*Math.cos(geo.lat*D2R));
     const start = [uc[0] - 78, 18];
     const gc = document.createElement("canvas"); gc.width = W; gc.height = H; const G = gc.getContext("2d");
     const hc = document.createElement("canvas"); hc.width = W; hc.height = H; const HG = hc.getContext("2d");
@@ -1079,53 +1045,42 @@ async function exportWeekVideo(map, o){
     }
     return {T0, XF, render, canvas: gc};
   })() : null;
+
   const T0 = GL ? GL.T0 : 0, TOTAL_ALL = TOTAL + T0;
-  function draw(tt){
-    if(!GL || tt >= T0){ drawMap(tt - T0); return; }
+  const mapStart = document.createElement("canvas"); mapStart.width = W; mapStart.height = H; let haveStart = false;
+  async function draw(tt){
+    if(!GL || tt >= T0){ await drawMap(tt - T0); return; }
     const xf = smooth(clamp((tt - (T0 - GL.XF))/GL.XF));
-    if(xf > 0) drawMap(0);
+    if(xf > 0){ if(!haveStart){ await drawMap(0); mapStart.getContext("2d").drawImage(cv, 0, 0); haveStart = true; } g.setTransform(1,0,0,1,0,0); g.globalAlpha = 1; g.drawImage(mapStart, 0, 0); }
     GL.render(tt);
     g.setTransform(1,0,0,1,0,0); g.globalAlpha = 1 - xf; g.drawImage(GL.canvas, 0, 0); g.globalAlpha = 1;
     head(smooth(clamp((tt - 0.4)/1.2)));
   }
-  /* nur Einzelbilder (Vorschau/Test) statt Video */
-  if(o.frames) return {total: TOTAL_ALL, frames: o.frames.map(tf=>{ draw(tf < 0 ? TOTAL_ALL + tf : tf); return cv.toDataURL("image/jpeg", 0.85); })};
+  if(o.frames){ const out = []; for(const tf of o.frames){ await draw(tf < 0 ? TOTAL_ALL + tf : tf); out.push(cv.toDataURL("image/jpeg", 0.85)); } return {total: TOTAL_ALL, frames: out}; }
+
+  /* ---------- 4. Kodieren, Bild für Bild ---------- */
   const N = Math.ceil(TOTAL_ALL*FPS);
-  if(exact){
-    const muxer = new Mp4Muxer.Muxer({target: new Mp4Muxer.ArrayBufferTarget(), video:{codec:"avc", width:W, height:H, frameRate:FPS}, fastStart:"in-memory"});
-    let fail = null, got = 0, lastOut = performance.now();
-    const enc = new VideoEncoder({output:(chunk, meta)=>{ muxer.addVideoChunk(chunk, meta); got++; lastOut = performance.now(); }, error:e=>{ fail = e; }});
-    enc.configure({codec: codec.codec, hardwareAcceleration: codec.hw, width:W, height:H, bitrate: Math.round(14e6*(W*H)/(1920*1080)), framerate:FPS});
-    for(let i=0;i<N;i++){
-      if(fail) throw fail;
-      draw(i/FPS);
-      const vf = new VideoFrame(cv, {timestamp: Math.round(i*1e6/FPS), duration: Math.round(1e6/FPS)});
-      enc.encode(vf, {keyFrame: i % (FPS*2) === 0}); vf.close();
-      /* Warteschlange klein halten; reagiert der Encoder 30 s lang nicht, abbrechen statt ewig zu warten */
-      while(enc.encodeQueueSize > 6){ if(fail) throw fail; if(performance.now() - lastOut > 30000) throw Object.assign(new Error("Encoder hängt"), {code:"stuck"}); await new Promise(r=>setTimeout(r, 4)); }
-      if(i % 6 === 0){ say(i/N, "Video wird erstellt …"); await new Promise(r=>setTimeout(r, 0)); }
-    }
-    say(1, "Wird gespeichert …");
-    const flushed = await withTimeout(enc.flush(), 20000);
-    try{ enc.close(); }catch(e){}
+  const muxer = new Mp4Muxer.Muxer({target: new Mp4Muxer.ArrayBufferTarget(), video:{codec:"avc", width:W, height:H, frameRate:FPS}, fastStart:"in-memory"});
+  let fail = null, got = 0, lastOut = performance.now();
+  const enc = new VideoEncoder({output:(chunk, meta)=>{ muxer.addVideoChunk(chunk, meta); got++; lastOut = performance.now(); }, error:e=>{ fail = e; }});
+  enc.configure({codec: codec.codec, hardwareAcceleration: codec.hw, width:W, height:H, bitrate: 16e6, framerate:FPS});
+  for(let i=0;i<N;i++){
     if(fail) throw fail;
-    /* Falls das Abschließen hängt: mit allen bis dahin fertigen Bildern speichern (es fehlen höchstens die letzten Bruchteile einer Sekunde) */
-    if(!flushed && got < N*0.95) throw Object.assign(new Error("Encoder hängt"), {code:"stuck"});
-    muxer.finalize();
-    const blob = new Blob([muxer.target.buffer], {type:"video/mp4"});
-    return {blob, type:"video/mp4", ext:"mp4", width:W, height:H, seconds:TOTAL_ALL, count:items.length};
+    await draw(i/FPS);
+    const vf = new VideoFrame(cv, {timestamp: Math.round(i*1e6/FPS), duration: Math.round(1e6/FPS)});
+    enc.encode(vf, {keyFrame: i % (FPS*2) === 0}); vf.close(); lastOut = Math.max(lastOut, performance.now() - 25000);
+    while(enc.encodeQueueSize > 6){ if(fail) throw fail; if(performance.now() - lastOut > 30000) throw Object.assign(new Error("Encoder hängt"), {code:"stuck"}); await new Promise(r=>setTimeout(r, 4)); }
+    if(i % 3 === 0){ say(i/N, `Bild ${i+1} von ${N}`); await new Promise(r=>setTimeout(r, 0)); }
   }
-  const stream = cv.captureStream(FPS), chunks = [];
-  const rec = new MediaRecorder(stream, {mimeType: mime, videoBitsPerSecond: Math.round(10e6 * (W*H)/(1920*1080))});
-  rec.ondataavailable = e=>{ if(e.data && e.data.size) chunks.push(e.data); };
-  const stopped = new Promise(res=>rec.onstop = res);
-  draw(0); rec.start(500);
-  await new Promise(res=>{ const t0 = performance.now();
-    (function frame(){ const tt = (performance.now() - t0)/1000; draw(Math.min(tt, TOTAL_ALL)); say(Math.min(1, tt/TOTAL_ALL), "Video wird aufgenommen …");
-      if(tt < TOTAL_ALL + 0.3) requestAnimationFrame(frame); else res(); })(); });
-  rec.stop(); await stopped; stream.getTracks().forEach(tr=>tr.stop());
-  const type = mime.split(";")[0], blob = new Blob(chunks, {type});
-  return {blob, type, ext: type==="video/mp4" ? "mp4" : "webm", width:W, height:H, seconds:TOTAL_ALL, count:items.length};
+  say(1, "Wird gespeichert …");
+  const flushed = await withTimeout(enc.flush(), 20000);
+  try{ enc.close(); }catch(e){}
+  if(fail) throw fail;
+  if(!flushed && got < N*0.95) throw Object.assign(new Error("Encoder hängt"), {code:"stuck"});
+  muxer.finalize();
+  const blob = new Blob([muxer.target.buffer], {type:"video/mp4"});
+  return {blob, type:"video/mp4", ext:"mp4", width:W, height:H, seconds:TOTAL_ALL, count:items.length};
+  } finally { cleanup(); try{ ins.done(); }catch(e){} }
 }
 
 async function exportImage(map, o){
