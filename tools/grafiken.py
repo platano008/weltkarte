@@ -159,3 +159,43 @@ def einheiten():
     b.rau("einheiten", 13)
 
 for f in (globus, panzer, radar, satellit, fadenkreuz, einheiten): f()
+
+def fernglas():
+    b = Blatt(640, 470)
+    for m in (1, -1):
+        X = lambda x: 320 + m*(x - 320)
+        b.linie([(X(150), 96), (X(232), 96), (X(264), 205), (X(284), 410), (X(96), 410), (X(116), 205)], 8, zu=True)
+        b.linie([(X(160), 96), (X(160), 58), (X(222), 58), (X(222), 96)], 7)
+        b.linie([(X(104), 362), (X(280), 362)], 5); b.linie([(X(122), 205), (X(262), 205)], 5)
+    b.linie([(262, 215), (378, 215)], 7); b.linie([(266, 268), (374, 268)], 7)
+    b.kreis(320, 168, 26, 7); b.kreis(320, 168, 6, 0, fuell=True)
+    b.rau("fernglas", 21)
+
+def artillerie():
+    b = Blatt(1000, 470); a = math.radians(-17)
+    def R(x, y): return (300 + x*math.cos(a) - y*math.sin(a), 262 + x*math.sin(a) + y*math.cos(a))
+    b.linie([R(-90, -15), R(560, -11), R(560, 11), R(-90, 15)], 7, zu=True)            # Rohr
+    b.linie([R(560, -22), R(640, -22), R(640, 22), R(560, 22)], 7, zu=True)            # Mündungsbremse
+    b.linie([R(600, -22), R(600, 22)], 5)
+    b.linie([R(-150, -32), R(-70, -32), R(-70, 32), R(-150, 32)], 8, zu=True)          # Verschluss
+    b.linie([R(40, -15), R(40, -44), R(250, -40), R(250, -13)], 6)                     # Rohrwiege
+    b.linie([(330, 150), (392, 138), (410, 300), (350, 322)], 7, zu=True)              # Schild
+    b.kreis(318, 348, 78, 8); b.kreis(318, 348, 16, 6)
+    for k in range(8): t = k*math.pi/4; b.linie([(318 + 20*math.cos(t), 348 + 20*math.sin(t)), (318 + 72*math.cos(t), 348 + 72*math.sin(t))], 4.5)
+    b.linie([(290, 330), (60, 404)], 9); b.linie([(60, 380), (34, 432), (92, 426)], 7)  # Holm und Sporn
+    b.strich([(20, 440), (980, 440)], 4, 26, 16)
+    for i, (x, y) in enumerate(((930, 40), (964, 62), (952, 20))): b.linie([(x, y), (x + 22, y - 8)], 4)
+    b.rau("artillerie", 23)
+
+def hubschrauber():
+    b = Blatt(1000, 440)
+    b.linie([(250, 170), (470, 150), (560, 190), (590, 250), (540, 300), (300, 305), (215, 262), (205, 215)], 8, zu=True)   # Rumpf
+    b.linie([(232, 190), (300, 182), (318, 250), (224, 258)], 6, zu=True)                                                # Kanzel
+    b.linie([(575, 215), (880, 196), (930, 120), (958, 120), (930, 228), (585, 262)], 8)                                 # Heckausleger
+    b.kreis(942, 150, 44, 5); b.kreis(942, 150, 7, 0, fuell=True)
+    b.linie([(400, 152), (400, 104)], 8); b.linie([(60, 96), (760, 110)], 7); b.kreis(400, 102, 10, 0, fuell=True)
+    b.linie([(330, 305), (318, 362)], 6); b.linie([(500, 302), (512, 362)], 6); b.linie([(240, 352), (270, 366), (580, 366)], 7)
+    b.linie([(360, 228), (520, 224)], 5); b.linie([(300, 318), (250, 330), (250, 346), (300, 338)], 5, zu=True)
+    b.rau("hubschrauber", 25)
+
+for f in (fernglas, artillerie, hubschrauber): f()

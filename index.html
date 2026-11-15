@@ -19,7 +19,7 @@ if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611151857">
+<link rel="stylesheet" href="style.css?v=202611151912">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -350,6 +350,33 @@ a.gate:hover .gv svg{transform:scale(1.035)}
 .recon{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:clamp(20px,4vw,60px)}
 .orb{width:100%;max-width:760px;margin:2% 0}
 @media (max-width:640px){.recon{grid-template-columns:1fr}.orb{width:100%;margin:0 0 6px}.gd-n{font-size:44px}}
+
+/* ===== ohne Kästen: Bilder laufen in die Seite aus ===== */
+.gate,.gate:first-child{border:0;background:none;overflow:visible;margin-top:clamp(40px,7vw,96px)}
+a.gate:hover{border:0}
+.gv{border:0;background:none;height:clamp(250px,42vw,540px);margin:0 calc(50% - 50vw);
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16%,#000 84%,transparent 100%),linear-gradient(180deg,transparent 0,#000 16%,#000 80%,transparent 100%);-webkit-mask-composite:source-in;
+  mask-image:linear-gradient(90deg,transparent 0,#000 16%,#000 84%,transparent 100%),linear-gradient(180deg,transparent 0,#000 16%,#000 80%,transparent 100%);mask-composite:intersect}
+.gt{position:relative;margin-top:clamp(-46px,-3vw,-18px);padding-left:0;padding-right:0}
+.gnote{left:50%;transform:translateX(-50%);bottom:26px}
+.stats{border-bottom:0}
+.hero{border-bottom:0}
+.stat,.stat:nth-child(n){border:0}
+.feat{gap:clamp(16px,3vw,40px);background:none;border:0}
+.f{background:none;padding:0}
+.chg{border-top:0}
+.gk-ua{fill:none;stroke:#5aa9f0;stroke-width:3}
+.gk-pf{fill:#e23a50;stroke:#000;stroke-width:4;stroke-linejoin:round;paint-order:stroke}
+.rep i{animation:repl 9s cubic-bezier(.3,.6,.2,1) infinite both;animation-delay:calc(var(--n)*.5s)}
+@keyframes repl{0%{transform:scaleX(0)}14%,100%{transform:scaleX(1)}}
+/* Zeichen-Reihe */
+.zeug{display:flex;align-items:flex-end;justify-content:space-between;gap:clamp(14px,3vw,50px);margin:clamp(60px,9vw,130px) calc(50% - 50vw) 0;padding:0 clamp(16px,5vw,90px)}
+.zeug img{min-width:0;height:auto;opacity:.92;animation:wipp 9s ease-in-out infinite alternate}
+.zeug img:nth-child(1){width:15%}.zeug img:nth-child(2){width:29%;animation-delay:-3s}.zeug img:nth-child(3){width:24%;animation-delay:-5s;align-self:flex-start}.zeug img:nth-child(4){width:24%;animation-delay:-7s}
+@keyframes wipp{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+.blk-h{position:relative}
+.deko{position:absolute;right:0;bottom:-10px;width:clamp(90px,13vw,170px);height:auto;opacity:.9;pointer-events:none}
+@media (max-width:640px){.zeug{flex-wrap:wrap;justify-content:center;row-gap:26px}.zeug img:nth-child(n){width:42%}.zeug img:nth-child(1){width:26%}.deko{display:none}.gv{height:62vw}}
 @media (min-resolution:2dppx){body::after{background-size:110px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front,.v-ua{stroke-dasharray:none}.ov .run,.radar{display:none}.rv,.tilt{opacity:1;transform:none}}
 </style>
@@ -393,7 +420,7 @@ a.gate:hover .gv svg{transform:scale(1.035)}
     <div class="gt"><div><span class="eyebrow">02 · Drohnen · in Arbeit</span><b>Zur Drohnenkarte</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
   </div>
   <div class="gate off rv" id="g3">
-    <div class="gv gv-b"><div class="rep"><div class="rep-h"><img src="bild/plus.png" alt=""><span>Lagebericht</span><em>Nr. 001</em></div>
+    <div class="gv gv-b"><div class="rep"><div class="rep-h"><img src="bild/plus.png" alt=""><span>Lagebericht</span></div>
       <i style="--w:92%;--n:0"></i><i style="--w:78%;--n:1"></i><i class="r" style="--w:44%;--n:2"></i><i style="--w:86%;--n:3"></i><i style="--w:63%;--n:4"></i><i style="--w:90%;--n:5"></i><i style="--w:38%;--n:6"></i><b class="cur"></b></div></div>
     <div class="gt"><div><span class="eyebrow">03 · Berichte · in Arbeit</span><b>Zum Blog</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
   </div>
@@ -408,6 +435,8 @@ a.gate:hover .gv svg{transform:scale(1.035)}
     <div class="blk-h rv"><div><span class="eyebrow">Frontverlauf</span><h2>Neueste Veränderungen</h2></div><a href="karte.html">Alle auf der Karte →</a></div>
     <div class="chg rv" id="chg"><div class="empty-l">Lädt …</div></div>
   </section>
+
+  <div class="zeug rv" aria-hidden="true"><img src="bild/g-fernglas.png" alt="" width="640" height="470" loading="lazy"><img src="bild/g-artillerie.png" alt="" width="1000" height="470" loading="lazy"><img src="bild/g-hubschrauber.png" alt="" width="1000" height="440" loading="lazy"><img src="bild/g-panzer.png" alt="" width="1000" height="460" loading="lazy"></div>
 
   <section class="recon" id="zeigt">
     <div class="orb rv"><img class="gl" src="bild/g-globus.png" alt="" width="1240" height="1240" loading="lazy"><div class="sat"><img src="bild/g-satellit.png" alt="" width="700" height="470" loading="lazy"></div></div>
@@ -548,12 +577,6 @@ function drawViz(imp, recent){
     for(let i=0;i<7;i++){ const y = 40 + i*66; el("path", {class:"gk-hl", d:`M-20 ${y}C200 ${y-50+rnd()*60} 420 ${y+50-rnd()*40} 640 ${y-10}S1000 ${y+40-rnd()*70} 1220 ${y-20}`}, g); }
     el("path", {class:"gk-fl", d:"M250 -10C300 90 220 170 290 250S380 380 330 470"}, g);
     [["M-10 300L420 262L560 236", "h"], ["M560 236L800 214L1210 150", "h"], ["M520 -10L548 150L560 236L600 470", ""], ["M560 236L700 330L900 470", ""], ["M430 120L560 236", ""]].forEach(([d,c])=>el("path", {class:"gk-st " + c, d}, g));
-    // besetztes Gebiet rechts und Frontlinie
-    const front = "M940 -10C900 70 960 120 920 190S850 270 900 340S870 420 910 470";
-    el("path", {class:"gk-zone", d: front + "L1210 470L1210 -10Z"}, g);
-    // neues Gebiet: schiebt sich von der Front bis in den Ostteil der Stadt
-    el("path", {class:"gk-neu", d:"M924 150C860 138 760 150 690 178C640 200 610 228 628 262C650 300 740 310 810 300C860 292 890 300 884 290C858 262 900 210 924 150Z"}, g);
-    el("path", {class:"gk-front", d: front}, g);
     // Stadt: Häuserblöcke
     for(let ix=-7;ix<=7;ix++) for(let iy=-5;iy<=5;iy++){
       const dx = ix*21, dy = iy*17, r = (dx*dx)/(150*150) + (dy*dy)/(88*88);
@@ -561,16 +584,40 @@ function drawViz(imp, recent){
       const w = 9 + rnd()*8, h = 7 + rnd()*6;
       el("rect", {class:"gk-bl", x:(560 + dx + dy*.25 - w/2).toFixed(1), y:(236 + dy - dx*.09 - h/2).toFixed(1), width:w.toFixed(1), height:h.toFixed(1), opacity:(.55 + rnd()*.45).toFixed(2)}, g);
     }
-    // Vorstoß
-    const d = "M1150 120C1040 150 930 228 700 240";
-    el("path", {class:"gk-a", d, pathLength:1, stroke:"#000", "stroke-width":26}, g);
-    el("path", {class:"gk-a", d, pathLength:1, stroke:"#e23a50", "stroke-width":17}, g);
-    el("path", {class:"gk-kopf", d:"M-6 -30L44 0L-6 30Z", fill:"#e23a50", stroke:"#000", "stroke-width":4, "paint-order":"stroke", style:`offset-path:path("${d}")`}, g);
-    el("circle", {class:"gk-ring", cx:640, cy:240, r:70}, g);
-    const t = el("g", {class:"gk-tag"}, g);
-    el("path", {d:"M640 240L500 96H330", fill:"none", stroke:"#fff", "stroke-width":1.5}, t);
-    el("text", {class:"gk-t", x:330, y:86}, t).textContent = "NEUE VERÄNDERUNG";
-    el("text", {class:"gk-ts", x:330, y:116}, t).textContent = "GEBIET AN DER FRONT";
+    // Ablauf (12 s): Ruhe, Vorstoß, neue Lage halten, ausblenden
+    const DUR = "12s", KT = "0;0.1;0.5;1", KS = "0 0 1 1;0.45 0 0.2 1;0 0 1 1";
+    const anim = (n, attr, v0, v1)=>el("animate", {attributeName:attr, dur:DUR, repeatCount:"indefinite", values:[v0,v0,v1,v1].join(";"), keyTimes:KT, calcMode:"spline", keySplines:KS}, n);
+    const zug = (n, dx, dy)=>el("animateTransform", {attributeName:"transform", type:"translate", dur:DUR, repeatCount:"indefinite", values:`0 0;0 0;${dx} ${dy};${dx} ${dy}`, keyTimes:KT, calcMode:"spline", keySplines:KS}, n);
+    const dyn = el("g", {}, g);
+    el("animate", {attributeName:"opacity", dur:DUR, repeatCount:"indefinite", values:"0;1;1;0", keyTimes:"0;0.05;0.93;1"}, dyn);
+    // rote Front und besetztes Gebiet: beulen sich mit dem Vorstoß aus
+    const R0 = "M940 -10C900 70 960 120 920 190S850 270 900 340S870 420 910 470", R1 = "M940 -10C905 60 880 120 790 160S650 215 690 285S880 380 910 470", ZU = "L1210 470L1210 -10Z";
+    anim(el("path", {class:"gk-zone", d:R0 + ZU}, dyn), "d", R0 + ZU, R1 + ZU);
+    anim(el("path", {class:"gk-front", d:R0}, dyn), "d", R0, R1);
+    // ukrainische Linie: weicht zurück
+    const U0 = "M880 -10C840 70 900 120 860 190S790 270 840 340S810 420 850 470", U1 = "M880 -10C845 60 800 112 712 150S570 215 612 292S800 392 850 470";
+    anim(el("path", {class:"gk-ua", d:U0}, dyn), "d", U0, U1);
+    // Pfeil: wächst von der alten Front bis an die Stadt
+    function pfeil(tip){
+      const P0 = [1175, 118], C = [(P0[0] + tip[0])/2 + 10, (P0[1] + tip[1])/2 - 34];
+      const q = t=>[(1-t)*(1-t)*P0[0] + 2*t*(1-t)*C[0] + t*t*tip[0], (1-t)*(1-t)*P0[1] + 2*t*(1-t)*C[1] + t*t*tip[1]];
+      const nrm = t=>{ const a = q(Math.max(0, t - .02)), b = q(Math.min(1, t + .02)), l = Math.hypot(b[0]-a[0], b[1]-a[1]); return [-(b[1]-a[1])/l, (b[0]-a[0])/l]; };
+      const L = Math.hypot(tip[0] - P0[0], tip[1] - P0[1]), tn = 1 - Math.min(.5, 62/L);
+      const off = (t, w)=>{ const p = q(t), n = nrm(t); return [[p[0] + n[0]*w, p[1] + n[1]*w], [p[0] - n[0]*w, p[1] - n[1]*w]]; };
+      const [a0, b0] = off(0, 21), [am, bm] = off(tn/2, 15), [an, bn] = off(tn, 10), [ah, bh] = off(tn, 30);
+      const f = p=>p[0].toFixed(1) + " " + p[1].toFixed(1);
+      return `M${f(a0)}Q${f(am)} ${f(an)}L${f(ah)}L${f(tip)}L${f(bh)}L${f(bn)}Q${f(bm)} ${f(b0)}Z`;
+    }
+    anim(el("path", {class:"gk-pf", d:pfeil([905, 205])}, dyn), "d", pfeil([905, 205]), pfeil([708, 244]));
+    // Infanteriezeichen: rot rückt vor, blau weicht aus
+    function zeichen(x, y, rot){
+      const n = el("g", {}, dyn), k = el("g", {transform:`translate(${x} ${y})`}, n);
+      if(rot){ el("path", {d:"M0 -24L30 0L0 24L-30 0Z", fill:"#ff8f9a", stroke:"#000", "stroke-width":2.5}, k); el("path", {d:"M-15 -12L15 12M15 -12L-15 12", stroke:"#000", "stroke-width":2.5, fill:"none"}, k); }
+      else { el("rect", {x:-26, y:-17, width:52, height:34, fill:"#8fd0ff", stroke:"#000", "stroke-width":2.5}, k); el("path", {d:"M-26 -17L26 17M26 -17L-26 17", stroke:"#000", "stroke-width":2.5, fill:"none"}, k); }
+      return n;
+    }
+    zug(zeichen(1010, 270, true), -215, 6); zug(zeichen(1000, 78, true), -105, 30); zug(zeichen(985, 400, true), -70, -22);
+    zug(zeichen(800, 232, false), -262, 44); zug(zeichen(815, 96, false), -150, -28); zug(zeichen(795, 392, false), -78, 30);
   })();
   /* 02 Drohnen: Ukraine und Russland als Umriss, wenige Flugbahnen nacheinander (frei erfunden, nur zur Veranschaulichung) */
   let dOk = false;
@@ -583,8 +630,6 @@ function drawViz(imp, recent){
       const ua = el("path", {class:"gd-ua", d: pfad(j.ua)}); const ru = el("path", {class:"gd-ru", d: pfad(j.ru)});
       g.insertBefore(ua, g.firstChild); g.insertBefore(ru, g.firstChild);
     }).catch(()=>{});
-    el("text", {class:"gd-n", x:X(27.2), y:Y(48.6)}, g).textContent = "Ukraine";
-    el("text", {class:"gd-n ru", x:X(39.5), y:Y(54.3)}, g).textContent = "Russland";
     // [Start lon/lat, Ziel lon/lat, Richtung]
     const B = [[[40.5,52.4],[31.5,50.2],"ru"], [[30.6,47.6],[41.8,55.3],"ua"], [[37.6,47.3],[33.4,48.6],"ru"], [[33.2,50.6],[45.4,52.6],"ua"], [[44.2,50.4],[28.6,49.3],"ru"], [[35.6,48.9],[39.6,51.2],"ua"]];
     B.forEach(([a,b,k],i)=>{
@@ -594,12 +639,11 @@ function drawViz(imp, recent){
       el("path", {class:"gd-b", d, pathLength:1, stroke:c, style:w}, g);
       el("path", {class:"gd-f", d:"M-9 -8L11 0L-9 8L-4 0Z", fill:c, style:`offset-path:path("${d}");${w}`}, g);
       el("circle", {class:"gd-z", cx:x1, cy:y1, r:20, stroke:c, style:w}, g);
-      el("circle", {cx:x0, cy:y0, r:3.5, fill:c}, g);
     });
   }
   if("IntersectionObserver" in window){
     new IntersectionObserver(es=>es.forEach(e=>{
-      e.target.classList.toggle("ruht", !e.isIntersecting);
+      e.target.classList.toggle("ruht", !e.isIntersecting); const gf = $("gFront"); if(gf.pauseAnimations) e.isIntersecting ? gf.unpauseAnimations() : gf.pauseAnimations();
       const sv = e.target.querySelector("svg[id]");
       if(e.target.id === "g2" && e.isIntersecting) drohnen();
       
