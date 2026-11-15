@@ -19,7 +19,7 @@ if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611151709">
+<link rel="stylesheet" href="style.css?v=202611151734">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -212,7 +212,8 @@ footer a{color:var(--muted)}
 
 /* ===== Stil: schwarz-weiss, gekörnt ===== */
 body::after{content:"";position:fixed;inset:0;z-index:40;pointer-events:none;background:url(bild/korn.png) 0 0/220px;opacity:.38}
-.hero h1,.blk-h h2,.band h2,.stat b,.f h3,.row .a{-webkit-mask:url(bild/korn-maske.png) 0 0/220px;mask:url(bild/korn-maske.png) 0 0/220px}
+.hero h1,.blk-h h2,.band h2,.stat b,.f h3,.row .a{font-family:var(--korn)}
+.hero h1{font-family:"Plyus Korn Gross",var(--korn)}
 .wm{display:flex;align-items:flex-start;gap:clamp(10px,2vw,28px)}
 .wm-plus{flex:none;width:auto;height:clamp(72px,14.5vw,188px);margin-top:calc(18px - .02em);font-size:clamp(84px,17vw,220px);animation:plusin 1.3s cubic-bezier(.2,.8,.2,1) .7s both}
 @keyframes plusin{from{opacity:0;transform:scale(.4) rotate(-90deg)}}
@@ -221,7 +222,7 @@ body::after{content:"";position:fixed;inset:0;z-index:40;pointer-events:none;bac
 .drohne{position:absolute;right:21%;top:50%;height:128%;width:auto;transform:translateY(-50%) rotate(-6deg);opacity:.6;pointer-events:none}
 @media (max-width:900px){.drohne{right:-6%;opacity:.4}}
 @media (max-width:640px){.band .wrap{padding-top:70px;padding-bottom:70px}.drohne{right:-22%;height:100%;opacity:.34}}
-@media (min-resolution:2dppx){body::after{background-size:110px}.hero h1,.blk-h h2,.band h2,.stat b,.f h3,.row .a{-webkit-mask-size:110px;mask-size:110px}}
+@media (min-resolution:2dppx){body::after{background-size:110px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front,.v-ua{stroke-dasharray:none}.ov .run,.radar{display:none}.rv,.tilt{opacity:1;transform:none}}
 </style>
 </head>

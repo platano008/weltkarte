@@ -1,9 +1,12 @@
 @font-face{font-family:"Plyus";src:url(fonts/Plyus-Regular.woff) format("woff"),url(fonts/Plyus-Regular.ttf) format("truetype");font-weight:100 399;font-display:swap}
 @font-face{font-family:"Plyus";src:url(fonts/Plyus-Bold.woff) format("woff"),url(fonts/Plyus-Bold.ttf) format("truetype");font-weight:400 900;font-display:swap}
+@font-face{font-family:"Plyus Korn Gross";src:url(fonts/Plyus-Korn-Gross.woff) format("woff"),url(fonts/Plyus-Korn-Gross.ttf) format("truetype");font-weight:100 900;font-display:swap;unicode-range:U+50,U+6C,U+73,U+75,U+79}
+@font-face{font-family:"Plyus Korn";src:url(fonts/Plyus-Korn.woff) format("woff"),url(fonts/Plyus-Korn.ttf) format("truetype");font-weight:100 900;font-display:swap}
 :root{
   --bg:#000000; --surface:#0b0b0b; --surface-2:#151515; --line:#232323; --line-2:#3a3a3a;
   --fg:#f4f4f4; --muted:#909090; --faint:#5c5c5c; --volt:#ffffff; --ink:#000000; --danger:#ff6b6b;
   --display:"Plyus","Archivo",Arial,sans-serif;
+  --korn:"Plyus Korn","Plyus","Archivo",Arial,sans-serif;
   --body:"Archivo","Helvetica Neue",Arial,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
   color-scheme:dark;
@@ -176,3 +179,4 @@ body.tl-old .tl-top .eyebrow{color:#ffb800}
 
 /* Körnung: feine helle Punkte auf Flächen */
 .panel,.card{background-image:url(bild/korn-fein.png);background-size:220px}
+.ph h1,.card h2{font-family:var(--korn)}
