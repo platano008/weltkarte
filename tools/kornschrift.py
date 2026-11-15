@@ -17,10 +17,12 @@ FAM = sys.argv[3] if len(sys.argv) > 3 else "Plyus Korn"
 NUR = sys.argv[4] if len(sys.argv) > 4 else None
 G   = int(sys.argv[1]) if len(sys.argv) > 1 else 100   # Körner je Geviert
 SS  = 4            # Überabtastung beim Rastern
-SIG = 0.024*G     # Weichzeichnung in Körnern: Breite des Fransenrands
-SPR = 0.25         # Streuung der Schwelle: wie weit Körner nach aussen fliegen
-HOLE = 0.07        # Anteil dunkler Sprenkel im Inneren
-PAD = int(0.12*G)  # Rand in Körnern um jedes Zeichen
+SIG = 0.028*G     # Weichzeichnung in Körnern: Breite des Fransenrands
+SPR = 0.27         # Streuung der Schwelle: wie weit Körner nach aussen fliegen
+HOLE = 0.085        # Anteil dunkler Sprenkel im Inneren
+KERB = 0.17        # Kerben und Ausbuchtungen am Rand
+STREU = 0.035       # lose Körner ausserhalb
+PAD = int(0.2*G)  # Rand in Körnern um jedes Zeichen
 
 def raster(pil, ch, asc, desc):
     w = int(pil.getlength(ch)) + 2*PAD*SS
@@ -33,11 +35,22 @@ def raster(pil, ch, asc, desc):
     a = a[:H, :W].reshape(H//SS, SS, W//SS, SS).mean(axis=(1, 3))
     return a, PAD + asc*G//1000          # Feld je Korn, Zeile der Grundlinie
 
+def wolke(shape, rng, sig):
+    """Weiches Rauschen, auf etwa -1..1 gebracht: sorgt für ungleichmässige Stellen."""
+    n = gaussian_filter(rng.standard_normal(shape), sig)
+    return n/(n.std() + 1e-9)/2
+
 def korn(a, rng):
-    f = gaussian_filter(a, SIG)
-    t = np.clip(0.5 + SPR*rng.standard_normal(a.shape), 0.04, 0.985)
-    on = f > t
-    on &= ~((f > 0.8) & (rng.random(a.shape) < HOLE))
+    grob, mittel = wolke(a.shape, rng, 0.085*G), wolke(a.shape, rng, 0.022*G)
+    # Rand mal breiter, mal schmaler ausfransen
+    f = gaussian_filter(a, SIG*0.6)*0.5 + gaussian_filter(a, SIG*1.45)*0.5
+    # Schwelle schwankt fein (Korn), mittel (Klumpen, Kerben) und grob (dünnere und dichtere Stellen)
+    t = 0.5 + SPR*rng.standard_normal(a.shape) + KERB*mittel + 0.07*grob
+    on = f > np.clip(t, 0.03, 0.99)
+    # Sprenkel innen: stellenweise fast keine, stellenweise viele
+    on &= ~((f > 0.72) & (rng.random(a.shape) < HOLE*np.clip(1 + 1.6*grob + 1.2*mittel, 0.15, 3.2)))
+    # einzelne Körner, die weiter nach aussen fliegen
+    on |= (f > 0.03) & (f < 0.3) & (rng.random(a.shape) < STREU*np.clip(1 + 1.5*mittel, 0, 3))
     return on
 
 def umrisse(on):
