@@ -19,7 +19,7 @@ if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611151912">
+<link rel="stylesheet" href="style.css?v=202611152239">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -211,7 +211,6 @@ footer a{color:var(--muted)}
 }
 
 /* ===== Stil: schwarz-weiss, gekörnt ===== */
-body::after{content:"";position:fixed;inset:0;z-index:40;pointer-events:none;background:url(bild/korn.png) 0 0/220px;opacity:.38}
 .hero h1,.blk-h h2,.band h2,.stat b,.f h3,.row .a{font-family:var(--korn)}
 .hero h1{font-family:"Plyus Korn Gross",var(--korn)}
 .wm{display:flex;align-items:flex-start;gap:clamp(10px,2vw,28px)}
@@ -290,7 +289,7 @@ a.gate:hover .gv svg{transform:scale(1.035)}
 .burger{width:46px;height:46px;display:grid;align-content:center;gap:7px;padding:0 9px;border:1px solid var(--line-2);background:rgba(0,0,0,.5)}
 .burger i{display:block;height:2px;background:var(--fg)}
 .burger:hover{border-color:var(--fg)}
-.menu{position:fixed;inset:0;z-index:60;background:#000 url(bild/korn-fein.png) 0 0/220px;overflow-y:auto;animation:fadeIn .25s both}
+.menu{position:fixed;inset:0;z-index:60;background:#000;overflow-y:auto;animation:fadeIn .25s both}
 .menu nav{width:min(1200px,100%);margin:0 auto;padding:max(86px,12vh) max(16px,env(safe-area-inset-left)) 60px;display:flex;flex-direction:column}
 .menu nav > *{display:flex;align-items:baseline;gap:18px;padding:12px 0;border-bottom:1px solid var(--line);font-family:var(--korn);font-size:clamp(34px,6.4vw,76px);line-height:1;text-decoration:none;color:var(--fg);animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
 .menu nav > *:nth-child(2){animation-delay:.04s}.menu nav > *:nth-child(3){animation-delay:.08s}.menu nav > *:nth-child(4){animation-delay:.12s}.menu nav > *:nth-child(5){animation-delay:.16s}.menu nav > *:nth-child(6){animation-delay:.2s}.menu nav > *:nth-child(7){animation-delay:.24s}.menu nav > *:nth-child(8){animation-delay:.28s}
@@ -377,14 +376,24 @@ a.gate:hover{border:0}
 .blk-h{position:relative}
 .deko{position:absolute;right:0;bottom:-10px;width:clamp(90px,13vw,170px);height:auto;opacity:.9;pointer-events:none}
 @media (max-width:640px){.zeug{flex-wrap:wrap;justify-content:center;row-gap:26px}.zeug img:nth-child(n){width:42%}.zeug img:nth-child(1){width:26%}.deko{display:none}.gv{height:62vw}}
-@media (min-resolution:2dppx){body::after{background-size:110px}}
+
+
+/* gezeichneter Schriftzug */
+.hero h1{font-size:0;line-height:0;margin:14px 0 26px;display:block;perspective:none}
+.szug{display:block;width:clamp(270px,50vw,720px);height:auto;fill:var(--fg);overflow:visible}
+.szug path{animation:szug .9s cubic-bezier(.16,.9,.2,1) both;animation-delay:calc(.12s + var(--i)*.07s)}
+@keyframes szug{from{opacity:0;transform:translate(-46px,28px)}}
+.szug-k{display:block;height:36px;width:auto;fill:currentColor}
+footer .szug-k{height:28px}
+.wm{align-items:center}
+.wm-plus{height:clamp(54px,9vw,128px);margin:0 0 0 clamp(4px,1vw,16px);align-self:flex-start}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front,.v-ua{stroke-dasharray:none}.ov .run,.radar{display:none}.rv,.tilt{opacity:1;transform:none}}
 </style>
 </head>
 <body>
 
 <header class="top"><div class="wrap">
-  <a class="logo" href="./"><img class="mark" src="bild/plus.png" alt="">PLYUS</a>
+  <a class="logo" href="./"><img class="mark" src="bild/plus.png" alt=""><svg class="szug-k" viewBox="0 0 1225 283" role="img" aria-label="Plyus"><path d="M0.0 283.0L146.4 116.8L224.5 78.0L313.3 78.0L306.5 139.0L205.2 205.0L119.1 205.0L142.9 178.0L204.4 178.0L262.8 140.0L266.7 105.0L219.2 105.0L176.4 126.2L38.3 283.0Z"/><path d="M474.9 0.0L333.9 160.2L341.5 178.0L389.9 178.0L366.2 205.0L301.0 205.0L286.2 170.8L436.6 0.0Z"/><path d="M536.9 78.0L466.0 158.5L472.6 178.0L560.3 178.0L536.6 205.0L431.2 205.0L418.9 168.5L498.6 78.0Z"/><path d="M667.5 78.0L521.2 244.2L443.0 283.0L149.8 283.0L173.6 256.0L448.4 256.0L491.2 234.8L629.2 78.0Z"/><path d="M764.1 78.0L693.2 158.5L699.8 178.0L875.6 178.0L851.8 205.0L658.4 205.0L646.1 168.5L725.8 78.0Z"/><path d="M891.9 78.0L780.1 205.0L741.8 205.0L853.6 78.0Z"/><path d="M1201.1 105.0L988.0 105.0L956.8 119.2L961.6 128.0L1038.3 128.0L1057.1 162.8L968.5 205.0L851.8 205.0L875.6 178.0L974.7 178.0L1003.6 164.2L998.6 155.0L922.0 155.0L903.0 119.8L995.0 78.0L1224.9 78.0Z"/></svg></a>
   <button class="burger" id="burger" aria-label="Menü öffnen" aria-expanded="false"><i></i><i></i><i></i></button>
 </div></header>
 
@@ -406,7 +415,7 @@ a.gate:hover{border:0}
     <div class="hud"><div>Sektor <b>Ukraine</b></div><div>Lagedaten <b id="hudSrc">–</b></div><div>Veränderungen 14T <b id="hudChg">–</b></div></div></div>
   <div class="wrap">
     <div class="kicker"><i></i><span id="kick">Lagekarte Ukraine</span></div>
-    <div class="wm"><h1 aria-label="Plyus"><span aria-hidden="true" style="animation-delay:0.12s">P</span><span aria-hidden="true" style="animation-delay:0.20s">l</span><span aria-hidden="true" style="animation-delay:0.28s">y</span><span aria-hidden="true" style="animation-delay:0.36s">u</span><span aria-hidden="true" style="animation-delay:0.44s">s</span></h1><img class="wm-plus" src="bild/plus-gross.png" alt="" width="420" height="420"></div>
+    <div class="wm"><h1 aria-label="Plyus"><svg class="szug" viewBox="0 0 1225 283" aria-hidden="true"><path style="--i:0" d="M0.0 283.0L146.4 116.8L224.5 78.0L313.3 78.0L306.5 139.0L205.2 205.0L119.1 205.0L142.9 178.0L204.4 178.0L262.8 140.0L266.7 105.0L219.2 105.0L176.4 126.2L38.3 283.0Z"/><path style="--i:1" d="M474.9 0.0L333.9 160.2L341.5 178.0L389.9 178.0L366.2 205.0L301.0 205.0L286.2 170.8L436.6 0.0Z"/><path style="--i:2" d="M536.9 78.0L466.0 158.5L472.6 178.0L560.3 178.0L536.6 205.0L431.2 205.0L418.9 168.5L498.6 78.0Z"/><path style="--i:3" d="M667.5 78.0L521.2 244.2L443.0 283.0L149.8 283.0L173.6 256.0L448.4 256.0L491.2 234.8L629.2 78.0Z"/><path style="--i:4" d="M764.1 78.0L693.2 158.5L699.8 178.0L875.6 178.0L851.8 205.0L658.4 205.0L646.1 168.5L725.8 78.0Z"/><path style="--i:5" d="M891.9 78.0L780.1 205.0L741.8 205.0L853.6 78.0Z"/><path style="--i:6" d="M1201.1 105.0L988.0 105.0L956.8 119.2L961.6 128.0L1038.3 128.0L1057.1 162.8L968.5 205.0L851.8 205.0L875.6 178.0L974.7 178.0L1003.6 164.2L998.6 155.0L922.0 155.0L903.0 119.8L995.0 78.0L1224.9 78.0Z"/></svg></h1><img class="wm-plus" src="bild/plus-gross.png" alt="" width="420" height="420"></div>
     <p class="lead">Frontverlauf, Veränderungen, Bewegungen und Einheiten auf einer Karte. Nüchtern dargestellt und regelmäßig aktualisiert.</p>
   </div>
 </section>
@@ -468,7 +477,7 @@ a.gate:hover{border:0}
 </div>
 
 <footer><div class="wrap">
-  <div><a class="logo" href="./" style="text-decoration:none"><img class="mark" src="bild/plus.png" alt="">PLYUS</a>
+  <div><a class="logo" href="./" style="text-decoration:none"><img class="mark" src="bild/plus.png" alt=""><svg class="szug-k" viewBox="0 0 1225 283" role="img" aria-label="Plyus"><path d="M0.0 283.0L146.4 116.8L224.5 78.0L313.3 78.0L306.5 139.0L205.2 205.0L119.1 205.0L142.9 178.0L204.4 178.0L262.8 140.0L266.7 105.0L219.2 105.0L176.4 126.2L38.3 283.0Z"/><path d="M474.9 0.0L333.9 160.2L341.5 178.0L389.9 178.0L366.2 205.0L301.0 205.0L286.2 170.8L436.6 0.0Z"/><path d="M536.9 78.0L466.0 158.5L472.6 178.0L560.3 178.0L536.6 205.0L431.2 205.0L418.9 168.5L498.6 78.0Z"/><path d="M667.5 78.0L521.2 244.2L443.0 283.0L149.8 283.0L173.6 256.0L448.4 256.0L491.2 234.8L629.2 78.0Z"/><path d="M764.1 78.0L693.2 158.5L699.8 178.0L875.6 178.0L851.8 205.0L658.4 205.0L646.1 168.5L725.8 78.0Z"/><path d="M891.9 78.0L780.1 205.0L741.8 205.0L853.6 78.0Z"/><path d="M1201.1 105.0L988.0 105.0L956.8 119.2L961.6 128.0L1038.3 128.0L1057.1 162.8L968.5 205.0L851.8 205.0L875.6 178.0L974.7 178.0L1003.6 164.2L998.6 155.0L922.0 155.0L903.0 119.8L995.0 78.0L1224.9 78.0Z"/></svg></a>
   <p>Lagekarte Ukraine. Alle Angaben ohne Gewähr, Darstellung kann von der tatsächlichen Lage abweichen.</p></div>
   <div><span class="eyebrow">Quellen</span>
   <p>Lagedaten: <span id="src">ukv3</span> · Karten: © <a href="https://www.maptiler.com/copyright/" target="_blank" rel="noopener">MapTiler</a>, © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap-Mitwirkende</a>, Powered by <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a> · NATO-Symbole: milsymbol</p></div>
