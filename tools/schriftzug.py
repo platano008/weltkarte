@@ -5,14 +5,21 @@ R1, R2 = B + G, 100 - B - G  # Unterkante des 1. Schlitzes, Oberkante des 2. Sch
 KS, SX = 0.74, 1.22
 RF = 0.14                    # Rundung: 1 = weich und verspielt, 0 = hart und kantig
 def rund(pts):
-    """Vieleck mit eigener Rundung je Ecke: [(x, y, r), ...] -> SVG-Pfad"""
+    """Vieleck mit eigener Ecke je Punkt: [(x, y, r), ...] -> SVG-Pfad. r > 0: Rundung (mal RF), r < 0: schräger Schnitt dieser Grösse."""
     n = len(pts); d = ""
     for i in range(n):
         x, y, r = pts[i]; ax, ay, _ = pts[i-1]; bx, by, _ = pts[(i+1) % n]
-        la, lb = math.hypot(ax-x, ay-y), math.hypot(bx-x, by-y); r = min(r*RF, la/2, lb/2)
+        la, lb = math.hypot(ax-x, ay-y), math.hypot(bx-x, by-y); cut = r < 0
+        r = min(-r if cut else r*RF, la/2, lb/2)
         p1 = (x + (ax-x)/la*r, y + (ay-y)/la*r); p2 = (x + (bx-x)/lb*r, y + (by-y)/lb*r)
-        d += ("M" if i == 0 else "L") + f"{p1[0]:.1f} {p1[1]:.1f}" + (f"Q{x:.1f} {y:.1f} {p2[0]:.1f} {p2[1]:.1f}" if r > 0.2 else "")
+        d += ("M" if i == 0 else "L") + f"{p1[0]:.1f} {p1[1]:.1f}"
+        if cut: d += f"L{p2[0]:.1f} {p2[1]:.1f}"
+        elif r > 0.2: d += f"Q{x:.1f} {y:.1f} {p2[0]:.1f} {p2[1]:.1f}"
     return d + "Z"
+def plus(cx, cy, a, t):
+    """Plus als Ausschnitt: Armlänge a, Balkendicke t"""
+    h = t/2; q = [(-h,-a),(h,-a),(h,-h),(a,-h),(a,h),(h,h),(h,a),(-h,a),(-h,h),(-a,h),(-a,-h),(-h,-h)]
+    return "M" + "L".join(f"{cx+x:.1f} {cy+y:.1f}" for x, y in q) + "Z"
 def kreis(cx, cy, r):
     """Punkt, der nach dem Neigen ein echter Kreis ist (Radius r in Höhe gemessen)."""
     pts = []
@@ -22,18 +29,18 @@ def kreis(cx, cy, r):
     return "M" + "L".join(f"{x:.1f} {y:.1f}" for x, y in pts) + "Z"
 S = 28.0                     # Stammbreite
 x = 0; T = []                # Teile: je Buchstabe eine Liste von Pfaden
-# p: Stamm und Bauch, schmaler Schlitz als Innenform
-w = 86; T.append([rund([(x,0,16),(x+w,0,30),(x+w,R2,26),(x+S+G,R2,3),(x+S+G,100,0),(x,100,0)]) + rund([(x+S+G,B,0),(x+62,B,0),(x+62,R1,0),(x+S+G,R1,0)])]); x += w + G
+# p: Stamm und Bauch, die Marke als Ausschnitt: ein Plus
+w = 90; T.append([rund([(x,0,0),(x+w,0,-26),(x+w,R2,-20),(x+S+G,R2,0),(x+S+G,100,0),(x,100,0)]) + plus(x+60, R2/2, 13.5, G)]); x += w + G
 # l: Stamm, der Fuss läuft unter das y
 lx = x; yx = x + S + G
-T.append([rund([(lx,0,0),(lx+S,0,0),(lx+S,R2+G,3),(yx+58-G,R2+G,13),(yx+58-G,100,0),(lx,100,30)])])
+T.append([rund([(lx,0,0),(lx+S,0,0),(lx+S,R2+G,0),(yx+58-G,R2+G,-12),(yx+58-G,100,0),(lx,100,-22)])])
 # y: Schale und Stamm
 x = yx; w = 86
-T.append([rund([(x,0,0),(x+S,0,0),(x+S,36,5),(x+58,36,5),(x+58,0,0),(x+w,0,0),(x+w,100,0),(x+58,100,0),(x+58,R2,3),(x,R2,28)])]); x += w + G
-# u: Block mit Schlitz von oben
-w = 92; T.append([rund([(x,0,0),(x+S,0,0),(x+S,R2,6),(x+w-S,R2,6),(x+w-S,0,0),(x+w,0,0),(x+w,100,30),(x,100,30)])]); x += w + G
-# s: ein Stück, drei Balken, zwei Schlitze mit runden Enden
-w = 118; T.append([rund([(x,0,24),(x+w,0,B/2),(x+w,B,B/2),(x+32,B,3.5),(x+32,R1,3.5),(x+w,R1,22),(x+w,100,28),(x,100,B/2),(x,R2+G,B/2),(x+w-32,R2+G,3.5),(x+w-32,R2,3.5),(x,R2,22)])]); x += w
-W = (x + KS*100)*SX
-json.dump({"w": round(W, 1), "h": 100, "m": f"matrix({SX} 0 {-KS*SX:.3f} 1 {KS*100*SX:.1f} 0)", "teile": T}, open(__import__("sys").argv[1] if len(__import__("sys").argv) > 1 else "schriftzug.json", "w"))
+T.append([rund([(x,0,0),(x+S,0,0),(x+S,36,0),(x+58,36,0),(x+58,0,0),(x+w,0,0),(x+w,100,0),(x+58,100,0),(x+58,R2,0),(x,R2,-22)])]); x += w + G
+# u: Block mit Schlitz von oben, unten beidseitig schräg geschnitten
+w = 92; T.append([rund([(x,0,0),(x+S,0,0),(x+S,R2,0),(x+w-S,R2,0),(x+w-S,0,0),(x+w,0,0),(x+w,100,-24),(x,100,-24)])]); x += w + G
+# s: ein Stück, drei Balken, zwei Schlitze; die Balkenenden laufen als Klingen aus
+w = 122; T.append([rund([(x,0,-20),(x+w+26,0,0),(x+w,B,0),(x+32,B,0),(x+32,R1,0),(x+w,R1,0),(x+w,100,-24),(x-12,100,0),(x,R2+G,0),(x+w-32,R2+G,0),(x+w-32,R2,0),(x,R2,0)])]); x += w + 26
+W = (x + KS*100 + 26)*SX
+json.dump({"w": round(W, 1), "h": 100, "m": f"matrix({SX} 0 {-KS*SX:.3f} 1 {(KS*100 + 26)*SX:.1f} 0)", "teile": T}, open(__import__("sys").argv[1] if len(__import__("sys").argv) > 1 else "schriftzug.json", "w"))
 print(round(W))
