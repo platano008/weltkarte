@@ -19,7 +19,7 @@ if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611151804">
+<link rel="stylesheet" href="style.css?v=202611151842">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -243,6 +243,47 @@ body::after{content:"";position:fixed;inset:0;z-index:40;pointer-events:none;bac
 .f:hover .ill img{transform:scale(1.06)}
 @media (max-width:1000px){.feat{grid-template-columns:1fr 1fr}}
 @media (max-width:640px){.recon{grid-template-columns:1fr;padding-top:64px}.orb{width:74%}.feat{grid-template-columns:1fr}.f .ill{height:160px}.f .ill img{height:148px}}
+
+/* ===== Grosse Blöcke: Karte, Drohnenkarte, Blog ===== */
+.gate{display:block;position:relative;margin-top:28px;border:1px solid var(--line-2);background:#000;text-decoration:none;overflow:hidden}
+.gate:first-child{margin-top:44px}
+.gv{position:relative;height:clamp(230px,38vw,480px);border-bottom:1px solid var(--line);overflow:hidden;background:
+  linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px) 0 0/60px 60px,linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px) 0 0/60px 60px}
+.gv svg{display:block;width:100%;height:100%}
+.gt{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:20px clamp(16px,2.4vw,30px) clamp(20px,2.6vw,32px)}
+.gt b{display:block;margin-top:10px;font-family:var(--korn);font-weight:400;font-size:clamp(40px,8.6vw,128px);line-height:.88}
+.gt .go{flex:none;width:clamp(34px,6vw,84px);height:auto;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:square;transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+a.gate:hover{border-color:var(--fg)}
+a.gate:hover .go{transform:translateX(14px)}
+a.gate .gv svg{transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
+a.gate:hover .gv svg{transform:scale(1.035)}
+.gate.off .gt b,.gate.off .go{color:#9a9a9a}
+.gnote{position:absolute;left:14px;bottom:10px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.gdr{position:absolute;right:3%;bottom:-6%;height:62%;width:auto;transform:rotate(-8deg);opacity:.9;animation:schweb 7s ease-in-out infinite alternate}
+@keyframes schweb{to{transform:rotate(-4deg) translate(-14px,-12px)}}
+/* Frontbild */
+.gf-zone{fill:#c21d2e;fill-opacity:.2}
+.gf-front{fill:none;stroke:#e0485a;stroke-width:3;stroke-linejoin:round}
+.gf-glow{fill:none;stroke:#ff3b52;stroke-opacity:.16;stroke-width:14}
+.gf-a{fill:none;stroke-width:11;stroke-linecap:butt;stroke-dasharray:1;animation:gfa var(--d,6s) cubic-bezier(.5,0,.3,1) var(--w,0s) infinite both}
+.gf-h{animation:gfh var(--d,6s) cubic-bezier(.5,0,.3,1) var(--w,0s) infinite both}
+@keyframes gfa{0%{stroke-dashoffset:1;opacity:1}55%,84%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+@keyframes gfh{0%{offset-distance:0%;opacity:0}5%{opacity:1}55%,84%{offset-distance:100%;opacity:1}100%{offset-distance:100%;opacity:0}}
+.gf-u{stroke:#000;stroke-width:2}
+/* Drohnenbild */
+.gd-land{fill:none;stroke:#8a8a8a;stroke-width:1.6;stroke-linejoin:round}
+.gd-l{fill:none;stroke-width:1.5;stroke-dasharray:3 9;animation:gdl 1.6s linear infinite}
+.gd-l.ru{stroke:#e0485a}.gd-l.ua{stroke:#e9e9e9;animation-direction:reverse}
+@keyframes gdl{to{stroke-dashoffset:-24}}
+.gd-t{font:500 13px "IBM Plex Mono",monospace;letter-spacing:.3em;fill:#7a7a7a}
+/* Radar */
+.gv-r{display:flex;align-items:center;justify-content:center;gap:5%}
+.rbox{position:relative;height:86%;aspect-ratio:1;flex:none}
+.rbox img{display:block;width:100%;height:100%}
+.sweep{position:absolute;inset:6.4%;clip-path:circle(50%);background:conic-gradient(from 0deg,rgba(255,255,255,0) 0deg,rgba(255,255,255,0) 290deg,rgba(255,255,255,.38) 359deg,rgba(255,255,255,0) 360deg);animation:spin 5.5s linear infinite}
+.gside{width:26%;height:auto;opacity:.55}
+.gate.ruht *,.gate.ruht *::before{animation-play-state:paused!important}
+@media (max-width:640px){.gate{margin-top:18px}.gside{display:none}.gdr{height:46%}.gt{align-items:center}}
 @media (min-resolution:2dppx){body::after{background-size:110px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front,.v-ua{stroke-dasharray:none}.ov .run,.radar{display:none}.rv,.tilt{opacity:1;transform:none}}
 </style>
@@ -261,17 +302,24 @@ body::after{content:"";position:fixed;inset:0;z-index:40;pointer-events:none;bac
     <div class="kicker"><i></i><span id="kick">Lagekarte Ukraine</span></div>
     <div class="wm"><h1 aria-label="Plyus"><span aria-hidden="true" style="animation-delay:0.12s">P</span><span aria-hidden="true" style="animation-delay:0.20s">l</span><span aria-hidden="true" style="animation-delay:0.28s">y</span><span aria-hidden="true" style="animation-delay:0.36s">u</span><span aria-hidden="true" style="animation-delay:0.44s">s</span></h1><img class="wm-plus" src="bild/plus-gross.png" alt="" width="420" height="420"></div>
     <p class="lead">Frontverlauf, Veränderungen, Bewegungen und Einheiten auf einer Karte. Nüchtern dargestellt und regelmäßig aktualisiert.</p>
-    <div class="cta">
-      <a class="btn-l solid" href="karte.html"><svg viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15M15 6v15"/></svg>Karte</a>
-      <a class="btn-l" id="tg" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 3L3 10.5l7 2.5 2.5 7zM10 13l11-10"/></svg>Telegram</a>
-      <a class="btn-l" id="tw" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M4 4l16 16M20 4L4 20"/></svg>Twitter</a>
-    </div>
   </div>
 </section>
 <div class="tick" aria-hidden="true"><div><span>Aufklärung</span><img src="bild/plus.png" alt=""><span>Frontverlauf</span><img src="bild/plus.png" alt=""><span>Lagebild</span><img src="bild/plus.png" alt=""><span>Bewegungen</span><img src="bild/plus.png" alt=""><span>Einheiten</span><img src="bild/plus.png" alt=""><span>Recon</span><img src="bild/plus.png" alt=""><span>Veränderungen</span><img src="bild/plus.png" alt=""><span>Aufklärung</span><img src="bild/plus.png" alt=""><span>Frontverlauf</span><img src="bild/plus.png" alt=""><span>Lagebild</span><img src="bild/plus.png" alt=""><span>Bewegungen</span><img src="bild/plus.png" alt=""><span>Einheiten</span><img src="bild/plus.png" alt=""><span>Recon</span><img src="bild/plus.png" alt=""><span>Veränderungen</span><img src="bild/plus.png" alt=""></div></div>
 
 
 <div class="wrap">
+  <a class="gate rv" href="karte.html" id="g1">
+    <div class="gv"><svg id="gFront" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div>
+    <div class="gt"><div><span class="eyebrow">01 · Frontverlauf</span><b>Zur Karte</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
+  </a>
+  <div class="gate off rv" id="g2">
+    <div class="gv"><svg id="gDrohnen" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><img class="gdr" src="bild/drohne.png" alt="" width="523" height="397" loading="lazy"><span class="gnote">Beispielhafte Darstellung</span></div>
+    <div class="gt"><div><span class="eyebrow">02 · Drohnen · in Arbeit</span><b>Zur Drohnenkarte</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
+  </div>
+  <div class="gate off rv" id="g3">
+    <div class="gv gv-r"><img class="gside l" src="bild/g-panzer.png" alt="" loading="lazy"><div class="rbox"><img src="bild/g-radar.png" alt="" width="620" height="620" loading="lazy"><i class="sweep"></i></div><img class="gside r" src="bild/g-satellit.png" alt="" loading="lazy"></div>
+    <div class="gt"><div><span class="eyebrow">03 · Berichte · in Arbeit</span><b>Zum Blog</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
+  </div>
   <div class="stats rv">
     <div class="stat"><span class="eyebrow">Stand</span><b id="sStand">–</b><small id="sStandS">&nbsp;</small></div>
     <div class="stat"><span class="eyebrow">Veränderungen</span><b id="sChg">–</b><small>letzte 14 Tage</small></div>
@@ -313,11 +361,6 @@ body::after{content:"";position:fixed;inset:0;z-index:40;pointer-events:none;bac
   </section>
 </div>
 
-<div class="band"><img class="drohne" src="bild/drohne.png" alt="" width="523" height="397" loading="lazy"><div class="wrap">
-  <h2>Die ganze Lage auf einen Blick.</h2>
-  <a class="btn-l solid" href="karte.html">Karte öffnen <svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a>
-</div></div>
-
 <footer><div class="wrap">
   <div><a class="logo" href="./" style="text-decoration:none"><img class="mark" src="bild/plus.png" alt="">PLYUS</a>
   <p>Lagekarte Ukraine. Alle Angaben ohne Gewähr, Darstellung kann von der tatsächlichen Lage abweichen.</p></div>
@@ -332,9 +375,6 @@ const fmtD = d=>new Date(d).toLocaleDateString("de-DE",{day:"2-digit",month:"2-d
 const nf = new Intl.NumberFormat("de-DE",{maximumFractionDigits:1});
 
 
-/* ===== Eigene Links: hier deine Kanäle eintragen ===== */
-const LINKS = { telegram: "", twitter: "" };
-[["tg","telegram"],["tw","twitter"]].forEach(([id,k])=>{ const a = $(id); if(LINKS[k]) a.href = LINKS[k]; else { a.removeAttribute("target"); a.href = "#"; a.title = "Link folgt"; a.addEventListener("click", e=>e.preventDefault()); } });
 
 /* ===== Lagegrafik im Kopfbereich (SVG aus den Lagedaten, ohne Kartenbibliothek) ===== */
 const NS = "http://www.w3.org/2000/svg";
@@ -412,6 +452,73 @@ function drawViz(imp, recent){
   }
 }
 /* Animationen anhalten, wenn der Kopfbereich nicht sichtbar ist (spart Akku) */
+
+/* ===== Grosse Blöcke ===== */
+(function(){
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, at, par)=>{ const n = document.createElementNS(NS, tag); for(const k in at) n.setAttribute(k, at[k]); if(par) par.appendChild(n); return n; };
+  /* 01 Front: Pfeile laufen auf die Linie zu */
+  (function(){
+    const g = $("gFront"); if(!g) return;
+    const front = "M690 -10C640 60 760 110 700 180S610 260 680 320S630 410 700 470";
+    el("path", {class:"gf-zone", d: front + "L1210 470L1210 -10Z"}, g);
+    el("path", {class:"gf-glow", d: front}, g); el("path", {class:"gf-front", d: front}, g);
+    [[820,70,"#ff8f9a"],[900,150,"#ff8f9a"],[860,250,"#ff8f9a"],[960,330,"#ff8f9a"],[820,400,"#ff8f9a"],[1040,110,"#ff8f9a"],[540,90,"#7fc3ff"],[470,210,"#7fc3ff"],[560,340,"#7fc3ff"],[380,130,"#7fc3ff"],[330,300,"#7fc3ff"]]
+      .forEach(([x,y,c])=>el("rect", {class:"gf-u", x:x-11, y:y-7, width:22, height:14, fill:c}, g));
+    const A = [
+      ["M1010 60C900 40 800 70 640 110", "#d8344a", 6.4, 0],
+      ["M1080 215C940 190 800 215 590 200", "#d8344a", 7.2, 1.3],
+      ["M1000 385C900 400 780 370 620 395", "#d8344a", 6.8, 2.6],
+      ["M330 60C440 30 540 80 660 40", "#2f7fe0", 7.6, 3.4],
+      ["M300 420C420 440 520 380 640 300", "#2f7fe0", 8, .8]];
+    A.forEach(([d,c,dur,w])=>{
+      el("path", {class:"gf-a", d, pathLength:1, stroke:c, style:`--d:${dur}s;--w:${w}s`}, g);
+      el("path", {class:"gf-h", d:"M-2 -17L26 0L-2 17Z", fill:c, style:`offset-path:path("${d}");--d:${dur}s;--w:${w}s`}, g);
+    });
+  })();
+  /* 02 Drohnen: Flugbahnen in beide Richtungen (frei erfundene Bahnen, nur zur Veranschaulichung) */
+  let dOk = false;
+  function drohnen(){
+    if(dOk) return; dOk = true;
+    const g = $("gDrohnen"); if(!g) return;
+    const X = lon=>(lon - 20.5)/(52.5 - 20.5)*1200, Y = lat=>(57.4 - lat)/(57.4 - 43.4)*460;
+    fetch("daten/land.json").then(r=>r.json()).then(j=>{
+      let d = "";
+      j.ringe.forEach(r=>{ let on = false, seg = "";
+        for(let i=0;i<r.length;i+=2){ const lo = r[i], la = r[i+1]; if(lo>14 && lo<60 && la>38 && la<63){ seg += (on?"L":"M") + X(lo).toFixed(0) + " " + Y(la).toFixed(0); on = true; } else on = false; }
+        d += seg; });
+      g.insertBefore(el("path", {class:"gd-land", d}), g.firstChild);
+    }).catch(()=>{});
+    el("text", {class:"gd-t", x:X(27.5), y:Y(49.6)}, g).textContent = "UKRAINE";
+    el("text", {class:"gd-t", x:X(41), y:Y(54.2)}, g).textContent = "RUSSLAND";
+    let seed = 7; const rnd = ()=>(seed = (seed*16807) % 2147483647, seed/2147483647);
+    const N = innerWidth < 700 ? 16 : 30;
+    for(let i=0;i<N;i++){
+      const ru = i % 2 === 0;
+      const a = [X(24.5 + rnd()*11.5), Y(46.4 + rnd()*4.8)], b = [X(37.5 + rnd()*12), Y(49.6 + rnd()*7)];
+      const mx = (a[0]+b[0])/2, my = (a[1]+b[1])/2, bend = (rnd() - .35)*150;
+      const d = `M${a[0].toFixed(0)} ${a[1].toFixed(0)}Q${mx.toFixed(0)} ${(my - bend).toFixed(0)} ${b[0].toFixed(0)} ${b[1].toFixed(0)}`;
+      el("path", {class:"gd-l " + (ru?"ru":"ua"), d, style:`animation-delay:-${(rnd()*1.6).toFixed(2)}s`}, g);
+      const c = el("circle", {r:3.4, fill: ru ? "#ff5a6e" : "#ffffff"}, g);
+      const m = el("animateMotion", {dur:(5 + rnd()*6).toFixed(1) + "s", begin:"-" + (rnd()*9).toFixed(1) + "s", repeatCount:"indefinite", path:d}, c);
+      if(ru){ m.setAttribute("keyPoints", "1;0"); m.setAttribute("keyTimes", "0;1"); m.setAttribute("calcMode", "linear"); }
+      el("circle", {cx: ru ? a[0] : b[0], cy: ru ? a[1] : b[1], r:2.2, fill:"none", stroke: ru ? "#ff5a6e" : "#ffffff", "stroke-width":1}, g);
+    }
+  }
+  if("IntersectionObserver" in window){
+    new IntersectionObserver(es=>es.forEach(e=>{
+      e.target.classList.toggle("ruht", !e.isIntersecting);
+      const sv = e.target.querySelector("svg[id]");
+      if(e.target.id === "g2" && e.isIntersecting) drohnen();
+      if(sv && sv.pauseAnimations) e.isIntersecting ? sv.unpauseAnimations() : sv.pauseAnimations();
+    }), {rootMargin:"200px 0px"}).observe($("g1")), 0;
+    const io2 = new IntersectionObserver(es=>es.forEach(e=>{
+      e.target.classList.toggle("ruht", !e.isIntersecting);
+      if(e.target.id === "g2"){ if(e.isIntersecting) drohnen(); const sv = $("gDrohnen"); if(sv.pauseAnimations) e.isIntersecting ? sv.unpauseAnimations() : sv.pauseAnimations(); }
+    }), {rootMargin:"200px 0px"});
+    io2.observe($("g2")); io2.observe($("g3"));
+  } else drohnen();
+})();
 if("IntersectionObserver" in window){
   new IntersectionObserver(es=>es.forEach(e=>$("hero").classList.toggle("paused", !e.isIntersecting))).observe($("hero"));
   const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }), {rootMargin:"0px 0px -8% 0px"});
