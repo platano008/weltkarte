@@ -19,7 +19,7 @@ if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611151842">
+<link rel="stylesheet" href="style.css?v=202611151857">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -284,6 +284,72 @@ a.gate:hover .gv svg{transform:scale(1.035)}
 .gside{width:26%;height:auto;opacity:.55}
 .gate.ruht *,.gate.ruht *::before{animation-play-state:paused!important}
 @media (max-width:640px){.gate{margin-top:18px}.gside{display:none}.gdr{height:46%}.gt{align-items:center}}
+
+/* ===== Kopf und Menü ===== */
+.logo{font-family:var(--korn);font-size:27px;letter-spacing:.03em}
+.burger{width:46px;height:46px;display:grid;align-content:center;gap:7px;padding:0 9px;border:1px solid var(--line-2);background:rgba(0,0,0,.5)}
+.burger i{display:block;height:2px;background:var(--fg)}
+.burger:hover{border-color:var(--fg)}
+.menu{position:fixed;inset:0;z-index:60;background:#000 url(bild/korn-fein.png) 0 0/220px;overflow-y:auto;animation:fadeIn .25s both}
+.menu nav{width:min(1200px,100%);margin:0 auto;padding:max(86px,12vh) max(16px,env(safe-area-inset-left)) 60px;display:flex;flex-direction:column}
+.menu nav > *{display:flex;align-items:baseline;gap:18px;padding:12px 0;border-bottom:1px solid var(--line);font-family:var(--korn);font-size:clamp(34px,6.4vw,76px);line-height:1;text-decoration:none;color:var(--fg);animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.menu nav > *:nth-child(2){animation-delay:.04s}.menu nav > *:nth-child(3){animation-delay:.08s}.menu nav > *:nth-child(4){animation-delay:.12s}.menu nav > *:nth-child(5){animation-delay:.16s}.menu nav > *:nth-child(6){animation-delay:.2s}.menu nav > *:nth-child(7){animation-delay:.24s}.menu nav > *:nth-child(8){animation-delay:.28s}
+.menu nav span span{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--faint);width:2.4em;flex:none}
+.menu nav a > span{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--faint);width:2.4em;flex:none}
+.menu nav .aus{color:#6f6f6f}
+.menu nav em{margin-left:auto;font-family:var(--mono);font-style:normal;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.menu nav a:hover{padding-left:14px;transition:padding .25s}
+.menu-x{position:fixed;z-index:61;right:max(16px,calc((100vw - 1200px)/2 + 16px));top:max(18px,env(safe-area-inset-top));width:46px;height:46px;border:1px solid var(--line-2);display:grid;place-items:center}
+.menu-x svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none}
+.hero h1::after{display:none}
+.hero h1{margin-bottom:calc(.3em + 10px)}
+/* Kartenbild: Vorstoß auf eine Stadt */
+.gk-hl{fill:none;stroke:rgba(255,255,255,.07);stroke-width:1}
+.gk-fl{fill:none;stroke:#4c6a80;stroke-width:5;stroke-linecap:round;opacity:.7}
+.gk-st{fill:none;stroke:#5a5a5a;stroke-width:2}
+.gk-st.h{stroke:#8a8a8a;stroke-width:3}
+.gk-bl{fill:#d9d9d9}
+.gk-zone{fill:#c21d2e;fill-opacity:.24}
+.gk-front{fill:none;stroke:#e0485a;stroke-width:3}
+.gk-neu{fill:#ff3b52;fill-opacity:.5;stroke:#ff8d99;stroke-width:2.5;stroke-linejoin:round;transform-box:fill-box;transform-origin:100% 50%;animation:gkn 9s cubic-bezier(.3,.7,.2,1) infinite both}
+@keyframes gkn{0%,40%{opacity:0;transform:scaleX(.25)}58%,90%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+.gk-a{fill:none;stroke-dasharray:1;animation:gka 9s cubic-bezier(.5,0,.25,1) infinite both}
+.gk-kopf{animation:gkk 9s cubic-bezier(.5,0,.25,1) infinite both}
+@keyframes gka{0%,6%{stroke-dashoffset:1;opacity:1}44%,90%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+@keyframes gkk{0%,6%{offset-distance:0%;opacity:0}9%{opacity:1}44%,90%{offset-distance:100%;opacity:1}100%{offset-distance:100%;opacity:0}}
+.gk-ring{fill:none;stroke:#fff;stroke-width:2;transform-box:fill-box;transform-origin:center;animation:gkr 9s ease-out infinite both}
+@keyframes gkr{0%,46%{opacity:0;transform:scale(.2)}50%{opacity:1}72%,100%{opacity:0;transform:scale(1.5)}}
+.gk-tag{animation:gkt 9s infinite both}
+@keyframes gkt{0%,56%{opacity:0}62%,90%{opacity:1}100%{opacity:0}}
+.gk-t{font:500 13px "IBM Plex Mono",monospace;letter-spacing:.14em;fill:#fff}
+.gk-ts{font:11px "IBM Plex Mono",monospace;letter-spacing:.12em;fill:#9a9a9a}
+/* Drohnenbild: zwei Länder, wenige Flugbahnen nacheinander */
+.gd-ua{fill:#1b1b1b;stroke:#f2f2f2;stroke-width:2;stroke-linejoin:round}
+.gd-ru{fill:rgba(194,29,46,.13);stroke:#b23a47;stroke-width:1.6;stroke-linejoin:round}
+.gd-n{font:400 34px "Plyus Korn","Plyus",sans-serif;letter-spacing:.06em;fill:#f2f2f2}
+.gd-n.ru{fill:#d06a75}
+.gd-b{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-dasharray:1;animation:gdb 12s linear var(--w) infinite both}
+@keyframes gdb{0%{stroke-dashoffset:1;opacity:1}22%{stroke-dashoffset:0;opacity:1}30%{stroke-dashoffset:0;opacity:.25}36%,100%{stroke-dashoffset:0;opacity:0}}
+.gd-f{animation:gdf 12s linear var(--w) infinite both}
+@keyframes gdf{0%{offset-distance:0%;opacity:1}22%{offset-distance:100%;opacity:1}24%,100%{offset-distance:100%;opacity:0}}
+.gd-z{fill:none;stroke-width:2;transform-box:fill-box;transform-origin:center;animation:gdz 12s ease-out var(--w) infinite both}
+@keyframes gdz{0%,21%{opacity:0;transform:scale(.2)}23%{opacity:1}36%,100%{opacity:0;transform:scale(1.6)}}
+/* Blog-Bild: Bericht, der sich schreibt */
+.gv-b{display:grid;place-items:center}
+.rep{position:relative;width:min(560px,78%);display:grid;gap:clamp(9px,1.5vw,16px)}
+.rep-h{display:flex;align-items:center;gap:12px;font-family:var(--korn);font-size:clamp(24px,3.6vw,44px);line-height:1;margin-bottom:6px}
+.rep-h img{height:.8em;width:auto}
+.rep-h em{margin-left:auto;font-family:var(--mono);font-style:normal;font-size:11px;letter-spacing:.12em;color:var(--muted)}
+.rep i{display:block;height:clamp(7px,1.1vw,12px);width:var(--w);background:#d9d9d9;transform-origin:0 50%;animation:repl 9s steps(22,end) infinite both;animation-delay:calc(var(--n)*.75s)}
+.rep i.r{background:#e0485a}
+@keyframes repl{0%{transform:scaleX(0)}8%,100%{transform:scaleX(1)}}
+.rep{animation:repf 9s infinite}
+@keyframes repf{0%,88%{opacity:1}96%,100%{opacity:0}}
+.rep .cur{display:block;width:clamp(9px,1.3vw,14px);height:clamp(14px,2vw,22px);background:#fff;animation:pulse 1s steps(1) infinite}
+/* Globus grösser */
+.recon{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:clamp(20px,4vw,60px)}
+.orb{width:100%;max-width:760px;margin:2% 0}
+@media (max-width:640px){.recon{grid-template-columns:1fr}.orb{width:100%;margin:0 0 6px}.gd-n{font-size:44px}}
 @media (min-resolution:2dppx){body::after{background-size:110px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front,.v-ua{stroke-dasharray:none}.ov .run,.radar{display:none}.rv,.tilt{opacity:1;transform:none}}
 </style>
@@ -292,9 +358,22 @@ a.gate:hover .gv svg{transform:scale(1.035)}
 
 <header class="top"><div class="wrap">
   <a class="logo" href="./"><img class="mark" src="bild/plus.png" alt="">PLYUS</a>
-  <nav class="nav"><a href="#lage">Veränderungen</a><a href="#zeigt">Inhalt</a><a class="solid" href="karte.html">Karte</a></nav>
+  <button class="burger" id="burger" aria-label="Menü öffnen" aria-expanded="false"><i></i><i></i><i></i></button>
 </div></header>
 
+<div class="menu" id="menu" hidden>
+  <button class="menu-x" id="menuX" aria-label="Menü schließen"><svg viewBox="0 0 24 24"><path d="M4 4l16 16M20 4L4 20"/></svg></button>
+  <nav>
+    <a href="karte.html"><span>01</span>Karte</a>
+    <span class="aus"><span>02</span>Drohnenkarte<em>in Arbeit</em></span>
+    <span class="aus"><span>03</span>Blog<em>in Arbeit</em></span>
+    <span class="aus"><span>04</span>Telegram<em>folgt</em></span>
+    <span class="aus"><span>05</span>Twitter<em>folgt</em></span>
+    <span class="aus"><span>06</span>Mitwirkende<em>folgt</em></span>
+    <span class="aus"><span>07</span>Kontakt<em>folgt</em></span>
+    <span class="aus"><span>08</span>Impressum<em>folgt</em></span>
+  </nav>
+</div>
 <section class="hero">
   <div id="hero" aria-hidden="true"><div id="vizbox"><div class="tilt" id="tilt"><svg id="viz"></svg><div class="radar" id="radar"></div><div class="ov" id="ov"></div></div></div><div class="scan"></div><span class="brk a"></span><span class="brk b"></span>
     <div class="hud"><div>Sektor <b>Ukraine</b></div><div>Lagedaten <b id="hudSrc">–</b></div><div>Veränderungen 14T <b id="hudChg">–</b></div></div></div>
@@ -304,20 +383,18 @@ a.gate:hover .gv svg{transform:scale(1.035)}
     <p class="lead">Frontverlauf, Veränderungen, Bewegungen und Einheiten auf einer Karte. Nüchtern dargestellt und regelmäßig aktualisiert.</p>
   </div>
 </section>
-<div class="tick" aria-hidden="true"><div><span>Aufklärung</span><img src="bild/plus.png" alt=""><span>Frontverlauf</span><img src="bild/plus.png" alt=""><span>Lagebild</span><img src="bild/plus.png" alt=""><span>Bewegungen</span><img src="bild/plus.png" alt=""><span>Einheiten</span><img src="bild/plus.png" alt=""><span>Recon</span><img src="bild/plus.png" alt=""><span>Veränderungen</span><img src="bild/plus.png" alt=""><span>Aufklärung</span><img src="bild/plus.png" alt=""><span>Frontverlauf</span><img src="bild/plus.png" alt=""><span>Lagebild</span><img src="bild/plus.png" alt=""><span>Bewegungen</span><img src="bild/plus.png" alt=""><span>Einheiten</span><img src="bild/plus.png" alt=""><span>Recon</span><img src="bild/plus.png" alt=""><span>Veränderungen</span><img src="bild/plus.png" alt=""></div></div>
-
-
 <div class="wrap">
   <a class="gate rv" href="karte.html" id="g1">
     <div class="gv"><svg id="gFront" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div>
     <div class="gt"><div><span class="eyebrow">01 · Frontverlauf</span><b>Zur Karte</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
   </a>
   <div class="gate off rv" id="g2">
-    <div class="gv"><svg id="gDrohnen" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><img class="gdr" src="bild/drohne.png" alt="" width="523" height="397" loading="lazy"><span class="gnote">Beispielhafte Darstellung</span></div>
+    <div class="gv"><svg id="gDrohnen" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><span class="gnote">Beispielhafte Darstellung</span></div>
     <div class="gt"><div><span class="eyebrow">02 · Drohnen · in Arbeit</span><b>Zur Drohnenkarte</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
   </div>
   <div class="gate off rv" id="g3">
-    <div class="gv gv-r"><img class="gside l" src="bild/g-panzer.png" alt="" loading="lazy"><div class="rbox"><img src="bild/g-radar.png" alt="" width="620" height="620" loading="lazy"><i class="sweep"></i></div><img class="gside r" src="bild/g-satellit.png" alt="" loading="lazy"></div>
+    <div class="gv gv-b"><div class="rep"><div class="rep-h"><img src="bild/plus.png" alt=""><span>Lagebericht</span><em>Nr. 001</em></div>
+      <i style="--w:92%;--n:0"></i><i style="--w:78%;--n:1"></i><i class="r" style="--w:44%;--n:2"></i><i style="--w:86%;--n:3"></i><i style="--w:63%;--n:4"></i><i style="--w:90%;--n:5"></i><i style="--w:38%;--n:6"></i><b class="cur"></b></div></div>
     <div class="gt"><div><span class="eyebrow">03 · Berichte · in Arbeit</span><b>Zum Blog</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
   </div>
   <div class="stats rv">
@@ -333,7 +410,7 @@ a.gate:hover .gv svg{transform:scale(1.035)}
   </section>
 
   <section class="recon" id="zeigt">
-    <div class="orb rv"><img class="gl" src="bild/g-globus.png" alt="" width="900" height="900" loading="lazy"><div class="sat"><img src="bild/g-satellit.png" alt="" width="700" height="470" loading="lazy"></div></div>
+    <div class="orb rv"><img class="gl" src="bild/g-globus.png" alt="" width="1240" height="1240" loading="lazy"><div class="sat"><img src="bild/g-satellit.png" alt="" width="700" height="470" loading="lazy"></div></div>
     <div class="rv">
       <span class="eyebrow">Aufklärung</span>
       <h2>Lage statt Lärm.</h2>
@@ -453,68 +530,83 @@ function drawViz(imp, recent){
 }
 /* Animationen anhalten, wenn der Kopfbereich nicht sichtbar ist (spart Akku) */
 
+/* ===== Menü ===== */
+(function(){ const m = $("menu"), b = $("burger");
+  const auf = on=>{ m.hidden = !on; b.setAttribute("aria-expanded", on); document.documentElement.style.overflow = on ? "hidden" : ""; };
+  b.onclick = ()=>auf(true); $("menuX").onclick = ()=>auf(false);
+  addEventListener("keydown", e=>{ if(e.key === "Escape") auf(false); });
+})();
 /* ===== Grosse Blöcke ===== */
 (function(){
   const NS = "http://www.w3.org/2000/svg";
   const el = (tag, at, par)=>{ const n = document.createElementNS(NS, tag); for(const k in at) n.setAttribute(k, at[k]); if(par) par.appendChild(n); return n; };
-  /* 01 Front: Pfeile laufen auf die Linie zu */
+  /* 01 Karte: ein Vorstoß auf eine Stadt, danach wird das neue Gebiet eingezeichnet */
   (function(){
     const g = $("gFront"); if(!g) return;
-    const front = "M690 -10C640 60 760 110 700 180S610 260 680 320S630 410 700 470";
-    el("path", {class:"gf-zone", d: front + "L1210 470L1210 -10Z"}, g);
-    el("path", {class:"gf-glow", d: front}, g); el("path", {class:"gf-front", d: front}, g);
-    [[820,70,"#ff8f9a"],[900,150,"#ff8f9a"],[860,250,"#ff8f9a"],[960,330,"#ff8f9a"],[820,400,"#ff8f9a"],[1040,110,"#ff8f9a"],[540,90,"#7fc3ff"],[470,210,"#7fc3ff"],[560,340,"#7fc3ff"],[380,130,"#7fc3ff"],[330,300,"#7fc3ff"]]
-      .forEach(([x,y,c])=>el("rect", {class:"gf-u", x:x-11, y:y-7, width:22, height:14, fill:c}, g));
-    const A = [
-      ["M1010 60C900 40 800 70 640 110", "#d8344a", 6.4, 0],
-      ["M1080 215C940 190 800 215 590 200", "#d8344a", 7.2, 1.3],
-      ["M1000 385C900 400 780 370 620 395", "#d8344a", 6.8, 2.6],
-      ["M330 60C440 30 540 80 660 40", "#2f7fe0", 7.6, 3.4],
-      ["M300 420C420 440 520 380 640 300", "#2f7fe0", 8, .8]];
-    A.forEach(([d,c,dur,w])=>{
-      el("path", {class:"gf-a", d, pathLength:1, stroke:c, style:`--d:${dur}s;--w:${w}s`}, g);
-      el("path", {class:"gf-h", d:"M-2 -17L26 0L-2 17Z", fill:c, style:`offset-path:path("${d}");--d:${dur}s;--w:${w}s`}, g);
-    });
+    let seed = 11; const rnd = ()=>(seed = (seed*16807) % 2147483647, seed/2147483647);
+    // Gelände: Höhenlinien, Fluss, Strassen
+    for(let i=0;i<7;i++){ const y = 40 + i*66; el("path", {class:"gk-hl", d:`M-20 ${y}C200 ${y-50+rnd()*60} 420 ${y+50-rnd()*40} 640 ${y-10}S1000 ${y+40-rnd()*70} 1220 ${y-20}`}, g); }
+    el("path", {class:"gk-fl", d:"M250 -10C300 90 220 170 290 250S380 380 330 470"}, g);
+    [["M-10 300L420 262L560 236", "h"], ["M560 236L800 214L1210 150", "h"], ["M520 -10L548 150L560 236L600 470", ""], ["M560 236L700 330L900 470", ""], ["M430 120L560 236", ""]].forEach(([d,c])=>el("path", {class:"gk-st " + c, d}, g));
+    // besetztes Gebiet rechts und Frontlinie
+    const front = "M940 -10C900 70 960 120 920 190S850 270 900 340S870 420 910 470";
+    el("path", {class:"gk-zone", d: front + "L1210 470L1210 -10Z"}, g);
+    // neues Gebiet: schiebt sich von der Front bis in den Ostteil der Stadt
+    el("path", {class:"gk-neu", d:"M924 150C860 138 760 150 690 178C640 200 610 228 628 262C650 300 740 310 810 300C860 292 890 300 884 290C858 262 900 210 924 150Z"}, g);
+    el("path", {class:"gk-front", d: front}, g);
+    // Stadt: Häuserblöcke
+    for(let ix=-7;ix<=7;ix++) for(let iy=-5;iy<=5;iy++){
+      const dx = ix*21, dy = iy*17, r = (dx*dx)/(150*150) + (dy*dy)/(88*88);
+      if(r > 1 || rnd() < .14 + r*.35) continue;
+      const w = 9 + rnd()*8, h = 7 + rnd()*6;
+      el("rect", {class:"gk-bl", x:(560 + dx + dy*.25 - w/2).toFixed(1), y:(236 + dy - dx*.09 - h/2).toFixed(1), width:w.toFixed(1), height:h.toFixed(1), opacity:(.55 + rnd()*.45).toFixed(2)}, g);
+    }
+    // Vorstoß
+    const d = "M1150 120C1040 150 930 228 700 240";
+    el("path", {class:"gk-a", d, pathLength:1, stroke:"#000", "stroke-width":26}, g);
+    el("path", {class:"gk-a", d, pathLength:1, stroke:"#e23a50", "stroke-width":17}, g);
+    el("path", {class:"gk-kopf", d:"M-6 -30L44 0L-6 30Z", fill:"#e23a50", stroke:"#000", "stroke-width":4, "paint-order":"stroke", style:`offset-path:path("${d}")`}, g);
+    el("circle", {class:"gk-ring", cx:640, cy:240, r:70}, g);
+    const t = el("g", {class:"gk-tag"}, g);
+    el("path", {d:"M640 240L500 96H330", fill:"none", stroke:"#fff", "stroke-width":1.5}, t);
+    el("text", {class:"gk-t", x:330, y:86}, t).textContent = "NEUE VERÄNDERUNG";
+    el("text", {class:"gk-ts", x:330, y:116}, t).textContent = "GEBIET AN DER FRONT";
   })();
-  /* 02 Drohnen: Flugbahnen in beide Richtungen (frei erfundene Bahnen, nur zur Veranschaulichung) */
+  /* 02 Drohnen: Ukraine und Russland als Umriss, wenige Flugbahnen nacheinander (frei erfunden, nur zur Veranschaulichung) */
   let dOk = false;
   function drohnen(){
     if(dOk) return; dOk = true;
     const g = $("gDrohnen"); if(!g) return;
-    const X = lon=>(lon - 20.5)/(52.5 - 20.5)*1200, Y = lat=>(57.4 - lat)/(57.4 - 43.4)*460;
-    fetch("daten/land.json").then(r=>r.json()).then(j=>{
-      let d = "";
-      j.ringe.forEach(r=>{ let on = false, seg = "";
-        for(let i=0;i<r.length;i+=2){ const lo = r[i], la = r[i+1]; if(lo>14 && lo<60 && la>38 && la<63){ seg += (on?"L":"M") + X(lo).toFixed(0) + " " + Y(la).toFixed(0); on = true; } else on = false; }
-        d += seg; });
-      g.insertBefore(el("path", {class:"gd-land", d}), g.firstChild);
+    const X = lon=>(lon - 19.5)/(51.5 - 19.5)*1200, Y = lat=>(57.2 - lat)/(57.2 - 43.6)*460;
+    const pfad = rs=>rs.map(r=>{ let d = ""; for(let i=0;i<r.length;i+=2) d += (i?"L":"M") + X(r[i]).toFixed(0) + " " + Y(r[i+1]).toFixed(0); return d + "Z"; }).join("");
+    fetch("daten/laender.json").then(r=>r.json()).then(j=>{
+      const ua = el("path", {class:"gd-ua", d: pfad(j.ua)}); const ru = el("path", {class:"gd-ru", d: pfad(j.ru)});
+      g.insertBefore(ua, g.firstChild); g.insertBefore(ru, g.firstChild);
     }).catch(()=>{});
-    el("text", {class:"gd-t", x:X(27.5), y:Y(49.6)}, g).textContent = "UKRAINE";
-    el("text", {class:"gd-t", x:X(41), y:Y(54.2)}, g).textContent = "RUSSLAND";
-    let seed = 7; const rnd = ()=>(seed = (seed*16807) % 2147483647, seed/2147483647);
-    const N = innerWidth < 700 ? 16 : 30;
-    for(let i=0;i<N;i++){
-      const ru = i % 2 === 0;
-      const a = [X(24.5 + rnd()*11.5), Y(46.4 + rnd()*4.8)], b = [X(37.5 + rnd()*12), Y(49.6 + rnd()*7)];
-      const mx = (a[0]+b[0])/2, my = (a[1]+b[1])/2, bend = (rnd() - .35)*150;
-      const d = `M${a[0].toFixed(0)} ${a[1].toFixed(0)}Q${mx.toFixed(0)} ${(my - bend).toFixed(0)} ${b[0].toFixed(0)} ${b[1].toFixed(0)}`;
-      el("path", {class:"gd-l " + (ru?"ru":"ua"), d, style:`animation-delay:-${(rnd()*1.6).toFixed(2)}s`}, g);
-      const c = el("circle", {r:3.4, fill: ru ? "#ff5a6e" : "#ffffff"}, g);
-      const m = el("animateMotion", {dur:(5 + rnd()*6).toFixed(1) + "s", begin:"-" + (rnd()*9).toFixed(1) + "s", repeatCount:"indefinite", path:d}, c);
-      if(ru){ m.setAttribute("keyPoints", "1;0"); m.setAttribute("keyTimes", "0;1"); m.setAttribute("calcMode", "linear"); }
-      el("circle", {cx: ru ? a[0] : b[0], cy: ru ? a[1] : b[1], r:2.2, fill:"none", stroke: ru ? "#ff5a6e" : "#ffffff", "stroke-width":1}, g);
-    }
+    el("text", {class:"gd-n", x:X(27.2), y:Y(48.6)}, g).textContent = "Ukraine";
+    el("text", {class:"gd-n ru", x:X(39.5), y:Y(54.3)}, g).textContent = "Russland";
+    // [Start lon/lat, Ziel lon/lat, Richtung]
+    const B = [[[40.5,52.4],[31.5,50.2],"ru"], [[30.6,47.6],[41.8,55.3],"ua"], [[37.6,47.3],[33.4,48.6],"ru"], [[33.2,50.6],[45.4,52.6],"ua"], [[44.2,50.4],[28.6,49.3],"ru"], [[35.6,48.9],[39.6,51.2],"ua"]];
+    B.forEach(([a,b,k],i)=>{
+      const x0 = X(a[0]), y0 = Y(a[1]), x1 = X(b[0]), y1 = Y(b[1]), bend = 46 + (i%3)*18;
+      const d = `M${x0.toFixed(0)} ${y0.toFixed(0)}Q${((x0+x1)/2).toFixed(0)} ${((y0+y1)/2 - bend).toFixed(0)} ${x1.toFixed(0)} ${y1.toFixed(0)}`;
+      const c = k === "ru" ? "#ff4d63" : "#ffffff", w = `--w:${(i*2).toFixed(1)}s`;
+      el("path", {class:"gd-b", d, pathLength:1, stroke:c, style:w}, g);
+      el("path", {class:"gd-f", d:"M-9 -8L11 0L-9 8L-4 0Z", fill:c, style:`offset-path:path("${d}");${w}`}, g);
+      el("circle", {class:"gd-z", cx:x1, cy:y1, r:20, stroke:c, style:w}, g);
+      el("circle", {cx:x0, cy:y0, r:3.5, fill:c}, g);
+    });
   }
   if("IntersectionObserver" in window){
     new IntersectionObserver(es=>es.forEach(e=>{
       e.target.classList.toggle("ruht", !e.isIntersecting);
       const sv = e.target.querySelector("svg[id]");
       if(e.target.id === "g2" && e.isIntersecting) drohnen();
-      if(sv && sv.pauseAnimations) e.isIntersecting ? sv.unpauseAnimations() : sv.pauseAnimations();
+      
     }), {rootMargin:"200px 0px"}).observe($("g1")), 0;
     const io2 = new IntersectionObserver(es=>es.forEach(e=>{
       e.target.classList.toggle("ruht", !e.isIntersecting);
-      if(e.target.id === "g2"){ if(e.isIntersecting) drohnen(); const sv = $("gDrohnen"); if(sv.pauseAnimations) e.isIntersecting ? sv.unpauseAnimations() : sv.pauseAnimations(); }
+      if(e.target.id === "g2" && e.isIntersecting) drohnen();
     }), {rootMargin:"200px 0px"});
     io2.observe($("g2")); io2.observe($("g3"));
   } else drohnen();
@@ -541,7 +633,7 @@ Promise.all([
   fetch("karte.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null)
 ]).then(([imp, own])=>{
   const dates = [imp && imp.meta && imp.meta.bearbeitet, own && own.aktualisiert].filter(Boolean).map(d=>new Date(d)).filter(d=>!isNaN(d));
-  if(dates.length){ const d = new Date(Math.max(...dates)); $("sStand").textContent = d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}); $("sStandS").textContent = d.getFullYear(); $("kick").textContent = "Lagekarte Ukraine · Stand " + fmtD(d); }
+  if(dates.length){ const d = new Date(Math.max(...dates)); $("sStand").textContent = d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}); $("sStandS").textContent = d.getFullYear(); }
   if(imp && imp.meta && imp.meta.quelle){ $("src").textContent = imp.meta.quelle; $("hudSrc").textContent = imp.meta.quelle; }
   const feats = (imp && imp.features) || [];
   countUp("sUnits", feats.filter(f=>f.properties && f.properties.art==="symbol" && /^units/.test(f.properties.ebene||"")).length);

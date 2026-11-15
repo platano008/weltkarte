@@ -9,7 +9,7 @@ from scipy.ndimage import gaussian_filter
 S = 2  # Zeichnen in doppelter Grösse
 
 class Blatt:
-    def __init__(s, w, h): s.w, s.h = w, h; s.im = Image.new("L", (w*S, h*S), 0); s.d = ImageDraw.Draw(s.im)
+    def __init__(s, w, h): s.w, s.h = w, h; s.im = Image.new("L", (int(w*S), int(h*S)), 0); s.d = ImageDraw.Draw(s.im)
     def P(s, pts): return [(x*S, y*S) for x, y in pts]
     def linie(s, pts, b=6, zu=False):
         pts = list(pts) + ([pts[0]] if zu else []); b = b*1.4 + 0.6
@@ -52,7 +52,7 @@ class Blatt:
         out.save("bild/g-" + name + ".png", optimize=True)
 
 def globus():
-    W = 900; b = Blatt(W, W); R = 400; c = W/2
+    W = 1240; b = Blatt(W, W); R = 560; c = W/2
     lon0, lat0 = math.radians(34), math.radians(36)
     def pr(lon, lat):
         lo, la = math.radians(lon) - lon0, math.radians(lat)
@@ -68,15 +68,15 @@ def globus():
                 if len(cur) > 1: b.linie(cur, br)
                 cur = []
         if len(cur) > 1: b.linie(cur, br)
-    for lon in range(-180, 180, 20): zug([(lon, la) for la in range(-80, 81, 3)], 2.4)
-    for lat in range(-60, 81, 20): zug([(lo, lat) for lo in range(-180, 181, 3)], 2.4)
+    for lon in range(-180, 180, 20): zug([(lon, la) for la in range(-80, 81, 3)], 3)
+    for lat in range(-60, 81, 20): zug([(lo, lat) for lo in range(-180, 181, 3)], 3)
     for ring in json.load(open("daten/land.json"))["ringe"]:
-        if len(ring) > 10: zug(list(zip(ring[0::2], ring[1::2])) + [(ring[0], ring[1])], 4.4)
+        if len(ring) > 10: zug(list(zip(ring[0::2], ring[1::2])) + [(ring[0], ring[1])], 5.2)
     b.kreis(c, c, R, 8)
     # Markierung Ukraine
     x, y, _ = pr(34.5, 48.6)
-    b.kreis(x, y, 26, 5); b.kreis(x, y, 7, 0, fuell=True)
-    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)): b.linie([(x+dx*34, y+dy*34), (x+dx*58, y+dy*58)], 5)
+    b.kreis(x, y, 34, 6); b.kreis(x, y, 9, 0, fuell=True)
+    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)): b.linie([(x+dx*46, y+dy*46), (x+dx*80, y+dy*80)], 6)
     b.rau("globus", 3)
 
 def panzer():
