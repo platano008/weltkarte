@@ -597,8 +597,12 @@ function symbolMarker(map, el, o){
 /* ---------------- Bild-Export ---------------- */
 /* Aufbau wie eine Lagekarte zum Teilen: Karte links (bzw. oben), Seitenleiste mit Titel, Legende,
    Übersichtskarte und Quellen. Die Ausgabegröße hängt nur von Format und Qualität ab, nicht vom Bildschirm. */
-const LOGO_PATH = "M4.5 1.5H9.5V4H4.5Z M14.5 1.5H19.5V4H14.5Z M3.5 5H10.5V9.5H13.5V5H20.5L23 10V22.5H13.5V14H10.5V22.5H1V10Z M3.5 15.5V20H8V15.5Z M16 15.5V20H20.5V15.5Z";
-function drawLogo(g, x, y, s, col){ g.save(); g.translate(x, y); g.scale(s/24, s/24); g.fillStyle = col; g.fill(new Path2D(LOGO_PATH), "evenodd"); g.restore(); }
+/* Logo: gekörntes Plus. Als Bild geladen; bis es da ist (oder falls es fehlt) ein schlichtes Plus. */
+const LOGO_IMG = new Image(); LOGO_IMG.src = "bild/plus.png";
+function drawLogo(g, x, y, s, col){
+  if(LOGO_IMG.complete && LOGO_IMG.naturalWidth){ g.drawImage(LOGO_IMG, x - s*0.08, y - s*0.08, s*1.16, s*1.16); return; }
+  g.save(); g.fillStyle = col; g.fillRect(x + s*0.38, y + s*0.06, s*0.24, s*0.88); g.fillRect(x + s*0.06, y + s*0.38, s*0.88, s*0.24); g.restore();
+}
 const QUAL = {2:1920, 3:2880, 4:3840};
 function exportLayout(ratio, q, layout){
   const TW = QUAL[q] || 2880, TH = Math.round(TW/ratio), u = TW/1000, p = Math.round(12*u);
@@ -864,16 +868,16 @@ async function exportWeekVideo(map, o){
   try{ await document.fonts.load(`700 40px "Plyus"`); await document.fonts.load(`500 20px "IBM Plex Mono"`); await document.fonts.load(`600 20px "Archivo"`); }catch(e){}
   const shade = document.createElement("canvas"); shade.width = W; shade.height = H;
   { const sg = shade.getContext("2d");
-    let gr = sg.createLinearGradient(0,0,0,H*0.28); gr.addColorStop(0,"rgba(14,15,17,.82)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(0,0,W,H*0.28);
-    gr = sg.createLinearGradient(0,H,0,H*0.78); gr.addColorStop(0,"rgba(14,15,17,.85)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(0,H*0.5,W,H*0.5);
-    gr = sg.createLinearGradient(W,0,W-640*u,0); gr.addColorStop(0,"rgba(14,15,17,.9)"); gr.addColorStop(1,"rgba(14,15,17,0)"); sg.fillStyle = gr; sg.fillRect(W-640*u,0,640*u,H);
+    let gr = sg.createLinearGradient(0,0,0,H*0.28); gr.addColorStop(0,"rgba(0,0,0,.82)"); gr.addColorStop(1,"rgba(0,0,0,0)"); sg.fillStyle = gr; sg.fillRect(0,0,W,H*0.28);
+    gr = sg.createLinearGradient(0,H,0,H*0.78); gr.addColorStop(0,"rgba(0,0,0,.85)"); gr.addColorStop(1,"rgba(0,0,0,0)"); sg.fillStyle = gr; sg.fillRect(0,H*0.5,W,H*0.5);
+    gr = sg.createLinearGradient(W,0,W-640*u,0); gr.addColorStop(0,"rgba(0,0,0,.9)"); gr.addColorStop(1,"rgba(0,0,0,0)"); sg.fillStyle = gr; sg.fillRect(W-640*u,0,640*u,H);
     gr = sg.createRadialGradient(W/2,H/2,Math.min(W,H)*0.4,W/2,H/2,Math.max(W,H)*0.78); gr.addColorStop(0,"rgba(0,0,0,0)"); gr.addColorStop(1,"rgba(0,0,0,.3)"); sg.fillStyle = gr; sg.fillRect(0,0,W,H); }
   const cv = document.createElement("canvas"); cv.width = W; cv.height = H; const g = cv.getContext("2d", {alpha:false});
   const bcv = document.createElement("canvas"); bcv.width = W; bcv.height = H; const bg = bcv.getContext("2d", {alpha:false});
   g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high";
   const pill = (txt, x, y, col, a)=>{ g.font = `600 ${17*u}px ${F_M}`; const w = g.measureText(txt).width + 22*u, h = 34*u;
     x = Math.max(16*u, Math.min(W - w - 16*u, x)); y = Math.max(16*u, Math.min(H - h - 16*u, y));
-    g.globalAlpha = a; g.fillStyle = "rgba(14,15,17,.9)"; g.fillRect(x, y, w, h); g.fillStyle = col; g.fillRect(x, y, 3*u, h);
+    g.globalAlpha = a; g.fillStyle = "rgba(0,0,0,.9)"; g.fillRect(x, y, w, h); g.fillStyle = col; g.fillRect(x, y, 3*u, h);
     g.fillStyle = "#f2f3f5"; g.textBaseline = "middle"; g.textAlign = "left"; g.fillText(txt, x + 13*u, y + h/2 + 1); g.globalAlpha = 1; };
   function head(a){
     const hx = 56*u, hy = 52*u;
@@ -950,7 +954,7 @@ async function exportWeekVideo(map, o){
     g.globalAlpha = 1;
     /* Übersichtskarte: Blickfeld der Kamera */
     { const ix = 56*u, iy = H - 56*u - IH, ia = smooth(clamp((tt-0.5)/1.0));
-      g.globalAlpha = ia; g.fillStyle = "#0e0f11"; g.fillRect(ix-1, iy-1, IW+2, IH+2); g.drawImage(ib, ix, iy);
+      g.globalAlpha = ia; g.fillStyle = "#000000"; g.fillRect(ix-1, iy-1, IW+2, IH+2); g.drawImage(ib, ix, iy);
       g.strokeStyle = "rgba(255,255,255,.3)"; g.lineWidth = 1; g.strokeRect(ix+.5, iy+.5, IW-1, IH-1);
       const top = cam.pitch > 30 ? ch*0.18 : 0, q = [[0,top],[cw,top],[cw,ch],[0,ch]].map(c=>{ const ll = m.unproject(c); return toInset([ll.lng, ll.lat]); });
       const mx = q.reduce((s,p)=>s+p[0],0)/4, my = q.reduce((s,p)=>s+p[1],0)/4, sz = Math.max(...q.map(p=>Math.hypot(p[0]-mx, p[1]-my)));
@@ -960,7 +964,7 @@ async function exportWeekVideo(map, o){
       if(sz < 9*u){ g.beginPath(); g.arc(ix + mx, iy + my, 13*u, 0, Math.PI*2); g.strokeStyle = "rgba(255,255,255,.75)"; g.lineWidth = 1.2*u; g.stroke(); }
       g.restore(); g.globalAlpha = 1; }
     const ea = smooth(clamp((tt - END - 0.4)/1.0));
-    if(ea > 0){ g.globalAlpha = ea; g.fillStyle = "rgba(14,15,17,.9)"; const tx = (o.outro || "Ganze Lage auf der Karte").toUpperCase(); g.font = `600 ${17*u}px ${F_M}`; const tw = g.measureText(tx).width + 40*u;
+    if(ea > 0){ g.globalAlpha = ea; g.fillStyle = "rgba(0,0,0,.9)"; const tx = (o.outro || "Ganze Lage auf der Karte").toUpperCase(); g.font = `600 ${17*u}px ${F_M}`; const tw = g.measureText(tx).width + 40*u;
       const ox = W/2 - tw/2 - 120*u, oy = H - 100*u; g.fillRect(ox, oy, tw, 44*u); g.fillStyle = "#ffffff"; g.textBaseline = "middle"; g.fillText(tx, ox + 20*u, oy + 23*u); g.globalAlpha = 1; }
     g.fillStyle = "rgba(200,204,210,.55)"; g.font = `${11*u}px ${F_T}`; g.textBaseline = "bottom"; g.textAlign = "right"; g.fillText(attrib, W - 16*u, H - 10*u); g.textAlign = "left";
   }
@@ -1041,7 +1045,7 @@ async function exportWeekVideo(map, o){
         const dy = (i % 2 ? 1 : -1)*(58 + (i % 3)*26)*u, lx = v[0] + 34*u, lyy = v[1] + dy;
         G.strokeStyle = "rgba(255,255,255,.7)"; G.lineWidth = 1.2*u; G.beginPath(); G.moveTo(v[0] + 9*u, v[1] + Math.sign(dy)*9*u); G.lineTo(lx, lyy); G.lineTo(lx + 16*u, lyy); G.stroke();
         G.font = `600 ${17*u}px ${F_M}`; const tw = G.measureText(m.txt).width + 22*u, th = 34*u, bx = Math.min(W - tw - 16*u, lx + 16*u), by2 = lyy - th/2;
-        G.fillStyle = "rgba(14,15,17,.92)"; G.fillRect(bx, by2, tw, th); G.fillStyle = rgba(m.col,1); G.fillRect(bx, by2, 3*u, th);
+        G.fillStyle = "rgba(0,0,0,.92)"; G.fillRect(bx, by2, tw, th); G.fillStyle = rgba(m.col,1); G.fillRect(bx, by2, 3*u, th);
         G.fillStyle = "#f2f3f5"; G.textBaseline = "middle"; G.textAlign = "left"; G.fillText(m.txt, bx + 13*u, by2 + th/2 + 1); G.globalAlpha = 1; });
     }
     return {T0, XF, render, canvas: gc};
@@ -1124,7 +1128,7 @@ async function exportImage(map, o){
     const out = document.createElement("canvas"); out.width = L.TW; out.height = L.TH;
     const g = out.getContext("2d");
     try{ if(document.fonts) await Promise.all([document.fonts.load(`${40*u}px "Plyus"`), document.fonts.load(`500 ${12*u}px "IBM Plex Mono"`), document.fonts.load(`500 ${12*u}px "Archivo"`)]); }catch(e){}
-    g.fillStyle = "#0e0f11"; g.fillRect(0, 0, L.TW, L.TH);
+    g.fillStyle = "#000000"; g.fillRect(0, 0, L.TW, L.TH);
 
     /* Karte */
     const M = L.map, src = main.m.getCanvas();
@@ -1193,7 +1197,7 @@ async function exportImage(map, o){
       let scaleX = pad + 8*u;
       if(inset){
         const IW = sideInner.w, IH = sideInner.h, hh = 0, IX = pad + 8*u, IY = TH - pad - 8*u - IH;
-        g.save(); g.shadowColor = "rgba(0,0,0,0.55)"; g.shadowBlur = 18*u; g.fillStyle = "#0e0f11"; g.fillRect(IX, IY - hh, IW, IH + hh); g.restore();
+        g.save(); g.shadowColor = "rgba(0,0,0,0.55)"; g.shadowBlur = 18*u; g.fillStyle = "#000000"; g.fillRect(IX, IY - hh, IW, IH + hh); g.restore();
         g.fillStyle = "#ffffff"; g.fillRect(IX, IY - hh, IW, 2*u);
         g.drawImage(inset.m.getCanvas(), IX, IY, IW, IH);
         g.strokeStyle = "#3a3e45"; g.lineWidth = 1.5*u; g.strokeRect(IX, IY - hh, IW, IH + hh);
@@ -1211,7 +1215,7 @@ async function exportImage(map, o){
           const list = items.length > maxRows ? items.slice(0, maxRows-1) : items;
           const more = items.length - list.length, rowsN = list.length + (more ? 1 : 0);
           const LH = head + rowsN*rowH + ip, LX = TW - pad - 8*u - LW, LY = TH - pad - 8*u - LH;
-          g.save(); g.shadowColor = "rgba(0,0,0,0.55)"; g.shadowBlur = 18*u; g.fillStyle = "rgba(14,15,17,0.9)"; g.fillRect(LX, LY, LW, LH); g.restore();
+          g.save(); g.shadowColor = "rgba(0,0,0,0.55)"; g.shadowBlur = 18*u; g.fillStyle = "rgba(0,0,0,0.9)"; g.fillRect(LX, LY, LW, LH); g.restore();
           g.strokeStyle = "#3a3e45"; g.lineWidth = 1.5*u; g.strokeRect(LX, LY, LW, LH);
           g.fillStyle = "#ffffff"; g.fillRect(LX, LY, LW, 2*u);
           let yy = LY + head;
@@ -1233,7 +1237,7 @@ async function exportImage(map, o){
       const meters = niceScale(mpp*M.w*frac), bar = meters/mpp, label = meters >= 1000 ? (meters/1000).toLocaleString("de-DE")+" km" : meters+" m";
       g.font = `600 ${13*u}px "IBM Plex Mono", Menlo, monospace`;
       const lw = g.measureText(label).width;
-      g.fillStyle = "rgba(14,15,17,0.82)"; g.fillRect(bx, byy - 34*u, bar + lw + 40*u, 34*u);
+      g.fillStyle = "rgba(0,0,0,0.82)"; g.fillRect(bx, byy - 34*u, bar + lw + 40*u, 34*u);
       g.fillStyle = "#6b7079"; g.fillRect(bx+12*u, byy-12*u, bar, 3*u); g.fillStyle = "#f2f3f5"; g.fillRect(bx+12*u, byy-19*u, 2*u, 10*u); g.fillRect(bx+12*u+bar-2*u, byy-19*u, 2*u, 10*u);
       g.fillStyle = "#ffffff"; g.fillRect(bx+12*u, byy-12*u, bar/2, 3*u);
       g.fillStyle = "#f2f3f5"; g.textBaseline = "middle"; g.fillText(label, bx + 22*u + bar, byy - 13*u);
@@ -1242,7 +1246,7 @@ async function exportImage(map, o){
     if(Math.abs(bearing) > 0.5){
       const nx = M.x + M.w - (L.overlay ? 50 : 30)*u, ny = M.y + (L.overlay ? 90 : 30)*u;
       g.save(); g.translate(nx, ny); g.rotate(-bearing*Math.PI/180);
-      g.fillStyle = "rgba(14,15,17,0.85)"; g.fillRect(-18*u,-18*u,36*u,36*u);
+      g.fillStyle = "rgba(0,0,0,0.85)"; g.fillRect(-18*u,-18*u,36*u,36*u);
       g.fillStyle = "#ffffff"; g.beginPath(); g.moveTo(0,-12*u); g.lineTo(7*u,7*u); g.lineTo(0,2*u); g.lineTo(-7*u,7*u); g.closePath(); g.fill(); g.restore();
     }
     g.restore();
