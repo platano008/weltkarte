@@ -19,7 +19,7 @@ if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611152320">
+<link rel="stylesheet" href="style.css?v=202611152335">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -395,7 +395,7 @@ footer .szug-k{height:16px}
 .hero-mid{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:18px;padding:0 16px;text-align:center}
 .hero-mid .kicker{animation:rise .9s cubic-bezier(.2,.7,.2,1) both}
 .hero h1{margin:0}
-.szug{width:clamp(290px,74vw,1040px);filter:drop-shadow(0 10px 34px rgba(0,0,0,.9))}
+.szug{width:clamp(290px,64vw,960px);filter:drop-shadow(0 10px 34px rgba(0,0,0,.9))}
 .mark{width:auto;height:30px}
 footer .mark{height:22px}
 .runter{position:absolute;z-index:2;left:50%;bottom:max(22px,env(safe-area-inset-bottom));width:44px;height:44px;margin-left:-22px;display:grid;place-items:center;color:var(--muted);animation:runter 2.2s ease-in-out infinite}
@@ -403,6 +403,55 @@ footer .mark{height:22px}
 @keyframes runter{0%,100%{transform:translateY(0);opacity:.55}50%{transform:translateY(8px);opacity:1}}
 .intro{max-width:32em;margin:clamp(56px,10vw,130px) auto 0;text-align:center;font-size:clamp(17px,1.9vw,23px);color:#d2d2d2}
 @media (max-width:640px){#vizbox{width:230%;top:46%}.hero .hud{display:none}}
+
+/* ===== Lagetisch in 3D ===== */
+.burger{border:0;background:none}
+#vizbox{perspective:1500px;perspective-origin:var(--fx,50%) var(--fy,50%);animation:fadeIn 1.4s both;left:62%;top:40%;transform:translate(calc(var(--fx,50%)*-1),calc(var(--fy,50%)*-1))}
+.tilt,.tilt.on,.tilt.done{opacity:1;animation:none}
+.orbit{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(56deg) rotateZ(-15deg) scale(1.5);animation:anflug 3s cubic-bezier(.16,.8,.2,1) both,kreisen 44s ease-in-out 3s infinite alternate;will-change:transform}
+@keyframes anflug{from{transform:rotateX(0deg) rotateZ(8deg) scale(.5)}}
+@keyframes kreisen{to{transform:rotateX(51deg) rotateZ(-3deg) scale(1.62)}}
+.orbit::before{content:"";position:absolute;inset:-70%;background:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/4% 4%,linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/4% 4%;-webkit-mask:radial-gradient(closest-side,#000 30%,transparent 100%);mask:radial-gradient(closest-side,#000 30%,transparent 100%)}
+.ov{transform-style:preserve-3d}
+.ov > *{position:absolute}
+.lay{overflow:visible;pointer-events:none;animation:fadeIn 1.2s 2.2s both}
+.lay .f{fill:#6d1220;fill-opacity:.55}
+.lay.l2 .f{fill:#c21d2e;fill-opacity:.42}
+.lay .k{fill:none;stroke:#ff5a6e;stroke-width:2.2;stroke-linejoin:round}
+.ov .run{translate:0 0 15px}
+/* Verbände: Stab mit Zeichen, zum Betrachter gedreht */
+.mast{width:2px;margin:0 0 0 -1px;translate:0 -100%;transform-origin:50% 100%;transform:rotateZ(10deg) rotateX(-90deg);background:linear-gradient(0deg,rgba(255,255,255,.75),rgba(255,255,255,.15));animation:hoch .7s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes hoch{from{transform:rotateZ(10deg) rotateX(-90deg) scaleY(0);opacity:0}}
+.mast i{position:absolute;left:50%;bottom:100%;width:22px;height:15px;margin-left:-11px;border:1.5px solid #000;background:#cfcfcf}
+.mast.ua i{background:linear-gradient(to top right,transparent 46%,#000 47%,#000 53%,transparent 54%),linear-gradient(to top left,transparent 46%,#000 47%,#000 53%,transparent 54%),#8fd0ff}
+.mast.ru i{width:17px;height:17px;margin-left:-8.5px;transform:rotate(45deg);transform-origin:50% 50%;bottom:calc(100% + 3px);background:linear-gradient(#000,#000) 50% 50%/100% 1.5px no-repeat,linear-gradient(#000,#000) 50% 50%/1.5px 100% no-repeat,#ff8f9a}
+/* Lichtsäule an jeder Veränderung */
+.saeule{width:10px;height:190px;margin:0 0 0 -5px;translate:0 -100%;transform-origin:50% 100%;transform:rotateZ(10deg) rotateX(-90deg);background:linear-gradient(0deg,rgba(255,80,100,.95),rgba(255,80,100,0));animation:hoch .9s cubic-bezier(.2,.8,.2,1) both,glimmen 2.6s ease-in-out 5.4s infinite alternate}
+.saeule.ua{background:linear-gradient(0deg,rgba(90,170,255,.95),rgba(90,170,255,0))}
+.saeule::after{content:"";position:absolute;left:50%;bottom:-9px;width:46px;height:18px;margin-left:-23px;border:2px solid #ff6b7d;border-radius:50%;animation:ping 2.2s ease-out infinite}
+@keyframes glimmen{to{opacity:.45}}
+/* Pfeil des Vorstoßes: liegt knapp über der Karte und wächst */
+.pfeil{width:0;height:0;transform-origin:0 0}
+.pfeil b{position:absolute;left:0;top:-6px;width:var(--l);height:12px;background:linear-gradient(90deg,rgba(226,58,80,.15),#e23a50 60%);transform-origin:0 50%;animation:pfw 5.4s cubic-bezier(.5,0,.2,1) var(--w) infinite both}
+.pfeil i{position:absolute;left:0;top:-15px;width:28px;height:30px;background:#e23a50;clip-path:polygon(0 0,100% 50%,0 100%);animation:pfk 5.4s cubic-bezier(.5,0,.2,1) var(--w) infinite both}
+.pfeil.ua b{background:linear-gradient(90deg,rgba(47,127,224,.15),#2f7fe0 60%)}.pfeil.ua i{background:#2f7fe0}
+@keyframes pfw{0%{transform:scaleX(0);opacity:0}6%{opacity:1}48%,84%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1);opacity:0}}
+@keyframes pfk{0%{transform:translateX(0);opacity:0}6%{opacity:1}48%,84%{transform:translateX(calc(var(--l) - 2px));opacity:1}100%{transform:translateX(calc(var(--l) - 2px));opacity:0}}
+/* schwebendes Schild */
+.schild{width:0;height:0;transform:translateZ(205px) rotateZ(10deg) rotateX(-90deg);animation:fadeIn .8s 5.6s both}
+.schild span,.schild small{position:absolute;left:14px;white-space:nowrap;font-family:var(--mono);color:#fff}
+.schild span{bottom:0;font-size:22px;font-weight:500;letter-spacing:.04em}
+.schild small{bottom:28px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a0a0a0}
+/* Lichtwand */
+.wand{left:0;top:0;width:0;height:0;transform-style:preserve-3d;animation:wand 9s linear 4s infinite both}
+@keyframes wand{from{transform:translateX(0)}to{transform:translateX(var(--weg))}}
+.wand-i{position:absolute;left:0;top:0;height:120px;transform-origin:0 0;transform:rotateZ(90deg) rotateX(90deg);background:linear-gradient(0deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.05) 80%,rgba(255,255,255,.5) 100%)}
+.radar{transform:translate(-50%,-50%) translateZ(16px)}
+.lite #vizbox{perspective:1500px}
+.lite .orbit{animation:none}
+.lite .wand,.lite .saeule::after{display:none}
+.scan{display:none}
+@media (max-width:640px){#vizbox{width:230%;left:50%;top:30%}.orbit{transform:rotateX(57deg) rotateZ(-16deg) scale(1.5)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front,.v-ua{stroke-dasharray:none}.ov .run,.radar{display:none}.rv,.tilt{opacity:1;transform:none}}
 </style>
 </head>
@@ -427,7 +476,7 @@ footer .mark{height:22px}
   </nav>
 </div>
 <section class="hero">
-  <div id="hero" aria-hidden="true"><div id="vizbox"><div class="tilt" id="tilt"><svg id="viz"></svg><div class="radar" id="radar"></div><div class="ov" id="ov"></div></div></div><div class="scan"></div><span class="brk a"></span><span class="brk b"></span>
+  <div id="hero" aria-hidden="true"><div id="vizbox"><div class="tilt" id="tilt"><div class="orbit" id="orbit"><svg id="viz"></svg><div class="radar" id="radar"></div><div class="ov" id="ov"></div></div></div></div><div class="scan"></div><span class="brk a"></span><span class="brk b"></span>
     <div class="hud"><div>Sektor <b>Ukraine</b></div><div>Lagedaten <b id="hudSrc">–</b></div><div>Veränderungen 14T <b id="hudChg">–</b></div></div></div>
   <div class="hero-mid">
     <div class="kicker"><i></i><span id="kick">Lagekarte Ukraine</span></div>
@@ -556,17 +605,45 @@ function drawViz(imp, recent){
     const [x,y] = P(f.geometry.coordinates), sid = (f.properties.sidc||"")[1], col = sid==="H" ? "#ff7685" : sid==="F" ? "#6aa8ff" : "#c9ccd2";
     el("rect",{x:(x-3).toFixed(1),y:(y-3).toFixed(1),width:6,height:6,fill:col,class:"v-unit",style:`animation-delay:${(3.4+k*0.045).toFixed(2)}s`},g); });
   /* Veränderungen: kräftig, mit Puls */
-  recent.forEach(x=>{ polys({geometry:x.g}).forEach(p=>el("path",{d:d(p[0],0.3),class:"v-chg"},g)); const [cx,cy] = P(x.c); el("circle",{cx,cy,r:10,class:"v-pulse"},g); });
+  recent.forEach(x=>{ polys({geometry:x.g}).forEach(p=>el("path",{d:d(p[0],0.3),class:"v-chg"},g)); });
   if(recent[0]){ const x = recent.reduce((a,b)=>b.km2>a.km2?b:a), [cx,cy] = P(x.c), tx = Math.max(cx-300, 20), ty = Math.max(cy-80, 40);
     const r = el("g",{class:"v-ret"},g); el("circle",{cx,cy,r:22},r);
     el("path",{d:`M${cx-30} ${cy-18}V${cy-30}H${cx-18}M${cx+18} ${cy-30}H${cx+30}V${cy-18}M${cx+30} ${cy+18}V${cy+30}H${cx+18}M${cx-18} ${cy+30}H${cx-30}V${cy+18}`},r);
-    const cg = el("g",{class:"v-callg"},g);
-    el("path",{d:`M${cx-30} ${cy-30}L${tx+208} ${ty+8}H${tx}`,class:"v-call"},cg);
-    el("text",{x:tx,y:ty,class:"v-callt"},cg).textContent = "+" + nf.format(x.km2) + " km² · " + (x.p.datum ? fmtD(x.p.datum).slice(0,6) : "");
-    el("text",{x:tx,y:ty-18,class:"v-calls"},cg).textContent = "LETZTE VERÄNDERUNG"; }
+}
   /* Radar um den Schwerpunkt der Front */
   const rc = recent[0] ? P(recent.reduce((a,b)=>b.km2>a.km2?b:a).c) : big ? P(big.ring.reduce((s,q)=>[s[0]+q[0]/big.ring.length, s[1]+q[1]/big.ring.length],[0,0])) : [W*.7,H*.5];
   $("radar").style.left = (rc[0]/W*100).toFixed(2) + "%"; $("radar").style.top = (rc[1]/H*100).toFixed(2) + "%";
+
+  /* Blickpunkt: die Bühne dreht sich um den Schwerpunkt der Front, und der liegt im Bild rechts oberhalb der Mitte */
+  { const fx = (rc[0]/W*100).toFixed(1) + "%", fy = (rc[1]/H*100).toFixed(1) + "%"; $("vizbox").style.setProperty("--fx", fx); $("vizbox").style.setProperty("--fy", fy); $("orbit").style.transformOrigin = fx + " " + fy; }
+  /* ===== Lagetisch in 3D: alles Weitere steht oder schwebt über der gekippten Karte ===== */
+  (function(){
+    const NS = "http://www.w3.org/2000/svg", mob = innerWidth < 700;
+    const svgEl = (tag, at, par)=>{ const n = document.createElementNS(NS, tag); for(const k in at) n.setAttribute(k, at[k]); if(par) par.appendChild(n); return n; };
+    const div = (cls, css, par)=>{ const n = document.createElement("div"); n.className = cls; if(css) n.style.cssText = css; (par || ov).appendChild(n); return n; };
+    /* besetztes Gebiet als erhabene Platte: zwei Ebenen über der Grundkarte, nur so gross wie nötig */
+    let bx0 = 1e9, by0 = 1e9, bx1 = -1e9, by1 = -1e9; const rd = [];
+    ru.forEach(f=>polys(f).forEach(p=>{ rd.push(d(p[0], 0.6)); p[0].forEach(q=>{ const [x,y] = P(q); if(x<bx0)bx0=x; if(x>bx1)bx1=x; if(y<by0)by0=y; if(y>by1)by1=y; }); }));
+    if(rd.length){ bx0 -= 12; by0 -= 12; bx1 += 12; by1 += 12;
+      [[7,"l1"],[14,"l2"]].forEach(([z,c])=>{ const l = svgEl("svg", {viewBox:`${bx0} ${by0} ${bx1-bx0} ${by1-by0}`, class:"lay " + c}); l.style.cssText = `left:${bx0}px;top:${by0}px;width:${bx1-bx0}px;height:${by1-by0}px;transform:translateZ(${z}px)`;
+        rd.forEach(dd=>{ svgEl("path", {d:dd, class:"f"}, l); if(c === "l2") svgEl("path", {d:dd, class:"k"}, l); }); ov.appendChild(l); }); }
+    /* Lichtwand, die über den Tisch fährt */
+    if(!mob){ const w = div("wand"); div("wand-i", `width:${H}px`, w); w.style.setProperty("--weg", W + "px"); }
+    /* Verbände als stehende Zeichen auf Stäben: die nächsten an der Front */
+    const us = F.filter(f=>f.properties && f.properties.art==="symbol" && f.properties.ebene==="units" && f.geometry && f.geometry.type==="Point")
+      .map(f=>{ const [x,y] = P(f.geometry.coordinates); return {x, y, s:(f.properties.sidc||"")[1], dd:Math.hypot(x-rc[0], y-rc[1])}; })
+      .filter(u=>u.x > 20 && u.x < W-20 && u.y > 20 && u.y < H-20).sort((a,b)=>a.dd-b.dd);
+    const pick = []; for(const u of us){ if(pick.length >= (mob ? 12 : 26)) break; if(pick.every(q=>Math.hypot(q.x-u.x, q.y-u.y) > 26)) pick.push(u); }
+    pick.forEach((u,i)=>{ const hgt = 34 + (i*37 % 30), k = u.s === "H" ? "ru" : u.s === "F" ? "ua" : "nn";
+      div("mast " + k, `left:${u.x.toFixed(1)}px;top:${u.y.toFixed(1)}px;height:${hgt}px;animation-delay:${(3.2 + i*0.07).toFixed(2)}s`).innerHTML = "<i></i>"; });
+    /* Veränderungen: Lichtsäule, Pfeil des Vorstoßes, schwebendes Schild */
+    recent.slice(0, 4).forEach((x,i)=>{ const [cx,cy] = P(x.c), ruS = x.p.richtung !== "ua";
+      div("saeule" + (ruS ? "" : " ua"), `left:${cx.toFixed(1)}px;top:${cy.toFixed(1)}px;animation-delay:${(4.4 + i*0.25).toFixed(2)}s`);
+      const L = 92 + i*16, th = (ruS ? 0 : 180) + [-24, 14, 46, -52][i], tx = cx + L*Math.cos(th*Math.PI/180), ty = cy + L*Math.sin(th*Math.PI/180);
+      const a = div("pfeil" + (ruS ? "" : " ua"), `left:${tx.toFixed(1)}px;top:${ty.toFixed(1)}px;--l:${(L-16).toFixed(0)}px;--w:${(i*0.9).toFixed(1)}s;transform:translateZ(22px) rotate(${(th+180).toFixed(1)}deg)`); a.innerHTML = "<b></b><i></i>"; });
+    if(recent[0]){ const x = recent.reduce((a,b)=>b.km2>a.km2?b:a), [cx,cy] = P(x.c);
+      div("schild", `left:${cx.toFixed(1)}px;top:${cy.toFixed(1)}px`).innerHTML = "<span>+" + nf.format(x.km2) + " km²</span><small>Letzte Veränderung</small>"; }
+  })();
   const tilt = $("tilt");
   requestAnimationFrame(()=>tilt.classList.add("on"));
   setTimeout(()=>{ const h = document.querySelector(".hero h1"); if(h) h.classList.add("done"); }, 2200);
