@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+"""Zeichnet die Grafiken der Startseite im rauen Linienstil (weiss, ausgefranste Kanten).
+Aufruf: python3 tools/grafiken.py   (braucht pillow, numpy, scipy)  ->  bild/g-*.png"""
+import json, math
+import numpy as np
+from PIL import Image, ImageDraw
+from scipy.ndimage import gaussian_filter
+
+S = 2  # Zeichnen in doppelter Grösse
+
+class Blatt:
+    def __init__(s, w, h): s.w, s.h = w, h; s.im = Image.new("L", (w*S, h*S), 0); s.d = ImageDraw.Draw(s.im)
+    def P(s, pts): return [(x*S, y*S) for x, y in pts]
+    def linie(s, pts, b=6, zu=False):
+        pts = list(pts) + ([pts[0]] if zu else []); b = b*1.4 + 0.6
+        s.d.line(s.P(pts), fill=255, width=int(b*S), joint="curve")
+        r = b*S/2
+        if b <= 1: return
+        for x, y in s.P(pts): s.d.ellipse((x-r, y-r, x+r, y+r), fill=255)
+    def strich(s, pts, b=4, an=14, aus=10):
+        """gestrichelte Linie"""
+        acc = 0; on = True; cur = [pts[0]]
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+            L = math.hypot(x1-x0, y1-y0); t = 0
+            while t < L:
+                step = min((an if on else aus) - acc, L - t); t += step; acc += step
+                p = (x0 + (x1-x0)*t/L, y0 + (y1-y0)*t/L)
+                if on: cur.append(p)
+                if acc >= (an if on else aus) - 1e-6:
+                    if on and len(cur) > 1: s.linie(cur, b)
+                    on = not on; acc = 0; cur = [p]
+        if on and len(cur) > 1: s.linie(cur, b)
+    def kreis(s, cx, cy, r, b=6, fuell=False):
+        if fuell: s.d.ellipse(((cx-r)*S, (cy-r)*S, (cx+r)*S, (cy+r)*S), fill=255)
+        else: s.linie([(cx + r*math.cos(a), cy + r*math.sin(a)) for a in np.linspace(0, 2*math.pi, max(24, int(r)))], b, zu=True)
+    def bogen(s, cx, cy, r, a0, a1, b=6):
+        s.linie([(cx + r*math.cos(math.radians(a)), cy + r*math.sin(math.radians(a))) for a in np.linspace(a0, a1, max(8, int(abs(a1-a0)/3)))], b)
+    def flaeche(s, pts, f=255): s.d.polygon(s.P(pts), fill=f)
+    def rau(s, name, seed=1, wack=0.30, loch=0.035):
+        """Kanten ausfransen, Tinte stellenweise ausreissen lassen, als Weiss mit harter Deckkraft speichern."""
+        rng = np.random.default_rng(seed)
+        a = np.asarray(s.im, dtype=np.float32)/255
+        def wolke(sig):
+            n = gaussian_filter(rng.standard_normal(a.shape), sig); return n/(n.std()+1e-9)/2
+        f = gaussian_filter(a, 1.5*S)
+        t = 0.5 + wack*wolke(2.2*S) + 0.12*wolke(9*S) + 0.10*rng.standard_normal(a.shape)
+        on = f > t
+        on &= ~((wolke(1.3*S) > 1.05 - loch*8) & (rng.random(a.shape) < 0.8))      # abgeplatzte Stellen
+        on |= (f > 0.04) & (rng.random(a.shape) < 0.005)                           # Farbspritzer am Rand
+        al = Image.fromarray((on*255).astype(np.uint8)).resize((s.w, s.h), Image.LANCZOS).point(lambda v: 255 if v > 120 else 0)
+        out = Image.new("LA", (s.w, s.h), 255); out.putalpha(al)
+        out.save("bild/g-" + name + ".png", optimize=True)
+
+def globus():
+    W = 900; b = Blatt(W, W); R = 400; c = W/2
+    lon0, lat0 = math.radians(34), math.radians(36)
+    def pr(lon, lat):
+        lo, la = math.radians(lon) - lon0, math.radians(lat)
+        cosc = math.sin(lat0)*math.sin(la) + math.cos(lat0)*math.cos(la)*math.cos(lo)
+        x = math.cos(la)*math.sin(lo); y = math.cos(lat0)*math.sin(la) - math.sin(lat0)*math.cos(la)*math.cos(lo)
+        return (c + R*x, c - R*y, cosc)
+    def zug(ll, br):
+        cur = []
+        for lon, lat in ll:
+            x, y, v = pr(lon, lat)
+            if v > 0.02: cur.append((x, y))
+            else:
+                if len(cur) > 1: b.linie(cur, br)
+                cur = []
+        if len(cur) > 1: b.linie(cur, br)
+    for lon in range(-180, 180, 20): zug([(lon, la) for la in range(-80, 81, 3)], 2.4)
+    for lat in range(-60, 81, 20): zug([(lo, lat) for lo in range(-180, 181, 3)], 2.4)
+    for ring in json.load(open("daten/land.json"))["ringe"]:
+        if len(ring) > 10: zug(list(zip(ring[0::2], ring[1::2])) + [(ring[0], ring[1])], 4.4)
+    b.kreis(c, c, R, 8)
+    # Markierung Ukraine
+    x, y, _ = pr(34.5, 48.6)
+    b.kreis(x, y, 26, 5); b.kreis(x, y, 7, 0, fuell=True)
+    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)): b.linie([(x+dx*34, y+dy*34), (x+dx*58, y+dy*58)], 5)
+    b.rau("globus", 3)
+
+def panzer():
+    b = Blatt(1000, 460)
+    # Laufwerk
+    kette = [(120, 300), (860, 300), (912, 338), (858, 404), (150, 404), (84, 338)]
+    b.linie(kette, 8, zu=True)
+    for i in range(6): b.kreis(205 + i*118, 350, 36, 6); b.kreis(205 + i*118, 350, 9, 0, fuell=True)
+    b.kreis(128, 338, 22, 6); b.kreis(872, 338, 22, 6)
+    for x in range(150, 860, 34): b.linie([(x, 404), (x+10, 414)], 5)
+    # Wanne
+    b.linie([(96, 300), (150, 248), (840, 248), (930, 300)], 8)
+    b.linie([(170, 274), (830, 274)], 4)
+    for x in (300, 470, 640): b.linie([(x, 274), (x, 300)], 4)
+    # Turm
+    b.linie([(350, 248), (378, 178), (590, 166), (668, 196), (700, 248)], 8)
+    b.linie([(452, 172), (458, 142), (528, 140), (536, 169)], 6)
+    b.linie([(404, 176), (372, 60)], 4)                         # Antenne
+    b.linie([(500, 140), (500, 118), (566, 112)], 5)            # MG
+    b.linie([(560, 205), (640, 205), (640, 228), (560, 228)], 4, zu=True)
+    # Rohr
+    b.linie([(664, 192), (952, 176), (952, 196), (674, 214)], 7, zu=True)
+    b.linie([(952, 168), (990, 166), (990, 204), (952, 204)], 7, zu=True)
+    b.linie([(800, 184), (800, 207)], 5)
+    b.strich([(30, 432), (980, 432)], 4, 26, 16)
+    b.rau("panzer", 5)
+
+def radar():
+    W = 620; b = Blatt(W, W); c = W/2
+    for r in (90, 180, 270): b.kreis(c, c, r, 5 if r < 270 else 7)
+    b.linie([(c-292, c), (c+292, c)], 3.5); b.linie([(c, c-292), (c, c+292)], 3.5)
+    for a in range(0, 360, 10):
+        r0 = 270; r1 = 290 if a % 30 == 0 else 280
+        b.linie([(c + r0*math.cos(math.radians(a)), c + r0*math.sin(math.radians(a))), (c + r1*math.cos(math.radians(a)), c + r1*math.sin(math.radians(a)))], 3.5)
+    # Suchstrahl als Keil aus Strichen
+    for i, a in enumerate(range(-62, -30, 4)):
+        b.linie([(c, c), (c + 268*math.cos(math.radians(a)), c + 268*math.sin(math.radians(a)))], 2 + i*0.75)
+    for x, y, r in ((c+120, c-60, 11), (c+60, c+130, 9), (c-150, c+50, 9), (c-70, c-170, 12), (c+190, c+70, 8)): b.kreis(x, y, r, 0, fuell=True)
+    b.kreis(c-70, c-170, 26, 4)
+    b.rau("radar", 7)
+
+def satellit():
+    b = Blatt(700, 470)
+    b.linie([(300, 150), (400, 150), (400, 270), (300, 270)], 7, zu=True)
+    for sx in (-1, 1):
+        x0 = 350 + sx*50; x1 = 350 + sx*90; x2 = 350 + sx*320
+        b.linie([(x0, 210), (x1, 210)], 6)
+        b.linie([(x1, 150), (x2, 150), (x2, 270), (x1, 270)], 7, zu=True)
+        for k in range(1, 4): xx = x1 + (x2-x1)*k/4; b.linie([(xx, 150), (xx, 270)], 4)
+        b.linie([(x1, 210), (x2, 210)], 4)
+    b.bogen(350, 318, 44, 200, 340, 7); b.linie([(350, 270), (350, 300)], 6); b.kreis(350, 322, 6, 0, fuell=True)
+    for r in (40, 70, 100): b.bogen(350, 330, r, 55, 125, 4.5)
+    b.linie([(350, 150), (350, 96)], 5); b.kreis(350, 86, 9, 0, fuell=True)
+    b.rau("satellit", 9)
+
+def fadenkreuz():
+    W = 620; b = Blatt(W, W); c = W/2
+    b.kreis(c, c, 270, 8); b.kreis(c, c, 60, 5)
+    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+        b.linie([(c+dx*34, c+dy*34), (c+dx*262, c+dy*262)], 4.5)
+        for k in range(1, 6):
+            r = 60 + k*36; t = 14 if k % 2 else 8
+            b.linie([(c+dx*r - dy*t, c+dy*r - dx*t), (c+dx*r + dy*t, c+dy*r + dx*t)], 4)
+    b.kreis(c, c, 5, 0, fuell=True)
+    for sx, sy in ((1, 1), (1, -1), (-1, 1), (-1, -1)): b.linie([(c+sx*150, c+sy*118), (c+sx*150, c+sy*150), (c+sx*118, c+sy*150)], 5)
+    b.rau("fadenkreuz", 11)
+
+def einheiten():
+    b = Blatt(760, 420)
+    # eigene Infanterie (Rechteck mit Kreuz) mit Grössenzeichen
+    b.linie([(70, 150), (370, 150), (370, 340), (70, 340)], 8, zu=True)
+    b.linie([(70, 150), (370, 340)], 6); b.linie([(370, 150), (70, 340)], 6)
+    for x in (190, 220, 250): b.linie([(x, 92), (x, 128)], 7)
+    # gegnerischer Verband (Raute) mit Panzerzeichen
+    cx, cy, r = 570, 245, 150
+    b.linie([(cx, cy-r), (cx+r, cy), (cx, cy+r), (cx-r, cy)], 8, zu=True)
+    b.linie([(cx-52, cy-30), (cx+52, cy-30)], 6); b.linie([(cx-52, cy+30), (cx+52, cy+30)], 6)
+    b.bogen(cx-52, cy, 30, 90, 270, 6); b.bogen(cx+52, cy, 30, -90, 90, 6)
+    for x in (cx-14, cx+14): b.linie([(x-10, 50), (x+10, 78)], 6); b.linie([(x+10, 50), (x-10, 78)], 6)
+    b.rau("einheiten", 13)
+
+for f in (globus, panzer, radar, satellit, fadenkreuz, einheiten): f()
