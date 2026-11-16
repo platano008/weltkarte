@@ -19,7 +19,7 @@ if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611152343">
+<link rel="stylesheet" href="style.css?v=202611160647">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -97,7 +97,7 @@ a{color:inherit}
 /* Sparmodus: schaltet sich selbst ein, wenn das Gerät die Effekte nicht flüssig schafft */
 .lite #vizbox{perspective:none}
 .lite .tilt{transform:none!important;will-change:auto;transition:none;animation:none!important;opacity:1}
-.lite .radar,.lite .ov .run,.lite .scan{display:none}
+.lite .radar,.lite .ov .run,.lite .scan,.radar,.ov .run,.v-ret,.hero .hud,.hero .brk{display:none}
 .v-callg{animation:fadeIn .7s 5.9s both}
 /* nach dem Intro: Einmal-Animationen ablegen, damit nichts mehr mitgerechnet wird */
 .settled .v-ua,.settled .v-front,.settled .v-gz,.settled .v-ru,.settled .v-glow,.settled .v-unit,.settled .v-chg,.settled .v-callg,.settled .v-ret{animation:none}
@@ -408,7 +408,7 @@ footer .mark{height:22px}
 .burger{border:0;background:none}
 #vizbox{perspective:1500px;perspective-origin:var(--fx,50%) var(--fy,50%);animation:fadeIn 1.4s both;left:62%;top:40%;transform:translate(calc(var(--fx,50%)*-1),calc(var(--fy,50%)*-1))}
 .tilt,.tilt.on,.tilt.done{opacity:1;animation:none}
-.orbit{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(56deg) rotateZ(-15deg) scale(1.5);animation:anflug 3s cubic-bezier(.16,.8,.2,1) both,flug 150s linear 3s infinite alternate;will-change:transform}
+.orbit{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(56deg) rotateZ(-15deg) scale(1.5);animation:anflug 3s cubic-bezier(.16,.8,.2,1) both;will-change:transform}
 @keyframes anflug{from{transform:rotateX(0deg) rotateZ(8deg) scale(.5)}}
 @keyframes flug{
   0%{transform:rotateX(56deg) rotateZ(-15deg) scale(1.5) translate(0,0);animation-timing-function:cubic-bezier(.4,0,.7,1)}
@@ -425,8 +425,9 @@ footer .mark{height:22px}
 .lay .k{fill:none;stroke:#ff5a6e;stroke-width:2.2;stroke-linejoin:round}
 .ov .run{translate:0 0 15px}
 /* Verbände: Stab mit Zeichen, zum Betrachter gedreht */
-.mast{width:2px;margin:0 0 0 -1px;translate:0 -100%;transform-origin:50% 100%;transform:rotateZ(5deg) rotateX(-90deg);background:linear-gradient(0deg,rgba(255,255,255,.75),rgba(255,255,255,.15));animation:hoch .7s cubic-bezier(.2,1.5,.4,1) both}
-@keyframes hoch{from{transform:rotateZ(5deg) rotateX(-90deg) scaleY(0);opacity:0}}
+.mast{width:0;height:0;transform-style:preserve-3d;transform:rotateZ(15deg)}
+.mast .st{position:absolute;left:-1px;bottom:0;width:2px;transform-origin:50% 100%;transform:rotateX(-90deg);background:linear-gradient(0deg,rgba(255,255,255,.75),rgba(255,255,255,.15));animation:hoch .7s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes hoch{from{transform:rotateX(-90deg) scaleY(0);opacity:0}}
 .mast i{position:absolute;left:50%;bottom:100%;width:22px;height:15px;margin-left:-11px;border:1.5px solid #000;background:#cfcfcf}
 .mast.ua i{background:linear-gradient(to top right,transparent 46%,#000 47%,#000 53%,transparent 54%),linear-gradient(to top left,transparent 46%,#000 47%,#000 53%,transparent 54%),#8fd0ff}
 .mast.ru i{width:17px;height:17px;margin-left:-8.5px;transform:rotate(45deg);transform-origin:50% 50%;bottom:calc(100% + 3px);background:linear-gradient(#000,#000) 50% 50%/100% 1.5px no-repeat,linear-gradient(#000,#000) 50% 50%/1.5px 100% no-repeat,#ff8f9a}
@@ -633,18 +634,15 @@ function drawViz(imp, recent){
       [[7,"l1"],[14,"l2"]].forEach(([z,c])=>{ const l = svgEl("svg", {viewBox:`${bx0} ${by0} ${bx1-bx0} ${by1-by0}`, class:"lay " + c}); l.style.cssText = `left:${bx0}px;top:${by0}px;width:${bx1-bx0}px;height:${by1-by0}px;transform:translateZ(${z}px)`;
         rd.forEach(dd=>{ svgEl("path", {d:dd, class:"f"}, l); if(c === "l2") svgEl("path", {d:dd, class:"k"}, l); }); ov.appendChild(l); }); }
     /* Lichtwand, die über den Tisch fährt */
-    if(!mob){ const w = div("wand"); div("wand-i", `width:${H}px`, w); w.style.setProperty("--weg", W + "px"); }
+    /* (Lichtwand, Lichtsäulen und Schild entfernt: Pfeile und Verbände reichen) */
     /* Verbände als stehende Zeichen auf Stäben: die nächsten an der Front */
     const us = F.filter(f=>f.properties && f.properties.art==="symbol" && f.properties.ebene==="units" && f.geometry && f.geometry.type==="Point")
       .map(f=>{ const [x,y] = P(f.geometry.coordinates); return {x, y, s:(f.properties.sidc||"")[1], dd:Math.hypot(x-rc[0], y-rc[1])}; })
       .filter(u=>u.x > 20 && u.x < W-20 && u.y > 20 && u.y < H-20).sort((a,b)=>a.dd-b.dd);
     const pick = []; for(const u of us){ if(pick.length >= (mob ? 12 : 26)) break; if(pick.every(q=>Math.hypot(q.x-u.x, q.y-u.y) > 26)) pick.push(u); }
     pick.forEach((u,i)=>{ const hgt = 34 + (i*37 % 30), k = u.s === "H" ? "ru" : u.s === "F" ? "ua" : "nn";
-      div("mast " + k, `left:${u.x.toFixed(1)}px;top:${u.y.toFixed(1)}px;height:${hgt}px;animation-delay:${(3.2 + i*0.07).toFixed(2)}s`).innerHTML = "<i></i>"; });
+      div("mast " + k, `left:${u.x.toFixed(1)}px;top:${u.y.toFixed(1)}px`).innerHTML = `<div class="st" style="height:${hgt}px;animation-delay:${(3.2 + i*0.07).toFixed(2)}s"><i></i></div>`; });
     /* Veränderungen: Lichtsäule, Pfeil des Vorstoßes, schwebendes Schild */
-    recent.slice(0, 4).forEach((x,i)=>{ const [cx,cy] = P(x.c), ruS = x.p.richtung !== "ua";
-      div("saeule" + (ruS ? "" : " ua"), `left:${cx.toFixed(1)}px;top:${cy.toFixed(1)}px;animation-delay:${(4.4 + i*0.25).toFixed(2)}s`);
-});
     /* Pfeile entlang der Front: frei verteilt, damit es gut aussieht (keine Lageangabe). Rot stößt von der besetzten Seite vor, blau hält dagegen. */
     if(big){
       const ruR = [], uaR = []; ru.forEach(f=>polys(f).forEach(q=>ruR.push(q[0].map(P)))); terr.filter(f=>!isRed(f)).forEach(f=>polys(f).forEach(q=>uaR.push(q[0].map(P))));
@@ -662,8 +660,14 @@ function drawViz(imp, recent){
         const tx = k.p[0] + s*k.nx*(L + ab), ty = k.p[1] + s*k.ny*(L + ab), th = Math.atan2(-s*k.ny, -s*k.nx)*180/Math.PI;
         const a = div("pfeil" + (ua ? " ua" : ""), `left:${tx.toFixed(1)}px;top:${ty.toFixed(1)}px;--l:${(L-9).toFixed(0)}px;--w:${(i*0.55 % 4.4).toFixed(2)}s;transform:translateZ(${ua ? 9 : 21}px) rotate(${th.toFixed(1)}deg)`); a.innerHTML = "<b></b><i></i>"; });
     }
-    if(recent[0]){ const x = recent.reduce((a,b)=>b.km2>a.km2?b:a), [cx,cy] = P(x.c);
-      div("schild", `left:${cx.toFixed(1)}px;top:${cy.toFixed(1)}px`).innerHTML = "<span>+" + nf.format(x.km2) + " km²</span><small>Letzte Veränderung</small>"; }
+    /* Kamera kreist um die Front. Die stehenden Zeichen drehen sich genau gegenläufig mit, damit sie immer zum Betrachter zeigen. */
+    if(!matchMedia("(prefers-reduced-motion: reduce)").matches && "animate" in Element.prototype){
+      const T = 64000, t0 = (document.timeline.currentTime || 0) + 3000, A = [], st = "rotateX(56deg) rotateZ(", en = "deg) scale(" + (mob ? 1.5 : 1.5) + ")";
+      const lauf = (n, k)=>{ const a = n.animate(k, {duration:T, iterations:Infinity, easing:"linear"}); a.startTime = t0; A.push(a); };
+      lauf($("orbit"), [{transform:st + "-15" + en}, {transform:st + "345" + en}]);
+      ov.querySelectorAll(".mast").forEach(n=>lauf(n, [{transform:"rotateZ(15deg)"}, {transform:"rotateZ(-345deg)"}]));
+      window.__kreis = A;
+    }
   })();
   const tilt = $("tilt");
   requestAnimationFrame(()=>tilt.classList.add("on"));
@@ -780,7 +784,7 @@ function drawViz(imp, recent){
   } else drohnen();
 })();
 if("IntersectionObserver" in window){
-  new IntersectionObserver(es=>es.forEach(e=>$("hero").classList.toggle("paused", !e.isIntersecting))).observe($("hero"));
+  new IntersectionObserver(es=>es.forEach(e=>{ $("hero").classList.toggle("paused", !e.isIntersecting); (window.__kreis || []).forEach(a=>{ try{ e.isIntersecting ? a.play() : a.pause(); }catch(_){} }); })).observe($("hero"));
   const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }), {rootMargin:"0px 0px -8% 0px"});
   document.querySelectorAll(".rv").forEach(n=>io.observe(n));
 } else document.querySelectorAll(".rv").forEach(n=>n.classList.add("in"));
