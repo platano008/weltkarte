@@ -68,7 +68,11 @@ h1{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-heigh
 /* NATO markers */
 .nato{cursor:pointer;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
 .nato svg{display:block}
-.nato.sel{outline:2px solid #fff;outline-offset:3px}
+.nato .nz{position:relative;transform:scale(var(--nz,1))}
+.nato.sel .nz{outline:2px solid #fff;outline-offset:3px}
+.nato .ring{position:absolute;width:0;height:0;pointer-events:none}
+.nato.ping .ring::before{content:"";position:absolute;left:-14px;top:-14px;width:28px;height:28px;border:2px solid #fff;border-radius:50%;animation:natoPing 1.3s ease-out 3 both}
+@keyframes natoPing{from{transform:scale(.4);opacity:.95}to{transform:scale(2.4);opacity:0}}
 
 /* MapLibre controls in the house style */
 .maplibregl-ctrl-group{background:var(--bg)!important;border:1px solid var(--line-2);box-shadow:none!important}

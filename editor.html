@@ -13,10 +13,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611160928">
+<link rel="stylesheet" href="style.css?v=202611161212">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611160928"></script>
+<script src="karte.js?v=202611161212"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -153,6 +153,38 @@ details.gh[open] summary{color:var(--fg)}
   .savebox .check,.savebox .hint,.sb-l{display:none}
   .switches{top:calc(max(12px,env(safe-area-inset-top)) + 50px)}
 }
+/* ----- Menü nur mit Werkzeug, Speichern-Menüs, Punkte bearbeiten ----- */
+.panel .opts,.panel .mehr{display:none}
+body.ed-auf .panel .opts{display:flex}
+body.ed-liste .panel .mehr{display:block}
+.panel .opts:empty{display:none!important}
+.savebox{width:auto;display:flex;gap:8px;padding:8px}
+.savebox .btn{min-height:42px}
+.pkt{width:7px;height:7px;border-radius:50%;background:#ff5a6e;margin-left:6px;display:inline-block}
+.pop{position:fixed;z-index:9;left:max(16px,env(safe-area-inset-left));bottom:calc(max(16px,env(safe-area-inset-bottom)) + 70px);width:320px;max-height:calc(100% - 110px);overflow-y:auto;display:grid;gap:9px;padding:14px;background:rgba(0,0,0,.98);border:1px solid var(--line-2);box-shadow:0 18px 50px rgba(0,0,0,.6)}
+.pop-k{display:flex;justify-content:space-between;align-items:center;font-size:15px}
+.pop-x{width:30px;height:30px;border:1px solid var(--line-2);color:var(--fg)}
+.pop .row.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pop .gh{border-top:1px solid var(--line-2);padding-top:8px}
+.chg-row{display:grid;gap:6px;padding:10px;border:1px solid var(--line-2)}
+.chg-row .k{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+.chg-row .k i{width:10px;height:10px;flex:none}
+.ptbar{position:fixed;z-index:6;right:max(16px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);display:grid;gap:6px;width:150px;padding:8px;background:rgba(0,0,0,.95);border:1px solid var(--line-2)}
+.vb-t{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:2px 2px 4px}
+.ptbar button{display:flex;align-items:center;gap:8px;min-height:40px;padding:0 10px;border:1px solid var(--line-2);color:var(--fg);font-size:13px;font-weight:600;text-align:left}
+.ptbar button:disabled{opacity:.3}
+.ptbar svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:square}
+.seg2{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line-2)}
+.seg2 button{padding:8px 4px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.seg2 button.on{background:var(--volt);color:var(--ink)}
+@media (max-width:720px){
+  .savebox{padding:8px 10px calc(8px + env(safe-area-inset-bottom))}
+  .savebox .btn{flex:1}
+  .pop{left:8px;right:8px;width:auto;bottom:calc(66px + env(safe-area-inset-bottom))}
+  .ptbar{top:auto;bottom:calc(70px + env(safe-area-inset-bottom));transform:none;width:auto;grid-template-columns:repeat(3,auto);right:8px}
+  .vb-t{display:none}
+  .panel{bottom:calc(66px + env(safe-area-inset-bottom))}
+}
 </style>
 </head>
 <body>
@@ -203,6 +235,25 @@ details.gh[open] summary{color:var(--fg)}
     <div class="imp" id="imp" hidden><div class="eyebrow"><span>Lagedaten</span><span id="impSrc"></span></div><div class="chips" id="impChips"></div></div>
     <div class="list" id="list"></div>
   </details>
+
+</section>
+
+<div class="card" id="card" hidden></div>
+<div class="toast" id="toast"></div>
+<div class="hist"><button id="undo" aria-label="Rückgängig" title="Rückgängig" disabled><svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5M4 12h10a6 6 0 0 1 0 12h-2" transform="translate(0 -3)"/></svg></button><button id="redo" aria-label="Wiederholen" title="Wiederholen" disabled><svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5M20 12H10a6 6 0 0 0 0 12h2" transform="translate(0 -3)"/></svg></button></div>
+<section class="savebox" id="saveBox">
+  <button class="btn" id="chgBtn">Änderung hinzufügen</button>
+  <button class="btn volt" id="saveBtn">Speichern<i class="pkt" id="savePkt" hidden></i></button>
+</section>
+<div class="pop" id="popChg" hidden><div class="pop-k"><b>Änderung hinzufügen</b><button class="pop-x" data-zu="popChg" aria-label="Schließen">✕</button></div><div id="chgBody"></div></div>
+<div class="pop" id="popSave" hidden><div class="pop-k"><b>Speichern</b><button class="pop-x" data-zu="popSave" aria-label="Schließen">✕</button></div>
+  <label class="lbl" for="standNote">Name des Updates</label>
+  <input class="f" id="standNote" placeholder="z. B. Vorstoß bei Pokrowsk" maxlength="70">
+  <label class="check"><input type="checkbox" id="standNew" checked> Als neues Update im Verlauf</label>
+  <div class="hint" id="standHint"></div>
+  <div class="row two"><button class="btn" id="draftSave">Entwurf speichern</button><button class="btn volt" id="save" disabled>Veröffentlichen</button></div>
+  <div class="hint">Entwurf: nur für dich, die Website bleibt wie sie ist. Veröffentlichen: sofort für alle sichtbar.</div>
+  <a class="sb-l" href="karte.html" target="_blank" rel="noopener">Ansicht öffnen</a>
   <details class="gh" id="ghBox">
     <summary>GitHub-Schlüssel</summary>
     <div class="ghb">
@@ -219,18 +270,13 @@ details.gh[open] summary{color:var(--fg)}
       <div>Der Schlüssel bleibt nur in diesem Browser gespeichert.</div>
     </div>
   </details>
-</section>
-
-<div class="card" id="card" hidden></div>
-<div class="toast" id="toast"></div>
-<div class="hist"><button id="undo" aria-label="Rückgängig" title="Rückgängig" disabled><svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5M4 12h10a6 6 0 0 1 0 12h-2" transform="translate(0 -3)"/></svg></button><button id="redo" aria-label="Wiederholen" title="Wiederholen" disabled><svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5M20 12H10a6 6 0 0 0 0 12h2" transform="translate(0 -3)"/></svg></button></div>
-<section class="savebox" id="saveBox">
-  <input class="f" id="standNote" placeholder="Name des Updates, z. B. Vorstoß bei Pokrowsk" maxlength="70">
-  <label class="check"><input type="checkbox" id="standNew" checked> Als neues Update im Verlauf</label>
-  <div class="hint" id="standHint"></div>
-  <div class="row"><button class="btn" id="draftSave">Entwurf speichern</button><button class="btn volt" id="save" disabled>Veröffentlichen</button></div>
-  <a class="sb-l" href="karte.html" target="_blank" rel="noopener">Ansicht öffnen</a>
-</section>
+</div>
+<div class="ptbar" id="vbar" hidden>
+  <div class="vb-t" id="vbT">Punkte</div>
+  <button id="vAdd" disabled><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Punkt hinzufügen</button>
+  <button id="vDel" disabled><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>Punkt entfernen</button>
+  <button id="vOk"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>Fertig</button>
+</div>
 <div class="frame" id="frame" hidden><i></i><i></i><i></i><i></i><span id="frameLbl"></span></div>
 <div class="shot" id="shot" hidden><div class="shot-in"><img id="shotImg" alt="Exportierter Kartenausschnitt"><video id="shotVid" controls playsinline loop muted hidden></video><div class="row"><span class="status" id="shotInfo"></span><div class="row"><button class="btn sm" id="shotClose">Schließen</button><a class="btn sm volt" id="shotDl" download style="text-decoration:none">Herunterladen</a></div></div></div></div>
 
@@ -248,11 +294,12 @@ const store = {
 };
 
 let DATA = K.emptyData(), sha = null, dirty = false, tool = "select", sel = null, markers = [];
+let vx = null, listeAuf = false;
 /* Frontlinie */
 let front = null, impSha = null, impDirty = false, undoStack = [], frontEbene = "russian-terr";
 let frontDatum = new Date().toISOString().slice(0,10);
 /* Angaben für die nächste Änderung: Name, Richtung, Gruppe (Richtung und Gruppe bleiben für die nächste stehen) */
-let frontMeta = {name:"", direktion:"", gruppe:""};
+let frontMeta = {name:"", direktion:"", gruppe:""}, frontMode = "vor";
 let chgOpen = null, chgDel = null;
 const IMP_PATH = "import/lage.geojson";
 let draft = null; /* {typ, pts:[], replaceId} */
@@ -294,6 +341,7 @@ const map = K.createMap({importLayers:false, onNotice: t=>toast(t), container:"m
 let hitAt = 0;
 function onHit(e){
   if(tool!=="select") return;
+  if(vx && Date.now() - (vx.klickAt || 0) < 80) return;
   if(Date.now()-hitAt < 50) return; hitAt = Date.now();
   const id = e.features[0].properties.id; select(DATA.elemente.find(x=>x.id===id));
 }
@@ -304,8 +352,9 @@ map.on("click", e=>{
   if(tool==="symbol"){ placeSymbol([+e.lngLat.lng.toFixed(5), +e.lngLat.lat.toFixed(5)]); return; }
   if(tool==="bild") return;
   if(tool==="front"){ frontClick(e); return; }
+  if(vx && vxKlick(e)) return;
   if(!map.getLayer("lage-hit")) return;
-  if(!map.queryRenderedFeatures(e.point,{layers:["lage-hit","lage-area-fill"]}).length) select(null);
+  if(!map.queryRenderedFeatures(e.point,{layers:["lage-hit","lage-area-fill"]}).length){ if(!frontWaehlen(e)) select(null); }
 });
 map.on("dblclick", e=>{ if(DRAW.includes(tool)){ e.preventDefault(); finishDraft(); } else if(tool==="front"){ e.preventDefault(); finishFront(); } });
 document.addEventListener("keydown", e=>{
@@ -382,9 +431,9 @@ let hist = [], hi = -1, ops = [];
 function histBtns(){ $("undo").disabled = !ops.length; $("redo").disabled = !(hi < hist.length-1); }
 function histInit(){ hist = [JSON.stringify(DATA)]; hi = 0; ops = []; histBtns(); }
 function histPush(){ const s = JSON.stringify(DATA); if(hi < 0 || s === hist[hi]) return; hist = hist.slice(0, hi+1); hist.push(s); if(hist.length > 80) hist.shift(); hi = hist.length-1; ops.push("d"); histBtns(); }
-function histGo(){ const id = sel && sel.id; DATA = JSON.parse(hist[hi]); sel = id ? DATA.elemente.find(e=>e.id===id) || null : null; dirty = true; store.set(LS.draft, JSON.stringify({data:DATA, at:Date.now()})); render(); renderOpts(); refreshStatus(); histBtns(); }
+function histGo(){ const id = sel && sel.id; DATA = JSON.parse(hist[hi]); sel = id ? DATA.elemente.find(e=>e.id===id) || null : null; if(vx && vx.kind === "el"){ if(sel){ vx.el = sel; vx.i = null; vx.add = null; } else vx = null; } setTimeout(vxDraw, 0); dirty = true; store.set(LS.draft, JSON.stringify({data:DATA, at:Date.now()})); render(); renderOpts(); refreshStatus(); histBtns(); }
 function undo(){ clearTimeout(qt); histPush(); const o = ops.pop(); if(!o){ histBtns(); return; }
-  if(o === "f"){ if(undoStack.length){ K.undoFrontEdit(undoStack.pop()); impChange(); renderOpts(); toast("Frontänderung zurückgenommen"); } histBtns(); return; }
+  if(o === "f"){ if(undoStack.length){ K.undoFrontEdit(undoStack.pop()); impChange(); if(vx){ vx.i = null; vx.add = null; vxDraw(); } renderOpts(); toast("Frontänderung zurückgenommen"); } histBtns(); return; }
   if(hi > 0){ hi--; histGo(); } }
 function redo(){ if(hi < hist.length-1){ hi++; ops.push("d"); histGo(); } }
 /* ---------- Bilder und Videos an einem Element ---------- */
@@ -407,9 +456,9 @@ function wireMedien(el){
 function setStatus(t, cls){ const s=$("status"); s.textContent=t; s.className="status"+(cls?" "+cls:""); }
 function token(){ return store.get(LS.token); }
 function refreshStatus(){
-  if(!token()){ setStatus("Nur lesen: kein GitHub-Schlüssel. Unten eintragen, um zu speichern.", "err"); $("save").disabled = true; return; }
+  if(!token()){ setStatus("Nur lesen: kein GitHub-Schlüssel. Unter „Speichern“ eintragen.", "err"); $("save").disabled = true; $("savePkt").hidden = true; return; }
   const any = dirty || impDirty;
-  $("save").disabled = !any;
+  $("save").disabled = !any; $("savePkt").hidden = !any;
   setStatus(any ? "Ungespeicherte Änderungen" + (impDirty ? " (Frontlinie)" : "") : "Alles gespeichert", any ? "dirty" : "");
 }
 async function load(){
@@ -626,15 +675,16 @@ function updateDraft(){
 
 /* ---------- tools ---------- */
 function setTool(t, opt){
+  if(t !== "select" || tool !== "select") listeAuf = false;
   tool = t; draft = DRAW.includes(t) ? {typ:t, pts:[], replaceId:opt&&opt.replaceId} : null;
   front = t==="front" ? {start:null, pts:[]} : null; ensureFrontEdge();
   document.body.classList.toggle("drawing", DRAW.includes(t) || t==="symbol" || t==="front");
   $("frame").hidden = t!=="bild"; if(t==="bild") placeFrame();
   $("tools").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.t===t));
-  if(t!=="select") select(null, false, true);
+  if(t!=="select"){ vx = null; select(null, false, true); }
   updateDraft(); renderOpts(); renderList();
 }
-$("tools").querySelectorAll("button").forEach(b=>b.onclick=()=>setTool(b.dataset.t));
+$("tools").querySelectorAll("button").forEach(b=>b.onclick=()=>{ if(b.dataset.t === "select" && tool === "select"){ listeAuf = !listeAuf; if(listeAuf) $("mehr").open = true; panelZustand(); return; } setTool(b.dataset.t); if(b.dataset.t === "select"){ listeAuf = true; $("mehr").open = true; panelZustand(); } });
 
 function finishDraft(){
   if(!draft) return;
@@ -828,7 +878,9 @@ function finishFront(){
   front = {start:null, pts:[]};
   frontMeta.name = "";
   impChange(); updateDraft(); renderOpts(); renderList();
-  toast("Änderung eingetragen: " + RICHTUNG[u.change.properties.richtung]);
+  const gewollt = frontMode === "vor" ? "groesser" : "kleiner", wurde = u.change.properties.richtung === ({ "russian-terr":"ru", "ukraine-terr":"ua", "gray-zone":"grau" })[front && frontEbene] ? "groesser" : "kleiner";
+  if(gewollt !== wurde) toast("Achtung: Die Fläche ist " + (wurde === "groesser" ? "größer" : "kleiner") + " geworden. Eingetragen als " + RICHTUNG[u.change.properties.richtung] + ". Falls falsch: oben links zurück.");
+  else toast("Änderung eingetragen: " + RICHTUNG[u.change.properties.richtung] + ". Gruppe unten bei „Änderung hinzufügen“.");
 }
 function frontOpts(o){
   const d = K.importData();
@@ -841,10 +893,12 @@ function frontOpts(o){
   const grp = K.gruppen(d), dirs = [...new Set(K.changes(d).map(f=>f.properties.direktion).filter(Boolean))];
   if(frontMeta.gruppe && !grp.some(g=>g.id===frontMeta.gruppe)) frontMeta.gruppe = "";
   o.innerHTML = `<div class="eyebrow" style="margin-bottom:2px"><span>Neue Änderung</span></div>
+    <div class="seg2"><button data-fm="vor" class="${frontMode==="vor"?"on":""}">Front vorschieben</button><button data-fm="zurueck" class="${frontMode==="zurueck"?"on":""}">Front zurücknehmen</button></div>
+    <div class="hint">${frontMode==="vor" ? "Der neue Verlauf liegt <b>außerhalb</b> der gewählten Fläche, sie wird größer." : "Der neue Verlauf liegt <b>innerhalb</b> der gewählten Fläche, sie wird kleiner (Gebiet zurückgewonnen)."}</div>
     <div><label class="lbl" for="fNm">Name</label><input class="f" id="fNm" maxlength="60" placeholder="z. B. Vorstoß bei Myrnohrad" value="${esc(frontMeta.name)}"></div>
     <div class="grid2">
       <div><label class="lbl" for="fDir">Richtung</label><input class="f" id="fDir" list="dirList" maxlength="40" placeholder="z. B. Pokrowsk" value="${esc(frontMeta.direktion)}"><datalist id="dirList">${dirs.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
-      <div><label class="lbl" for="fGr">Gruppe</label><div style="display:flex;gap:4px"><select class="f" id="fGr"><option value="">Keine</option>${grp.map(g=>`<option value="${esc(g.id)}" ${g.id===frontMeta.gruppe?"selected":""}>${esc(g.name)}</option>`).join("")}</select><button class="btn sm" id="fGrNew" title="Neue Gruppe anlegen" style="flex:none">+</button></div></div></div>
+      <div hidden><label class="lbl" for="fGr">Gruppe</label><div style="display:flex;gap:4px"><select class="f" id="fGr"><option value="">Keine</option>${grp.map(g=>`<option value="${esc(g.id)}" ${g.id===frontMeta.gruppe?"selected":""}>${esc(g.name)}</option>`).join("")}</select><button class="btn sm" id="fGrNew" title="Neue Gruppe anlegen" style="flex:none">+</button></div></div></div>
     <div class="grid2">
       <div><label class="lbl" for="fEb">Fläche</label><select class="f" id="fEb">${areas.map(l=>`<option value="${esc(l.id)}" ${l.id===frontEbene?"selected":""}>${esc(l.name)}</option>`).join("")}</select></div>
       <div><label class="lbl" for="fDt">Datum</label><input class="f" id="fDt" type="date" value="${esc(frontDatum)}"></div></div>
@@ -853,6 +907,7 @@ function frontOpts(o){
     ${last ? `<div class="confirm" style="border-color:var(--line-2)"><div class="hint">Letzte Änderung: <b>${RICHTUNG[last.change.properties.richtung]}</b>, ${esc(last.change.properties.datum)}</div>
       <div class="row"><button class="btn sm" id="frFlip">Richtung umkehren</button><button class="btn sm danger" id="frUndo">Rückgängig</button></div></div>` : ""}
     <div class="hint">Neue Flächen werden ${14} Tage lang kräftig angezeigt, danach wie das übrige Gebiet. Speichern nicht vergessen.</div>`;
+  o.querySelectorAll("[data-fm]").forEach(b=>b.onclick = ()=>{ frontMode = b.dataset.fm; renderOpts(); });
   $("fEb").onchange = e=>{ frontEbene = e.target.value; front = {start:null, pts:[]}; ensureFrontEdge(); updateDraft(); renderOpts(); };
   $("fDt").onchange = e=>{ frontDatum = e.target.value || frontDatum; };
   $("fNm").oninput = e=>{ frontMeta.name = e.target.value; };
@@ -868,8 +923,9 @@ function frontOpts(o){
   }
 }
 
+function panelZustand(){ document.body.classList.toggle("ed-auf", tool !== "select" || !!sel || !!vx); document.body.classList.toggle("ed-liste", tool === "select" && listeAuf); }
 function renderOpts(){
-  const o = $("opts");
+  const o = $("opts"); setTimeout(panelZustand, 0);
   if(tool==="front"){ frontOpts(o); return; }
   if(tool==="bild"){ shotOpts(o); return; }
   if(tool==="symbol"){
@@ -891,9 +947,9 @@ function renderOpts(){
     return;
   }
   /* select tool */
-  if(!sel){ o.innerHTML = ""; return; }
+  if(!sel){ o.innerHTML = vxFelder(); vxFelderVerbinden(); return; }
   const el = sel;
-  o.innerHTML = `<div><label class="lbl" for="fName">Name</label><input class="f" id="fName" value="${esc(el.name)}" placeholder="${esc(K.describe(el))}" maxlength="80"></div>
+  o.innerHTML = vxFelder() + `<div><label class="lbl" for="fName">Name</label><input class="f" id="fName" value="${esc(el.name)}" placeholder="${esc(K.describe(el))}" maxlength="80"></div>
     ${el.typ==="symbol" ? `<div><label class="lbl" for="fZus">Bezeichnung am Symbol</label><input class="f" id="fZus" value="${esc(el.zusatz)}" placeholder="z. B. 93" maxlength="20"></div>` + symbolFields(el) : `<div><span class="lbl">Farbe</span>${swatches(K.farbe(el.farbe))}</div>`}
     ${el.typ==="linie"||el.typ==="pfeil" ? `<div><span class="lbl">Stil</span><div class="sides" style="grid-template-columns:1fr 1fr"><button data-st="durchgezogen" style="${el.stil!=="gestrichelt"?"background:var(--volt);color:var(--ink)":""}">Durchgezogen</button><button data-st="gestrichelt" style="${el.stil==="gestrichelt"?"background:var(--volt);color:var(--ink)":""}">Gestrichelt</button></div></div>`:""}
     <div><label class="lbl" for="fText">Beschreibung</label><textarea class="f" id="fText" maxlength="2000">${esc(el.text)}</textarea></div>
@@ -903,7 +959,7 @@ function renderOpts(){
     <div><label class="lbl" for="fDate">Datum</label><input class="f" id="fDate" type="date" value="${esc(el.datum||"")}"></div>
     <div class="row">${el.typ!=="symbol"?`<button class="btn sm" id="fRedraw">Form neu zeichnen</button>`:""}<button class="btn sm danger" id="fDel">Löschen</button></div>
     <div id="delBox"></div>`;
-  wireMedien(el);
+  wireMedien(el); vxFelderVerbinden();
   $("fName").oninput = e=>{ el.name = e.target.value; changeQuiet(); };
   $("fText").oninput = e=>{ el.text = e.target.value; changeQuiet(); };
   $("fDate").onchange = e=>{ el.datum = e.target.value; changeQuiet(); };
@@ -929,7 +985,11 @@ function changeQuiet(redrawMarkers){
 }
 
 function select(el, fly, quiet){
-  sel = el || null; highlight(); renderList();
+  sel = el || null;
+  if(sel && tool === "select" && ["linie","pfeil","flaeche"].includes(sel.typ)){ if(!vx || vx.el !== sel) vx = {kind:"el", el:sel, i:null, add:null}; }
+  else if(!(vx && vx.kind === "front" && !sel)) vx = null;
+  if(!sel && vx && vx.kind === "el") vx = null;
+  vxDraw(); highlight(); renderList();
   if(!quiet) renderOpts();
   if(fly && sel){
     const c = sel.typ==="symbol" ? [sel.koordinaten] : sel.koordinaten;
@@ -971,6 +1031,136 @@ setTool("select"); renderGh(); load();
 $("draftSave").onclick = saveDraft; $("undo").onclick = undo; $("redo").onclick = redo;
 addEventListener("keydown", e=>{ if(!(e.ctrlKey || e.metaKey) || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName||""))) return;
   const k = e.key.toLowerCase(); if(k === "z" && !e.shiftKey){ e.preventDefault(); undo(); } else if(k === "y" || (k === "z" && e.shiftKey)){ e.preventDefault(); redo(); } });
+
+/* ================= Punkte bearbeiten (Auswahl-Werkzeug) =================
+   Eigenes Element (Linie, Pfeil, Fläche) oder eine Frontfläche antippen: Punkte erscheinen.
+   Punkt ziehen = verschieben, antippen = auswählen (Koordinaten ändern, entfernen),
+   auf die Linie tippen = Stelle für einen neuen Punkt, dann rechts „Punkt hinzufügen“. */
+const VX_MAX = 900, r5 = v=>+(+v).toFixed(5);
+function vxPts(){ return vx.kind === "el" ? vx.el.koordinaten : vx.f.geometry.coordinates[0]; }
+function vxN(){ const p = vxPts(); return vx.kind === "front" ? p.length - 1 : p.length; }
+function vxMin(){ return vx.kind === "front" ? 4 : vx.el.typ === "flaeche" ? 3 : 2; }
+function vxZu(){ return vx.kind === "front" || vx.el.typ === "flaeche"; }
+function vxSet(i, ll){ const p = vxPts(); p[i] = ll; if(vx.kind === "front" && i === 0) p[p.length-1] = ll; }
+function vxSichtbar(){
+  const n = vxN(); if(vx.kind === "el") return [...Array(n).keys()];
+  const b = map.getBounds(), out = []; const p = vxPts();
+  for(let i=0;i<n;i++){ if(b.contains(p[i])) out.push(i); if(out.length > VX_MAX) return null; }
+  return out;
+}
+function vxQuelle(){
+  if(!map.getStyle()) return null;
+  if(!map.getSource("vx")){
+    map.addSource("vx", {type:"geojson", data:{type:"FeatureCollection", features:[]}});
+    map.addLayer({id:"vx-pt", type:"circle", source:"vx", filter:["!=",["get","g"],1], paint:{"circle-radius":["case",["==",["get","s"],1],8,6], "circle-color":["case",["==",["get","s"],1],"#ffb800","#ffffff"], "circle-stroke-color":"#000", "circle-stroke-width":2}});
+    map.addLayer({id:"vx-neu", type:"circle", source:"vx", filter:["==",["get","g"],1], paint:{"circle-radius":7, "circle-color":"rgba(255,184,0,.25)", "circle-stroke-color":"#ffb800", "circle-stroke-width":2.5}});
+    const start = e=>{ if(tool !== "select" || !vx) return; if(e.originalEvent && e.originalEvent.touches && e.originalEvent.touches.length > 1) return;
+      e.preventDefault(); const i = e.features[0].properties.i; vx.drag = {i, moved:false, before: vx.kind === "front" ? JSON.parse(JSON.stringify(vx.f.geometry.coordinates)) : null};
+      map.dragPan.disable(); map.on("mousemove", zieh); map.on("touchmove", zieh); map.once("mouseup", los); map.once("touchend", los); };
+    map.on("mousedown", "vx-pt", start); map.on("touchstart", "vx-pt", start);
+    map.on("mouseenter", "vx-pt", ()=>{ map.getCanvas().style.cursor = "grab"; }); map.on("mouseleave", "vx-pt", ()=>{ map.getCanvas().style.cursor = ""; });
+    map.on("moveend", ()=>{ if(vx && vx.kind === "front") vxDraw(); });
+  }
+  return map.getSource("vx");
+}
+let ziehRaf = 0;
+function zieh(e){ if(!vx || !vx.drag) return; vx.drag.moved = true; vxSet(vx.drag.i, [r5(e.lngLat.lng), r5(e.lngLat.lat)]);
+  if(ziehRaf) return; ziehRaf = requestAnimationFrame(()=>{ ziehRaf = 0; if(!vx) return; vxDraw(true);
+    if(vx.kind === "el"){ try{ map.getSource("lage").setData(K.toFeatures(DATA.elemente)); }catch(_){} } }); }
+function los(){
+  map.off("mousemove", zieh); map.off("touchmove", zieh); map.dragPan.enable(); if(!vx || !vx.drag) return;
+  const d = vx.drag; vx.drag = null; vx.klickAt = Date.now(); vx.i = d.i; vx.add = null;
+  if(d.moved) vxFertig(d.before);
+  vxDraw(); renderOpts();
+}
+/* Änderung festhalten: eigene Elemente über den normalen Verlauf, Front über die Frontliste */
+function vxFertig(before){
+  if(vx.kind === "el"){ change(); return; }
+  undoStack.push({f:vx.f, before, change:null}); ops.push("f"); hist = hist.slice(0, hi+1); histBtns(); impChange();
+}
+function vxDraw(nurPunkte){
+  const src = vxQuelle(); if(!src) return;
+  $("vbar").hidden = !vx; if(!vx){ src.setData({type:"FeatureCollection", features:[]}); return; }
+  const idx = vxSichtbar(), p = vxPts(), f = [];
+  if(idx) idx.forEach(i=>f.push({type:"Feature", properties:{i, s: i === vx.i ? 1 : 0}, geometry:{type:"Point", coordinates:p[i]}}));
+  if(vx.add) f.push({type:"Feature", properties:{g:1}, geometry:{type:"Point", coordinates:vx.add.ll}});
+  src.setData({type:"FeatureCollection", features:f});
+  if(nurPunkte) return;
+  $("vbT").textContent = !idx ? "Näher heranzoomen" : !idx.length ? "Rand der Fläche ins Bild holen" : (vx.kind === "front" ? "Frontlinie · " : "") + vxN() + " Punkte";
+  $("vAdd").disabled = !vx.add; $("vDel").disabled = vx.i == null || vxN() <= vxMin();
+}
+/* Klick, während Punkte zu sehen sind: Punkt antippen oder Stelle auf der Linie wählen */
+function vxKlick(e){
+  if(Date.now() - (vx.klickAt || 0) < 350) return true;
+  if(map.queryRenderedFeatures(e.point, {layers:["vx-pt"]}).length) return true;
+  const p = vxPts(), n = vxN(), idx = vxSichtbar(); if(!idx) return false;
+  const nah = new Set(); idx.forEach(i=>{ nah.add(i); nah.add((i - 1 + n) % n); });
+  let best = null;
+  nah.forEach(i=>{ const j = i + 1; if(j >= n && !vxZu()) return; const a = map.project(p[i]), b = map.project(p[j % n]);
+    const dx = b.x - a.x, dy = b.y - a.y, L = dx*dx + dy*dy; if(!L) return; let t = ((e.point.x - a.x)*dx + (e.point.y - a.y)*dy)/L; t = Math.max(0.05, Math.min(0.95, t));
+    const qx = a.x + t*dx, qy = a.y + t*dy, d = Math.hypot(e.point.x - qx, e.point.y - qy); if(d < 16 && (!best || d < best.d)) best = {d, i:j, q:[qx, qy]}; });
+  if(!best) return false;
+  const ll = map.unproject(best.q); vx.add = {i:best.i, ll:[r5(ll.lng), r5(ll.lat)]}; vx.i = null; vx.klickAt = Date.now();
+  vxDraw(); renderOpts(); toast("Stelle gewählt. Rechts „Punkt hinzufügen“ drücken."); return true;
+}
+function vxPlus(){ if(!vx || !vx.add) return; const before = vx.kind === "front" ? JSON.parse(JSON.stringify(vx.f.geometry.coordinates)) : null;
+  const p = vxPts(), i = vx.add.i >= vxN() ? vxN() : vx.add.i; p.splice(i, 0, vx.add.ll); vx.i = i; vx.add = null; vxFertig(before); vxDraw(); renderOpts(); }
+function vxWeg(){ if(!vx || vx.i == null || vxN() <= vxMin()) return; const before = vx.kind === "front" ? JSON.parse(JSON.stringify(vx.f.geometry.coordinates)) : null;
+  const p = vxPts(); if(vx.kind === "front" && vx.i === 0){ p.shift(); p[p.length-1] = p[0]; } else p.splice(vx.i, 1);
+  vx.i = null; vxFertig(before); vxDraw(); renderOpts(); }
+$("vAdd").onclick = vxPlus; $("vDel").onclick = vxWeg;
+$("vOk").onclick = ()=>{ vx = null; select(null); vxDraw(); renderOpts(); };
+/* Frontfläche zum Bearbeiten wählen: die kleinste Fläche unter dem Finger */
+function frontWaehlen(e){
+  const d = K.importData(); if(tool !== "select" || !d || !map.getLayer("imp-fill")) return false;
+  const pt = [e.lngLat.lng, e.lngLat.lat], drin = r=>{ let c = false; for(let i=0,j=r.length-1;i<r.length;j=i++){ const a = r[i], b = r[j]; if((a[1] > pt[1]) !== (b[1] > pt[1]) && pt[0] < (b[0]-a[0])*(pt[1]-a[1])/(b[1]-a[1]) + a[0]) c = !c; } return c; };
+  const kand = d.features.filter(f=>f.properties.art === "flaeche" && f.geometry && f.geometry.type === "Polygon" && ["russian-terr","gray-zone","ukraine-terr"].includes(f.properties.ebene) && drin(f.geometry.coordinates[0]));
+  if(!kand.length) return false;
+  kand.sort((a,b)=>K.areaKm2(a.geometry.coordinates[0]) - K.areaKm2(b.geometry.coordinates[0]));
+  sel = null; highlight(); vx = {kind:"front", f:kand[0], i:null, add:null, klickAt:Date.now()}; vxDraw(); renderOpts(); renderList();
+  if(!vxSichtbar()) toast("Näher heranzoomen, dann erscheinen die Punkte der Frontlinie.");
+  return true;
+}
+/* Felder für den gewählten Punkt */
+function vxFelder(){
+  if(!vx) return "";
+  const kopf = vx.kind === "front" ? `<div class="eyebrow"><span>Frontlinie bearbeiten</span></div><div class="hint">Punkte ziehen, um die Linie zu korrigieren. Für einen neuen Vorstoß oder Rückgewinn mit Fläche und Datum besser das Werkzeug „Änderung“ nehmen.</div>` : "";
+  if(vx.i == null) return kopf + `<div class="hint">${vx.add ? "Stelle gewählt: rechts <b>Punkt hinzufügen</b>." : "Punkt ziehen zum Verschieben, antippen zum Ändern. Auf die Linie tippen, um dort einen Punkt einzufügen."}</div>`;
+  const q = vxPts()[vx.i];
+  return kopf + `<div class="eyebrow"><span>Punkt ${vx.i + 1} von ${vxN()}</span></div>
+    <div class="grid2"><div><label class="lbl" for="vLat">Breite</label><input class="f" id="vLat" type="number" step="0.00001" value="${q[1]}"></div><div><label class="lbl" for="vLng">Länge</label><input class="f" id="vLng" type="number" step="0.00001" value="${q[0]}"></div></div>`;
+}
+function vxFelderVerbinden(){
+  if(!vx || vx.i == null || !$("vLat")) return;
+  const neu = ()=>{ const la = parseFloat($("vLat").value), lo = parseFloat($("vLng").value); if(!isFinite(la) || !isFinite(lo) || Math.abs(la) > 85 || Math.abs(lo) > 180) return;
+    const before = vx.kind === "front" ? JSON.parse(JSON.stringify(vx.f.geometry.coordinates)) : null; vxSet(vx.i, [r5(lo), r5(la)]); vxFertig(before); vxDraw(); };
+  $("vLat").onchange = neu; $("vLng").onchange = neu;
+}
+
+/* ================= Änderung hinzufügen: Gruppen ================= */
+function chgRender(){
+  const d = K.importData(), b = $("chgBody"); if(!d){ b.innerHTML = `<div class="hint">Keine Lagedaten geladen.</div>`; return; }
+  const grp = K.gruppen(d), neu = undoStack.map(u=>u.change).filter(Boolean);
+  const auswahl = (cur)=>`<option value="">Keine Gruppe</option>${grp.map(g=>`<option value="${esc(g.id)}" ${g.id===cur?"selected":""}>${esc(g.name)}</option>`).join("")}<option value="__neu">+ Neue Gruppe …</option>`;
+  b.innerHTML = (neu.length ? `<div class="hint">Neue Änderungen seit dem letzten Veröffentlichen:</div>` + neu.map((c,i)=>{ const p = c.properties;
+      return `<div class="chg-row"><div class="k"><i style="background:${p.richtung==="ua"?"#2f7fe0":p.richtung==="grau"?"#d6d6d6":"#d8344a"}"></i>${esc(RICHTUNG[p.richtung]||"")} · ${(K.changeArea(c)).toFixed(1).replace(".",",")} km² · ${esc(p.datum||"")}</div>
+        <input class="f" data-cn="${i}" placeholder="Name, z. B. Vorstoß bei Myrnohrad" maxlength="60" value="${esc(p.name||"")}">
+        <select class="f" data-cg="${i}">${auswahl(p.gruppe||"")}</select></div>`; }).join("")
+    : `<div class="hint">Noch keine neue Änderung. Zeichne sie zuerst mit dem Werkzeug <b>Änderung</b>, dann ordnest du sie hier einer Gruppe zu.</div><button class="btn sm" id="chgTool">Werkzeug „Änderung“ öffnen</button>`)
+    + `<div class="eyebrow" style="margin-top:6px"><span>Gruppe für die nächsten Änderungen</span></div><select class="f" id="chgNext">${auswahl(frontMeta.gruppe)}</select>
+    <div class="eyebrow" style="margin-top:6px"><span>Neue Gruppe erstellen</span></div><div class="row" style="flex-wrap:nowrap"><input class="f" id="chgGName" placeholder="z. B. Offensive Pokrowsk" maxlength="50"><button class="btn sm" id="chgGNeu">Erstellen</button></div>
+    ${grp.length ? `<div class="hint">Vorhandene Gruppen: ${grp.map(g=>esc(g.name)).join(", ")}</div>` : ""}`;
+  const gruppeNeu = (name)=>{ const n = (name || prompt("Name der neuen Gruppe:") || "").trim(); if(!n) return null; const g = {id:"g" + Date.now().toString(36), name:n}; K.gruppen(d).push(g); impChange(); return g; };
+  b.querySelectorAll("[data-cn]").forEach(x=>x.oninput = ()=>{ neu[+x.dataset.cn].properties.name = x.value.trim() || undefined; if(!x.value.trim()) delete neu[+x.dataset.cn].properties.name; impChange(); });
+  b.querySelectorAll("[data-cg]").forEach(x=>x.onchange = ()=>{ const c = neu[+x.dataset.cg]; let v = x.value; if(v === "__neu"){ const g = gruppeNeu(); v = g ? g.id : (c.properties.gruppe || ""); }
+    if(v) c.properties.gruppe = v; else delete c.properties.gruppe; impChange(); chgRender(); toast(v ? "Änderung der Gruppe zugeordnet" : "Gruppe entfernt"); });
+  $("chgNext").onchange = ()=>{ let v = $("chgNext").value; if(v === "__neu"){ const g = gruppeNeu(); v = g ? g.id : ""; } frontMeta.gruppe = v; chgRender(); };
+  $("chgGNeu").onclick = ()=>{ const g = gruppeNeu($("chgGName").value); if(g){ frontMeta.gruppe = g.id; chgRender(); toast("Gruppe erstellt"); } };
+  if($("chgTool")) $("chgTool").onclick = ()=>{ $("popChg").hidden = true; setTool("front"); };
+}
+function popAuf(id){ ["popChg","popSave"].forEach(x=>{ $(x).hidden = x !== id ? true : !$(x).hidden; }); if(id === "popChg" && !$("popChg").hidden) chgRender(); }
+$("chgBtn").onclick = ()=>popAuf("popChg"); $("saveBtn").onclick = ()=>popAuf("popSave");
+document.querySelectorAll("[data-zu]").forEach(b=>b.onclick = ()=>{ $(b.dataset.zu).hidden = true; });
 </script>
 </body>
 </html>

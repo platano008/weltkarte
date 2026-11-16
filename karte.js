@@ -200,9 +200,15 @@ const BILDER = {
   fahrzeug:    {name:"Fahrzeug",     d:"M2.5 10h17v12h-17zM19.5 14h6l4 4.5V22h-10zM8.5 20.5a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2zM23.5 20.5a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2z"},
   stellung:    {name:"Stellung",     d:"M7 3h2.6v26H7zM9.6 4.5H26l-4.5 5.5 4.5 5.5H9.6z"}
 };
+/* Bildsymbol: Achteck in der Farbe der Seite, Motiv schwarz, schmale schwarze Kontur; vermutete gestrichelt */
+const ACHT = "M9.4 0H22.6L32 9.4V22.6L22.6 32H9.4L0 22.6V9.4Z";
 function bildSVG(s, size){
-  const b = BILDER[s.bild], side = s.seite || "U", c = (SIDES[side]||SIDES.U).color, w = Math.round((size||30)*1.2), o = s.geplant ? ' stroke-dasharray="4 3"' : "";
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${w}" viewBox="-3 -3 38 38"><rect x="-1.5" y="-1.5" width="35" height="35" fill="#0a0a0a" fill-opacity=".92" stroke="${c}" stroke-width="2.6"${o}/><path d="${b.d}" fill="${c}" fill-rule="nonzero"/></svg>`;
+  const b = BILDER[s.bild], side = s.seite || "U", c = (SIDES[side]||SIDES.U).color, w = Math.round((size||30)*1.12);
+  const dash = s.geplant ? ' stroke-dasharray="3.2 2.4"' : "";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${w}" viewBox="-2.5 -2.5 37 37">`
+    + `<path d="${ACHT}" fill="${c}" stroke="#000" stroke-width="2.2" stroke-linejoin="miter"${dash}/>`
+    + `<path d="M10.4 2.4H21.6L29.6 10.4V21.6L21.6 29.6H10.4L2.4 21.6V10.4Z" fill="none" stroke="rgba(0,0,0,.28)" stroke-width=".9"/>`
+    + `<path d="${b.d}" fill="#000" transform="translate(5.3 5.3) scale(.67)"/></svg>`;
   return {svg, ax:w/2, ay:w/2, w, h:w};
 }
 /* Bilder und Videos, die an einem Element hängen (für die Infokarte) */
@@ -612,17 +618,50 @@ function createMap(opts){
 }
 
 /* ---------------- NATO-Symbole als Marker ---------------- */
+/* Zeichen werden beim Herauszoomen kleiner (Zoom 5: knapp halb so gross), damit sie die Karte nicht zudecken */
+function markerScale(z){ return Math.max(0.42, Math.min(1.08, 0.42 + (z - 5)*0.15)); }
+function hookMarkerZoom(map){
+  if(map._nzHook) return; map._nzHook = true;
+  const f = ()=>{ try{ map.getContainer().style.setProperty("--nz", markerScale(map.getZoom()).toFixed(3)); }catch(e){} };
+  map.on("zoom", f); f();
+}
 function symbolMarker(map, el, o){
   o = o||{};
+  hookMarkerZoom(map);
   const r = symbolSVG(el, o.size||30);
   const div = document.createElement("div");
-  div.className = "nato"; div.innerHTML = r.svg; div.title = (el.name||"")+(el.name?" – ":"")+describe(el);
+  div.className = "nato"; div.title = (el.name||"")+(el.name?" – ":"")+describe(el);
+  div.innerHTML = `<div class="nz" style="transform-origin:${r.ax}px ${r.ay}px">${r.svg}<i class="ring" style="left:${r.ax}px;top:${r.ay}px"></i></div>`;
   div.style.width = r.w+"px"; div.style.height = r.h+"px";
   const m = new maplibregl.Marker({element:div, anchor:"top-left", offset:[-r.ax,-r.ay], draggable:!!o.draggable})
     .setLngLat(el.koordinaten).addTo(map);
   div.addEventListener("click", ev=>{ ev.stopPropagation(); o.onClick && o.onClick(el); });
   if(o.onDragEnd) m.on("dragend", ()=>{ const ll = m.getLngLat(); o.onDragEnd(el, [+ll.lng.toFixed(5), +ll.lat.toFixed(5)]); });
   return m;
+}
+/* Beim Öffnen: alle Zeichen dreimal mit Ringen markieren */
+function introRings(map){
+  const go = ()=>{
+    document.querySelectorAll(".nato").forEach(n=>{ n.classList.remove("ping"); void n.offsetWidth; n.classList.add("ping"); });
+    setTimeout(()=>document.querySelectorAll(".nato.ping").forEach(n=>n.classList.remove("ping")), 4200);
+    if(!importData || !map.getStyle()) return;
+    const pts = importData.features.filter(f=>f.properties.art==="symbol" && f.geometry && f.geometry.type==="Point" && f.properties.ebene!=="units-lower" && !importHidden.has(f.properties.ebene));
+    if(!pts.length) return;
+    try{ if(map.getLayer("intro-ring")) map.removeLayer("intro-ring"); if(map.getSource("intro-ring")) map.removeSource("intro-ring"); }catch(e){}
+    map.addSource("intro-ring", {type:"geojson", data:{type:"FeatureCollection", features:pts}});
+    map.addLayer({id:"intro-ring", type:"circle", source:"intro-ring", minzoom:4.5, paint:{"circle-radius":4, "circle-color":"rgba(0,0,0,0)", "circle-stroke-color":"#ffffff", "circle-stroke-width":1.6, "circle-stroke-opacity":0, "circle-pitch-alignment":"map"}});
+    const t0 = performance.now(), DAUER = 1300, N = 3;
+    (function tick(){
+      const t = performance.now() - t0; if(!map.getLayer("intro-ring")) return;
+      if(t > DAUER*N){ try{ map.removeLayer("intro-ring"); map.removeSource("intro-ring"); }catch(e){} return; }
+      const p = (t % DAUER)/DAUER, k = markerScale(map.getZoom());
+      map.setPaintProperty("intro-ring", "circle-radius", (6 + 22*p)*k);
+      map.setPaintProperty("intro-ring", "circle-stroke-opacity", (1 - p)*0.9);
+      requestAnimationFrame(tick);
+    })();
+  };
+  const warte = ()=>{ if(map.getLayer && map.getLayer("imp-sym")) map.once("idle", go); else setTimeout(warte, 250); };
+  warte();
 }
 
 /* ---------------- Bild-Export ---------------- */
@@ -1355,6 +1394,6 @@ async function exportImage(map, o){
 function emptyData(){ return {version:1, aktualisiert:null, elemente:[]}; }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
-window.Karte = {BILDER, medienHTML, exportWeekVideo, weekChanges, videoMime, canVideo, setRefDate, standSummary, SEITE, changes, gruppen, ensureCids, changeArea, changeBounds, STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
+window.Karte = {introRings, markerScale, BILDER, medienHTML, exportWeekVideo, weekChanges, videoMime, canVideo, setRefDate, standSummary, SEITE, changes, gruppen, ensureCids, changeArea, changeBounds, STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
   addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage, exportLayout, farbe, loadImport, replaceFront, nearestEdge, applyFrontEdit, undoFrontEdit, setImportData, refreshImport, importData: ()=>importData, importMeta: ()=>importData && importData.meta};
 })();

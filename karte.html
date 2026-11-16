@@ -18,11 +18,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611160928">
+<link rel="stylesheet" href="style.css?v=202611161212">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611160928"></script>
-<script src="werkzeuge.js?v=202611160928"></script>
+<script src="karte.js?v=202611161212"></script>
+<script src="werkzeuge.js?v=202611161212"></script>
 <style>
 .item.chg .ic{width:22px}
 .card{right:calc(max(16px,env(safe-area-inset-right)) + 56px)!important}
@@ -217,6 +217,7 @@ function renderImp(d){
 }
 const startGlobe = !window.matchMedia("(max-width:720px)").matches;
 document.querySelector(`#view [data-v="${startGlobe?"globe":"flat"}"]`).classList.add("on");
+let introDone = false;
 const map = K.createMap({onImport: d=>renderImp(d), onNotice: t=>toast(t), globe:startGlobe, container:"map", style:"sat", onStyle: m=>{
   K.addDataLayers(m, "lage", K.toFeatures(visible()));
   m.on("click","lage-hit", onHit); m.on("click","lage-area-fill", onHit);
@@ -264,6 +265,7 @@ function render(){
   markers.forEach(m=>m.remove());
   markers = visible().filter(el=>el.typ==="symbol").map(el=>{ const m = K.symbolMarker(map, el, {onClick:select}); m._id = el.id; return m; });
   renderChips(); renderList(); highlight();
+  if(!introDone){ introDone = true; K.introRings(map); }
 }
 function renderChips(){
   const n = g => DATA.elemente.filter(el=>groupOf(el)===g).length;
