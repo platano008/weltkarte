@@ -18,11 +18,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611160854">
+<link rel="stylesheet" href="style.css?v=202611160928">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611160854"></script>
-<script src="werkzeuge.js?v=202611160854"></script>
+<script src="karte.js?v=202611160928"></script>
+<script src="werkzeuge.js?v=202611160928"></script>
 <style>
 .item.chg .ic{width:22px}
 .card{right:calc(max(16px,env(safe-area-inset-right)) + 56px)!important}
@@ -125,6 +125,10 @@ body.panel-gone .reopen{opacity:1;transform:none;pointer-events:auto;transition-
 .imp{display:flex;flex-direction:column;gap:6px}
 .imp .eyebrow{display:flex;justify-content:space-between}
 .chip i{width:10px;height:10px;display:inline-block;border:1px solid rgba(0,0,0,.5)}
+.card{max-height:calc(100% - 100px);overflow-y:auto;overscroll-behavior:contain}
+.card .med{display:grid;gap:8px;margin:4px 0 2px}
+.card .med img,.card .med video,.card .med iframe{display:block;width:100%;height:auto;border:0;background:#111}
+.card .med iframe{aspect-ratio:16/9}
 </style>
 </head>
 <body>
@@ -360,6 +364,7 @@ function select(el, fly){
     ${visual}
     <div class="meta"><span>${esc(K.describe(sel))}</span>${m?`<span>${m}</span>`:""}${sel.datum?`<span>${esc(fmtDate(sel.datum))}</span>`:""}</div>
     ${sel.text?`<p>${esc(sel.text)}</p>`:""}
+    ${K.medienHTML(sel)}
     <div class="coords">${fmtLL(lat,lng)}</div>
     <div class="acts"><button id="cLink">Link kopieren</button><button id="cZoom">Hinzoomen</button></div>`;
   card.hidden = false;

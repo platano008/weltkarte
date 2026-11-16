@@ -185,8 +185,38 @@ function sidcOf(s){
   const mod = s.hq ? "A" : "-";
   return "S"+side+"G"+(s.geplant?"A":"P")+fn+mod+(s.groesse||"-")+"---";
 }
+/* ---------------- Bildsymbole (zusätzlich zu den NATO-Zeichen) ---------------- */
+const BILDER = {
+  panzer:      {name:"Panzer",       d:"M3 19h26l-3 7H6zM9 13h12l2 6H7zM20 14.5h10v2.2H20z"},
+  infanterie:  {name:"Infanterie",   d:"M16 3.2a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2zM10.5 12h11l1.2 9.5h-3.2L18.6 29h-5.2l-.9-7.5H9.3z"},
+  artillerie:  {name:"Artillerie",   d:"M9.5 17.5L27 6.5l1.6 2.6L11 20.5zM11 16.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zM7 23L2.5 28H8z"},
+  drohne:      {name:"Drohne",       d:"M13 13h6v6h-6zM6.2 4.8l8 8-1.4 1.4-8-8zM25.8 4.8l1.4 1.4-8 8-1.4-1.4zM4.8 25.8l8-8 1.4 1.4-8 8zM27.2 25.8l-1.4 1.4-8-8 1.4-1.4zM6 2.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM26 2.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM6 22.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM26 22.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"},
+  hubschrauber:{name:"Hubschrauber", d:"M2 7h24v2.2H2zM13 7h2.4v5H13zM6 12h12q5 0 5 5v4H11q-5 0-5-5zM22 15h8.5v2.4H22zM8 24.5h15v2.2H8z"},
+  flugzeug:    {name:"Flugzeug",     d:"M16 2.5l2.2 9.5L29.5 18v3L18.5 18.5l-1 7 3.2 2.2V30L16 28.8 11.3 30v-2.3l3.2-2.2-1-7L2.5 21v-3l11.3-6z"},
+  rakete:      {name:"Rakete",       d:"M16 2.5q4.5 5.5 4.5 13V23h-9v-7.5q0-7.5 4.5-13zM11.5 20L7 27h4.5zM20.5 20l4.5 7h-4.5zM14 24.5h4V30h-4z"},
+  flugabwehr:  {name:"Flugabwehr",   d:"M4 23h24v4.5H4zM9 21L21.5 6l2.6 2.2L11.6 23zM14 21L26.5 8.5l2.4 2.4L17 23z"},
+  treffer:     {name:"Treffer",      d:"M16 1.5l3.2 8 7.3-4.5-3 8 8 1.5-7 4.5 5.5 6.5-8.5-1.5L20 30.5l-4-7.5-4 7.5-1.5-6.5L2 25.5 7.5 19l-7-4.5 8-1.5-3-8 7.3 4.5z"},
+  schiff:      {name:"Schiff",       d:"M2.5 20h27l-4.5 8H7zM9.5 13.5h13V20h-13zM14.8 6h2.4v7.5h-2.4z"},
+  fahrzeug:    {name:"Fahrzeug",     d:"M2.5 10h17v12h-17zM19.5 14h6l4 4.5V22h-10zM8.5 20.5a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2zM23.5 20.5a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2z"},
+  stellung:    {name:"Stellung",     d:"M7 3h2.6v26H7zM9.6 4.5H26l-4.5 5.5 4.5 5.5H9.6z"}
+};
+function bildSVG(s, size){
+  const b = BILDER[s.bild], side = s.seite || "U", c = (SIDES[side]||SIDES.U).color, w = Math.round((size||30)*1.2), o = s.geplant ? ' stroke-dasharray="4 3"' : "";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${w}" viewBox="-3 -3 38 38"><rect x="-1.5" y="-1.5" width="35" height="35" fill="#0a0a0a" fill-opacity=".92" stroke="${c}" stroke-width="2.6"${o}/><path d="${b.d}" fill="${c}" fill-rule="nonzero"/></svg>`;
+  return {svg, ax:w/2, ay:w/2, w, h:w};
+}
+/* Bilder und Videos, die an einem Element hängen (für die Infokarte) */
+function medienHTML(el){
+  const M = (el && el.medien) || []; if(!M.length) return "";
+  const ok = u => /^(medien\/[\w.\-]+|https:\/\/[^\s"'<>]+)$/.test(u||"") ? u : "";
+  const yt = u => { const m = /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/.exec(u||""); return m ? m[1] : null; };
+  return '<div class="med">' + M.map(m=>{ const src = ok(m.src); if(!src) return "";
+    if(m.t === "img") return `<a href="${esc(src)}" target="_blank" rel="noopener"><img src="${esc(src)}" alt="" loading="lazy"></a>`;
+    const y = yt(src); return y ? `<iframe src="https://www.youtube-nocookie.com/embed/${esc(y)}" allow="fullscreen; picture-in-picture" loading="lazy" title="Video"></iframe>` : `<video src="${esc(src)}" controls playsinline preload="metadata"></video>`; }).join("") + "</div>";
+}
 function symbolSVG(s, size){
   size = size||30;
+  if(s.bild && BILDER[s.bild]) return bildSVG(s, size);
   try{
     if(window.ms && ms.Symbol){
       const sym = new ms.Symbol(sidcOf(s), {size, uniqueDesignation:s.zusatz||"", outlineWidth:3, outlineColor:"rgba(0,0,0,0.7)"});
@@ -205,6 +235,7 @@ function symbolSVG(s, size){
 }
 function describe(el){
   if(el.typ==="symbol"){
+    if(el.bild && BILDER[el.bild]) return (SIDES[el.seite]||SIDES.U).short + " · " + BILDER[el.bild].name + (el.geplant ? " · vermutet" : "");
     const parts = [(SIDES[el.seite]||SIDES.U).short, (UNITS[el.einheit]||UNITS.inf).name];
     if(el.groesse && el.groesse!=="-") parts.push(ECHELONS[el.groesse]);
     if(el.hq) parts.push("Stab");
@@ -1324,6 +1355,6 @@ async function exportImage(map, o){
 function emptyData(){ return {version:1, aktualisiert:null, elemente:[]}; }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
-window.Karte = {exportWeekVideo, weekChanges, videoMime, canVideo, setRefDate, standSummary, SEITE, changes, gruppen, ensureCids, changeArea, changeBounds, STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
+window.Karte = {BILDER, medienHTML, exportWeekVideo, weekChanges, videoMime, canVideo, setRefDate, standSummary, SEITE, changes, gruppen, ensureCids, changeArea, changeBounds, STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
   addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage, exportLayout, farbe, loadImport, replaceFront, nearestEdge, applyFrontEdit, undoFrontEdit, setImportData, refreshImport, importData: ()=>importData, importMeta: ()=>importData && importData.meta};
 })();

@@ -13,10 +13,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611160854">
+<link rel="stylesheet" href="style.css?v=202611160928">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611160854"></script>
+<script src="karte.js?v=202611160928"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -118,6 +118,41 @@ details.gh[open] summary{color:var(--fg)}
 .hub-z{margin-bottom:22px;color:var(--muted);font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
 .hub .hint{margin-top:18px}
 @media (max-width:640px){.hub-g,.hub-g.zwei{grid-template-columns:1fr}.hub-g button{min-height:104px}}
+/* ----- neue Aufteilung: Werkzeuge oben links (schmal), Speichern unten links, Zurück/Vor oben rechts ----- */
+.panel{width:300px;max-height:calc(100% - 250px)}
+.ph{padding:10px 10px 10px;gap:8px}
+.ed-h .status{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tools button{padding:6px 1px;font-size:9.5px;gap:2px}
+.tools svg{width:18px;height:18px}
+.opts:empty{display:none}
+.mehr{border-top:1px solid var(--line-2)}
+.mehr summary{padding:10px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.mehr .imp{padding:0 12px 10px}
+.savebox{position:fixed;z-index:5;left:max(16px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom));width:300px;display:grid;gap:8px;padding:12px;background:rgba(0,0,0,.97);border:1px solid var(--line-2)}
+.savebox .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.savebox .hint{font-size:11.5px}
+.sb-l{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-decoration:none}
+.hist{position:fixed;z-index:6;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));display:flex;gap:6px}
+.hist button{width:42px;height:42px;display:grid;place-items:center;background:rgba(0,0,0,.92);border:1px solid var(--line-2);color:var(--fg)}
+.hist button:disabled{opacity:.35}
+.hist svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:square}
+.switches{top:calc(max(16px,env(safe-area-inset-top)) + 52px)}
+.mt-logo{left:auto!important;right:max(16px,env(safe-area-inset-right))}
+.maplibregl-ctrl-top-right{top:150px}
+.bgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.bgrid button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border:1px solid var(--line-2);font-size:9.5px;color:var(--muted)}
+.bgrid button.on{border-color:var(--fg);color:var(--fg)}
+.medl{display:grid;gap:6px;margin-bottom:8px}
+.medl div{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.medl img{width:54px;height:38px;object-fit:cover;background:#111;flex:none}
+.medl span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.medl button{width:28px;height:28px;border:1px solid var(--line-2);flex:none}
+@media (max-width:720px){
+  .panel{max-height:44%;width:auto;bottom:calc(112px + env(safe-area-inset-bottom))}
+  .savebox{left:0;right:0;bottom:0;width:auto;border-left:0;border-right:0;border-bottom:0;padding:8px 10px calc(8px + env(safe-area-inset-bottom))}
+  .savebox .check,.savebox .hint,.sb-l{display:none}
+  .switches{top:calc(max(12px,env(safe-area-inset-top)) + 50px)}
+}
 </style>
 </head>
 <body>
@@ -125,6 +160,7 @@ details.gh[open] summary{color:var(--fg)}
   <div class="hub-in">
     <img class="hub-logo" src="bild/logo.svg" alt="Plyus">
     <div id="hub1">
+      <a class="hub-z" href="./" style="display:inline-block;text-decoration:none">← Zur Website</a>
       <h1>Was willst du bearbeiten?</h1>
       <div class="hub-g">
         <button data-h="karte"><span>01</span><b>Karte</b><small>Front oder Drohnen</small></button>
@@ -150,15 +186,7 @@ details.gh[open] summary{color:var(--fg)}
 
 <section class="panel" id="panel">
   <div class="ph">
-    <div class="ed-h"><h1>Bearbeiten</h1><button class="toggle" id="toggle" aria-label="Werkzeuge ein- oder ausklappen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M6 9l6 6 6-6"/></svg></button></div>
-    <div class="status" id="status">Lädt …</div>
-    <div class="stand" id="standBox">
-      <label class="check"><input type="checkbox" id="standNew" checked> Als neues Update im Verlauf</label>
-      <input class="f" id="standNote" placeholder="Notiz zum Update (optional), z. B. Vorstoß bei Pokrowsk" maxlength="70">
-      <div class="hint" id="standHint"></div>
-    </div>
-    <div class="row"><button class="btn volt" id="save" disabled>Speichern</button><button class="btn" id="zurHub">Auswahl</button><a class="btn" href="karte.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Ansicht öffnen</a></div>
-    <div class="imp" id="imp" hidden><div class="eyebrow"><span>Lagedaten</span><span id="impSrc"></span></div><div class="chips" id="impChips"></div></div>
+    <div class="ed-h"><button class="btn sm" id="zurHub">← Zurück</button><div class="status" id="status">Lädt …</div><button class="toggle" id="toggle" aria-label="Werkzeuge ein- oder ausklappen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M6 9l6 6 6-6"/></svg></button></div>
     <div class="tools" id="tools">
       <button data-t="select"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><path d="M5 3l14 8-6 2-2 6z"/></svg>Auswahl</button>
       <button data-t="symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"><path d="M3 6h18v12H3zM3 6l18 12M21 6L3 18"/></svg>Symbol</button>
@@ -170,7 +198,11 @@ details.gh[open] summary{color:var(--fg)}
     </div>
   </div>
   <div class="opts" id="opts"></div>
-  <div class="list" id="list"></div>
+  <details class="mehr" id="mehr">
+    <summary>Ebenen und Elemente</summary>
+    <div class="imp" id="imp" hidden><div class="eyebrow"><span>Lagedaten</span><span id="impSrc"></span></div><div class="chips" id="impChips"></div></div>
+    <div class="list" id="list"></div>
+  </details>
   <details class="gh" id="ghBox">
     <summary>GitHub-Schlüssel</summary>
     <div class="ghb">
@@ -191,6 +223,14 @@ details.gh[open] summary{color:var(--fg)}
 
 <div class="card" id="card" hidden></div>
 <div class="toast" id="toast"></div>
+<div class="hist"><button id="undo" aria-label="Rückgängig" title="Rückgängig" disabled><svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5M4 12h10a6 6 0 0 1 0 12h-2" transform="translate(0 -3)"/></svg></button><button id="redo" aria-label="Wiederholen" title="Wiederholen" disabled><svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5M20 12H10a6 6 0 0 0 0 12h2" transform="translate(0 -3)"/></svg></button></div>
+<section class="savebox" id="saveBox">
+  <input class="f" id="standNote" placeholder="Name des Updates, z. B. Vorstoß bei Pokrowsk" maxlength="70">
+  <label class="check"><input type="checkbox" id="standNew" checked> Als neues Update im Verlauf</label>
+  <div class="hint" id="standHint"></div>
+  <div class="row"><button class="btn" id="draftSave">Entwurf speichern</button><button class="btn volt" id="save" disabled>Veröffentlichen</button></div>
+  <a class="sb-l" href="karte.html" target="_blank" rel="noopener">Ansicht öffnen</a>
+</section>
 <div class="frame" id="frame" hidden><i></i><i></i><i></i><i></i><span id="frameLbl"></span></div>
 <div class="shot" id="shot" hidden><div class="shot-in"><img id="shotImg" alt="Exportierter Kartenausschnitt"><video id="shotVid" controls playsinline loop muted hidden></video><div class="row"><span class="status" id="shotInfo"></span><div class="row"><button class="btn sm" id="shotClose">Schließen</button><a class="btn sm volt" id="shotDl" download style="text-decoration:none">Herunterladen</a></div></div></div></div>
 
@@ -316,6 +356,54 @@ async function ghPut(token, data, sha){
   if(!r.ok) throw {status:r.status};
   return (await r.json()).content.sha;
 }
+async function ghPutB64(token, path, b64, msg){
+  const r = await fetch(apiOf(path), {method:"PUT", headers:{Authorization:"Bearer "+token, Accept:"application/vnd.github+json", "Content-Type":"application/json"}, body:JSON.stringify({message:msg, content:b64, branch:GH.branch})});
+  if(!r.ok) throw {status:r.status};
+}
+async function ghDelPath(token, path, sha, msg){
+  const r = await fetch(apiOf(path), {method:"DELETE", headers:{Authorization:"Bearer "+token, Accept:"application/vnd.github+json", "Content-Type":"application/json"}, body:JSON.stringify({message:msg, sha, branch:GH.branch})});
+  if(!r.ok && r.status !== 404) throw {status:r.status};
+}
+/* ---------- Entwurf: liegt als eigene Datei im Projekt, die Karte auf der Website bleibt unverändert ---------- */
+const DRAFT_PATH = "entwurf/karte.json";
+let hasDraft = false, pendingLage = null;
+async function saveDraft(){
+  const t = token(); if(!t){ toast("Erst den GitHub-Schlüssel eintragen"); $("ghBox").open = true; return; }
+  $("draftSave").disabled = true; setStatus("Speichert Entwurf …");
+  try{
+    const body = {at:new Date().toISOString(), name:$("standNote").value.trim(), data:DATA}; if(impDirty) body.lage = K.importData();
+    const r = await ghGetPath(t, DRAFT_PATH); await ghPutPath(t, DRAFT_PATH, JSON.stringify(body), r.sha, "Entwurf gespeichert");
+    hasDraft = true; setStatus("Entwurf gespeichert, noch nicht veröffentlicht", "dirty"); toast("Entwurf gespeichert. Auf der Website ändert sich noch nichts.");
+  }catch(e){ setStatus(e.status===401 ? "Schlüssel ungültig oder abgelaufen." : "Entwurf konnte nicht gespeichert werden.", "err"); }
+  $("draftSave").disabled = false;
+}
+/* ---------- Zurück / Vor ---------- */
+let hist = [], hi = -1, ops = [];
+function histBtns(){ $("undo").disabled = !ops.length; $("redo").disabled = !(hi < hist.length-1); }
+function histInit(){ hist = [JSON.stringify(DATA)]; hi = 0; ops = []; histBtns(); }
+function histPush(){ const s = JSON.stringify(DATA); if(hi < 0 || s === hist[hi]) return; hist = hist.slice(0, hi+1); hist.push(s); if(hist.length > 80) hist.shift(); hi = hist.length-1; ops.push("d"); histBtns(); }
+function histGo(){ const id = sel && sel.id; DATA = JSON.parse(hist[hi]); sel = id ? DATA.elemente.find(e=>e.id===id) || null : null; dirty = true; store.set(LS.draft, JSON.stringify({data:DATA, at:Date.now()})); render(); renderOpts(); refreshStatus(); histBtns(); }
+function undo(){ clearTimeout(qt); histPush(); const o = ops.pop(); if(!o){ histBtns(); return; }
+  if(o === "f"){ if(undoStack.length){ K.undoFrontEdit(undoStack.pop()); impChange(); renderOpts(); toast("Frontänderung zurückgenommen"); } histBtns(); return; }
+  if(hi > 0){ hi--; histGo(); } }
+function redo(){ if(hi < hist.length-1){ hi++; ops.push("d"); histGo(); } }
+/* ---------- Bilder und Videos an einem Element ---------- */
+const medPrev = {}, MAX_VID = 25*1024*1024;
+function bytesToB64(bytes){ let s = ""; for(let i=0;i<bytes.length;i+=0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i+0x8000)); return btoa(s); }
+function bildKlein(file){ return new Promise((ok, no)=>{ const im = new Image(), url = URL.createObjectURL(file); im.onload = ()=>{ const k = Math.min(1, 1600/Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = Math.round(im.width*k); c.height = Math.round(im.height*k); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url); ok(c.toDataURL("image/jpeg", 0.85)); }; im.onerror = no; im.src = url; }); }
+function wireMedien(el){
+  const L = $("medList"), M = el.medien || [];
+  L.innerHTML = M.map((m,i)=>`<div>${m.t==="img" ? `<img src="${esc(medPrev[m.src] || m.src)}" alt="">` : ""}<span>${m.t==="img" ? "Bild" : "Video: " + esc(m.src)}</span><button data-mx="${i}" aria-label="Entfernen">✕</button></div>`).join("");
+  L.querySelectorAll("[data-mx]").forEach(b=>b.onclick = ()=>{ el.medien.splice(+b.dataset.mx, 1); if(!el.medien.length) delete el.medien; change(); renderOpts(); });
+  const dazu = m=>{ (el.medien = el.medien || []).push(m); change(); renderOpts(); };
+  const hoch = async (b64, ext, t, vorschau)=>{ const tk = token(); if(!tk){ toast("Erst den GitHub-Schlüssel eintragen"); $("ghBox").open = true; return; }
+    const pfad = "medien/" + String(el.id).replace(/[^\w-]/g, "") + "-" + Date.now().toString(36) + "." + ext; setStatus("Lädt hoch …");
+    try{ await ghPutB64(tk, pfad, b64, "Karte: Medium"); if(vorschau) medPrev[pfad] = vorschau; dazu({t, src:pfad}); toast(t === "img" ? "Bild angehängt" : "Video angehängt"); }catch(e){ toast("Hochladen fehlgeschlagen"); } refreshStatus(); };
+  $("medImg").onchange = async e=>{ const f = e.target.files[0]; if(!f) return; try{ const d = await bildKlein(f); await hoch(d.split(",")[1], "jpg", "img", d); }catch(_){ toast("Bild konnte nicht gelesen werden"); } };
+  $("medVid").onchange = async e=>{ const f = e.target.files[0]; if(!f) return; if(f.size > MAX_VID){ toast("Video ist größer als 25 MB. Bitte als Link anhängen."); return; }
+    const ext = (f.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "") || "mp4"; await hoch(bytesToB64(new Uint8Array(await f.arrayBuffer())), ext, "vid"); };
+  $("medAdd").onclick = ()=>{ const u = $("medUrl").value.trim(); if(!/^https:\/\/\S+$/.test(u)){ toast("Bitte einen Link einfügen, der mit https:// beginnt."); return; } dazu({t:"vid", src:u}); };
+}
 function setStatus(t, cls){ const s=$("status"); s.textContent=t; s.className="status"+(cls?" "+cls:""); }
 function token(){ return store.get(LS.token); }
 function refreshStatus(){
@@ -335,8 +423,11 @@ async function load(){
   }
   if(!DATA.elemente) DATA = K.emptyData();
   const d = JSON.parse(store.get(LS.draft)||"null");
-  if(d && d.data && d.data.elemente){ DATA = d.data; dirty = true; toast("Ungespeicherter Entwurf wiederhergestellt"); }
-  await loadImp(t);
+  let fern = null;
+  if(t){ try{ const r = await ghGetPath(t, DRAFT_PATH); if(r.text){ fern = JSON.parse(r.text); hasDraft = true; } }catch(e){} }
+  if(fern && fern.data && fern.data.elemente && !(d && d.at > new Date(fern.at).getTime())){ DATA = fern.data; dirty = true; pendingLage = fern.lage || null; if(fern.name) $("standNote").value = fern.name; toast("Gespeicherter Entwurf geladen"); }
+  else if(d && d.data && d.data.elemente){ DATA = d.data; dirty = true; toast("Ungespeicherter Entwurf wiederhergestellt"); }
+  await loadImp(t); histInit();
   render(); if(!$("status").classList.contains("err")) refreshStatus(); else $("save").disabled = !token() || !(dirty || impDirty);
 }
 async function loadImp(t){
@@ -345,7 +436,9 @@ async function loadImp(t){
     if(t){ const r = await ghGetPath(t, IMP_PATH); impSha = r.sha; d = r.text ? JSON.parse(r.text) : null; }
     else { const r = await fetch(IMP_PATH, {cache:"no-cache"}); d = r.ok ? await r.json() : null; }
   }catch(e){ try{ const r = await fetch(IMP_PATH, {cache:"no-cache"}); d = r.ok ? await r.json() : null; }catch(_){} }
-  try{ const dr = JSON.parse(store.get(LS.imp)||"null"); if(dr && dr.features){ d = dr; impDirty = true; toast("Ungespeicherte Frontlinien-Änderungen wiederhergestellt"); } }catch(e){}
+  let lokal = false;
+  try{ const dr = JSON.parse(store.get(LS.imp)||"null"); if(dr && dr.features){ d = dr; impDirty = true; lokal = true; toast("Ungespeicherte Frontlinien-Änderungen wiederhergestellt"); } }catch(e){}
+  if(!lokal && pendingLage && pendingLage.features){ d = pendingLage; impDirty = true; } pendingLage = null;
   if(!d) return;
   K.setImportData(map, d); renderImp(d); ensureFrontEdge();
 }
@@ -356,10 +449,11 @@ function impChange(){
 }
 function change(){
   dirty = true; store.set(LS.draft, JSON.stringify({data:DATA, at:Date.now()}));
-  render(); refreshStatus();
+  histPush(); render(); refreshStatus();
 }
 $("save").onclick = async ()=>{
   const t = token(); if(!t) return;
+  if($("standNew").checked && !$("standNote").value.trim()){ toast("Gib dem Update erst einen Namen."); $("standNote").focus(); return; }
   $("save").disabled = true; setStatus("Speichert …");
   try{
     if(dirty){
@@ -373,10 +467,11 @@ $("save").onclick = async ()=>{
       const text = JSON.stringify(d);
       try{ impSha = await ghPutPath(t, IMP_PATH, text, impSha, "Frontlinie aktualisiert"); }
       catch(e){ if(e.status===409 || e.status===422){ const r = await ghGetPath(t, IMP_PATH); impSha = await ghPutPath(t, IMP_PATH, text, r.sha, "Frontlinie aktualisiert"); } else throw e; }
-      impDirty = false; store.del(LS.imp); undoStack = [];
+      impDirty = false; store.del(LS.imp); undoStack = []; ops = ops.filter(x=>x !== "f"); histBtns();
     }
     let standOk = true;
     try{ await saveStand(t); }catch(e){ standOk = false; console.warn("Verlauf:", e); }
+    if(hasDraft){ try{ const r = await ghGetPath(t, DRAFT_PATH); if(r.sha) await ghDelPath(t, DRAFT_PATH, r.sha, "Entwurf veröffentlicht"); hasDraft = false; }catch(e){} }
     refreshStatus(); renderOpts();
     toast(standOk ? "Gespeichert. In etwa einer Minute ist es online." : "Gespeichert, aber der Verlauf konnte nicht aktualisiert werden.");
   }catch(e){
@@ -556,7 +651,7 @@ function finishDraft(){
   draft = null; tool = "select"; change(); setTool("select"); select(el);
 }
 function placeSymbol(ll){
-  const el = {id:uid(), typ:"symbol", name:"", text:"", seite:prefs.seite, einheit:prefs.einheit, groesse:prefs.groesse, hq:prefs.hq, geplant:prefs.geplant, zusatz:"", koordinaten:ll};
+  const el = {id:uid(), typ:"symbol", name:"", text:"", seite:prefs.seite, einheit:prefs.einheit, groesse:prefs.groesse, hq:prefs.hq, geplant:prefs.geplant, bild:prefs.bild||"", zusatz:"", koordinaten:ll};
   DATA.elemente.push(el); change(); setTool("select"); select(el);
   toast("Symbol gesetzt. Zum Verschieben einfach ziehen.");
 }
@@ -564,20 +659,25 @@ function placeSymbol(ll){
 /* ---------- options panel ---------- */
 function swatches(cur){ return `<div class="swatches">${COLORS.map(([c,n])=>`<button data-c="${c}" class="${c===cur?"on":""}" style="background:${c}" title="${n}" aria-label="${n}"></button>`).join("")}</div>`; }
 function symbolFields(s){
-  return `<div><span class="lbl">Seite</span><div class="sides">${Object.entries(K.SIDES).map(([k,v])=>`<button data-side="${k}" class="${s.seite===k?"on":""}" style="${s.seite===k?`background:${v.color}`:""}">${v.short}</button>`).join("")}</div></div>
-  <div class="grid2">
+  const an = "background:var(--volt);color:var(--ink)";
+  return `<div><span class="lbl">Art</span><div class="sides" style="grid-template-columns:1fr 1fr"><button data-art="nato" style="${s.bild?"":an}">NATO-Zeichen</button><button data-art="bild" style="${s.bild?an:""}">Bildsymbol</button></div></div>
+  <div><span class="lbl">Seite</span><div class="sides">${Object.entries(K.SIDES).map(([k,v])=>`<button data-side="${k}" class="${s.seite===k?"on":""}" style="${s.seite===k?`background:${v.color}`:""}">${v.short}</button>`).join("")}</div></div>
+  ${s.bild ? `<div class="bgrid">${Object.entries(K.BILDER).map(([k,v])=>`<button data-bild="${k}" class="${s.bild===k?"on":""}">${K.symbolSVG({bild:k,seite:s.seite},26).svg}${v.name}</button>`).join("")}</div>
+  <div class="row"><label class="check"><input type="checkbox" id="fPlan" ${s.geplant?"checked":""}> Vermutet</label></div>` : `<div class="grid2">
     <div><label class="lbl" for="fUnit">Truppengattung</label><select class="f" id="fUnit">${Object.entries(K.UNITS).map(([k,v])=>`<option value="${k}" ${s.einheit===k?"selected":""}>${v.name}</option>`).join("")}</select></div>
     <div><label class="lbl" for="fEch">Größe</label><select class="f" id="fEch">${Object.entries(K.ECHELONS).map(([k,v])=>`<option value="${k}" ${(s.groesse||"-")===k?"selected":""}>${v}</option>`).join("")}</select></div>
   </div>
-  <div class="row"><label class="check"><input type="checkbox" id="fHq" ${s.hq?"checked":""}> Stab / Hauptquartier</label><label class="check"><input type="checkbox" id="fPlan" ${s.geplant?"checked":""}> Vermutet</label></div>
+  <div class="row"><label class="check"><input type="checkbox" id="fHq" ${s.hq?"checked":""}> Stab / Hauptquartier</label><label class="check"><input type="checkbox" id="fPlan" ${s.geplant?"checked":""}> Vermutet</label></div>`}
   <div class="preview" id="pv">${K.symbolSVG(s,34).svg}</div>`;
 }
 function wireSymbolFields(s, onChange){
   const o = $("opts");
+  o.querySelectorAll("[data-art]").forEach(b=>b.onclick=()=>{ s.bild = b.dataset.art === "bild" ? (s.bild || "panzer") : ""; onChange(true); });
+  o.querySelectorAll("[data-bild]").forEach(b=>b.onclick=()=>{ s.bild = b.dataset.bild; onChange(true); });
   o.querySelectorAll("[data-side]").forEach(b=>b.onclick=()=>{ s.seite=b.dataset.side; onChange(true); });
-  $("fUnit").onchange = e=>{ s.einheit=e.target.value; onChange(); };
-  $("fEch").onchange = e=>{ s.groesse=e.target.value; onChange(); };
-  $("fHq").onchange = e=>{ s.hq=e.target.checked; onChange(); };
+  if($("fUnit")) $("fUnit").onchange = e=>{ s.einheit=e.target.value; onChange(); };
+  if($("fEch")) $("fEch").onchange = e=>{ s.groesse=e.target.value; onChange(); };
+  if($("fHq")) $("fHq").onchange = e=>{ s.hq=e.target.checked; onChange(); };
   $("fPlan").onchange = e=>{ s.geplant=e.target.checked; onChange(); };
 }
 /* ---------- Bild-Export ---------- */
@@ -724,7 +824,7 @@ function finishFront(){
   if(!end || end.i === front.start.i){ toast("Anfang und Ende liegen auf demselben Punkt. Setz das Ende weiter weg."); return; }
   const u = K.applyFrontEdit(front.start.f, front.start.i, end.i, pts, {datum:frontDatum, name:frontMeta.name.trim(), direktion:frontMeta.direktion.trim(), gruppe:frontMeta.gruppe});
   if(!u){ toast("Das hat nicht geklappt. Bitte nochmal versuchen."); return; }
-  undoStack.push(u);
+  undoStack.push(u); ops.push("f"); hist = hist.slice(0, hi+1); histBtns();
   front = {start:null, pts:[]};
   frontMeta.name = "";
   impChange(); updateDraft(); renderOpts(); renderList();
@@ -764,7 +864,7 @@ function frontOpts(o){
   $("frReset").onclick = ()=>{ front = {start:null, pts:[]}; updateDraft(); renderOpts(); };
   if(last){
     $("frFlip").onclick = ()=>{ const p = last.change.properties; p.richtung = p.richtung==="ru" ? "ua" : p.richtung==="ua" ? "ru" : p.richtung; impChange(); renderOpts(); };
-    $("frUndo").onclick = ()=>{ K.undoFrontEdit(undoStack.pop()); impChange(); renderOpts(); toast("Änderung rückgängig gemacht"); };
+    $("frUndo").onclick = ()=>{ const oi = ops.lastIndexOf("f"); if(oi >= 0) ops.splice(oi, 1); histBtns(); K.undoFrontEdit(undoStack.pop()); impChange(); renderOpts(); toast("Änderung rückgängig gemacht"); };
   }
 }
 
@@ -791,15 +891,19 @@ function renderOpts(){
     return;
   }
   /* select tool */
-  if(!sel){ o.innerHTML = `<div class="hint">Wähle oben ein Werkzeug oder tippe ein Element auf der Karte bzw. in der Liste an, um es zu bearbeiten.</div>`; return; }
+  if(!sel){ o.innerHTML = ""; return; }
   const el = sel;
   o.innerHTML = `<div><label class="lbl" for="fName">Name</label><input class="f" id="fName" value="${esc(el.name)}" placeholder="${esc(K.describe(el))}" maxlength="80"></div>
     ${el.typ==="symbol" ? `<div><label class="lbl" for="fZus">Bezeichnung am Symbol</label><input class="f" id="fZus" value="${esc(el.zusatz)}" placeholder="z. B. 93" maxlength="20"></div>` + symbolFields(el) : `<div><span class="lbl">Farbe</span>${swatches(K.farbe(el.farbe))}</div>`}
     ${el.typ==="linie"||el.typ==="pfeil" ? `<div><span class="lbl">Stil</span><div class="sides" style="grid-template-columns:1fr 1fr"><button data-st="durchgezogen" style="${el.stil!=="gestrichelt"?"background:var(--volt);color:var(--ink)":""}">Durchgezogen</button><button data-st="gestrichelt" style="${el.stil==="gestrichelt"?"background:var(--volt);color:var(--ink)":""}">Gestrichelt</button></div></div>`:""}
     <div><label class="lbl" for="fText">Beschreibung</label><textarea class="f" id="fText" maxlength="2000">${esc(el.text)}</textarea></div>
+    <div><span class="lbl">Bilder und Videos</span><div class="medl" id="medList"></div>
+      <div class="row"><label class="btn sm">+ Bild<input type="file" id="medImg" accept="image/*" hidden></label><label class="btn sm">+ Videodatei<input type="file" id="medVid" accept="video/mp4,video/webm,video/quicktime" hidden></label></div>
+      <div class="row" style="margin-top:6px;flex-wrap:nowrap"><input class="f" id="medUrl" type="url" placeholder="Video-Link (YouTube oder MP4)"><button class="btn sm" id="medAdd">Dazu</button></div></div>
     <div><label class="lbl" for="fDate">Datum</label><input class="f" id="fDate" type="date" value="${esc(el.datum||"")}"></div>
     <div class="row">${el.typ!=="symbol"?`<button class="btn sm" id="fRedraw">Form neu zeichnen</button>`:""}<button class="btn sm danger" id="fDel">Löschen</button></div>
     <div id="delBox"></div>`;
+  wireMedien(el);
   $("fName").oninput = e=>{ el.name = e.target.value; changeQuiet(); };
   $("fText").oninput = e=>{ el.text = e.target.value; changeQuiet(); };
   $("fDate").onchange = e=>{ el.datum = e.target.value; changeQuiet(); };
@@ -821,7 +925,7 @@ function renderOpts(){
 let qt;
 function changeQuiet(redrawMarkers){
   dirty = true; store.set(LS.draft, JSON.stringify({data:DATA, at:Date.now()})); refreshStatus();
-  clearTimeout(qt); qt = setTimeout(()=>{ if(redrawMarkers) render(); else renderList(); }, 400);
+  clearTimeout(qt); qt = setTimeout(()=>{ histPush(); if(redrawMarkers) render(); else renderList(); }, 400);
 }
 
 function select(el, fly, quiet){
@@ -863,6 +967,10 @@ setTool("select"); renderGh(); load();
   else if(location.hash === "#visuals"){ hub.hidden = true; setTimeout(()=>setTool("bild"), 0); }
   else hub.hidden = false;
 })();
+
+$("draftSave").onclick = saveDraft; $("undo").onclick = undo; $("redo").onclick = redo;
+addEventListener("keydown", e=>{ if(!(e.ctrlKey || e.metaKey) || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName||""))) return;
+  const k = e.key.toLowerCase(); if(k === "z" && !e.shiftKey){ e.preventDefault(); undo(); } else if(k === "y" || (k === "z" && e.shiftKey)){ e.preventDefault(); redo(); } });
 </script>
 </body>
 </html>
