@@ -19,7 +19,7 @@ if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611160700">
+<link rel="stylesheet" href="style.css?v=202611160802">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -451,6 +451,23 @@ footer .mark{height:22px}
 .lite .wand,.lite .saeule::after{display:none}
 .scan{display:none}
 @media (max-width:640px){#vizbox{width:250%;left:50%;top:41%;perspective:2200px}.orbit{transform:rotateX(56deg) scale(1.95)}.hero-mid{margin-top:44svh}}
+
+/* ===== iPad und mittlere Breiten: Titelbild mittig, Schriftzug kleiner, die drei Blöcke nebeneinander ===== */
+@media (min-width:700px) and (max-width:1400px){
+  #vizbox{left:50%;top:47%}
+  .szug{width:clamp(280px,44vw,600px)}
+  .gates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(14px,2.4vw,30px);margin-top:clamp(44px,6vw,84px)}
+  .gates .gate,.gates .gate:first-child{margin-top:0}
+  .gates .gv{margin:0;height:auto;aspect-ratio:1/1}
+  .gates .gt{margin-top:-10px;gap:8px;padding-bottom:0}
+  .gates .gt b{font-size:clamp(18px,2.8vw,36px);line-height:1;margin-top:8px}
+  .gates .gt .go{width:clamp(20px,3vw,34px)}
+  .gates .gt .eyebrow{font-size:10px;letter-spacing:.08em}
+  .gates .gside{display:none}
+  .gates .rep{width:82%}
+  .gates .gnote{font-size:8px;bottom:14%;white-space:nowrap}
+}
+@media (min-width:700px) and (max-width:1099px){.orbit{transform:rotateX(56deg) scale(1.75)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front,.v-ua{stroke-dasharray:none}.ov .run,.radar{display:none}.rv,.tilt{opacity:1;transform:none}}
 </style>
 </head>
@@ -485,6 +502,7 @@ footer .mark{height:22px}
 </section>
 <div class="wrap">
   <p class="lead intro rv" id="intro">Frontverlauf, Veränderungen, Bewegungen und Einheiten auf einer Karte. Nüchtern dargestellt und regelmäßig aktualisiert.</p>
+  <div class="gates">
   <a class="gate rv" href="karte.html" id="g1">
     <div class="gv"><svg id="gFront" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div>
     <div class="gt"><div><span class="eyebrow">01 · Frontverlauf</span><b>Zur Karte</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
@@ -497,6 +515,7 @@ footer .mark{height:22px}
     <div class="gv gv-b"><div class="rep"><div class="rep-h"><img src="bild/plus.png" alt=""><span>Lagebericht</span></div>
       <i style="--w:92%;--n:0"></i><i style="--w:78%;--n:1"></i><i class="r" style="--w:44%;--n:2"></i><i style="--w:86%;--n:3"></i><i style="--w:63%;--n:4"></i><i style="--w:90%;--n:5"></i><i style="--w:38%;--n:6"></i><b class="cur"></b></div></div>
     <div class="gt"><div><span class="eyebrow">03 · Berichte · in Arbeit</span><b>Zum Blog</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
+  </div>
   </div>
   <div class="stats rv">
     <div class="stat"><span class="eyebrow">Stand</span><b id="sStand">–</b><small id="sStandS">&nbsp;</small></div>
@@ -656,7 +675,7 @@ function drawViz(imp, recent){
     /* Kamera: Die Drehung um die Front läuft vom ersten Bild an gleichmässig. Kippen und Heranfahren kommen weich dazu,
        danach senkt und hebt sich die Kamera langsam. So gibt es zwischen Anflug und Kreisen keinen Ruck. */
     if(!matchMedia("(prefers-reduced-motion: reduce)").matches && "animate" in Element.prototype){
-      const S = mob ? 1.95 : 1.5, A = [], TH = -15, RUNDE = 70000, AN = 3400;
+      const S = mob ? 1.95 : innerWidth < 1100 ? 1.75 : 1.5, A = [], TH = -15, RUNDE = 70000, AN = 3400;
       const k = (rx, sc)=>({transform:`rotateX(${rx}deg) scale(${sc})`});
       A.push($("orbit").animate([k(0, S*0.34), k(54, S)], {duration:AN, easing:"cubic-bezier(.2,.7,.2,1)", fill:"both"}));
       A.push($("orbit").animate([k(54, S), k(62, S*1.1)], {duration:23000, delay:AN, iterations:Infinity, direction:"alternate", easing:"ease-in-out"}));
