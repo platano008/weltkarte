@@ -71,8 +71,9 @@ h1{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-heigh
 .nato .nz{position:relative;transform:scale(var(--nz,1))}
 .nato.sel .nz{outline:2px solid #fff;outline-offset:3px}
 .nato .ring{position:absolute;width:0;height:0;pointer-events:none}
-.nato.ping .ring::before{content:"";position:absolute;left:-14px;top:-14px;width:28px;height:28px;border:2px solid #fff;border-radius:50%;animation:natoPing 1.3s ease-out 3 both}
-@keyframes natoPing{from{transform:scale(.4);opacity:.95}to{transform:scale(2.4);opacity:0}}
+.nato.ping .ring::before,.nato.ping .ring::after{content:"";position:absolute;left:-16px;top:-16px;width:32px;height:32px;border:3px solid #fff;border-radius:50%;animation:natoPing 1.6s ease-out 4 both}
+.nato.ping .ring::after{animation-delay:.8s}
+@keyframes natoPing{from{transform:scale(.35);opacity:1}to{transform:scale(2.8);opacity:0}}
 
 /* MapLibre controls in the house style */
 .maplibregl-ctrl-group{background:var(--bg)!important;border:1px solid var(--line-2);box-shadow:none!important}

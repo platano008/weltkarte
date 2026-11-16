@@ -284,7 +284,7 @@ function arrow(coords, refL, planar){
   const dist = [0]; for(let i=1;i<pts.length;i++) dist.push(dist[i-1] + Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]));
   const L = dist[dist.length-1]; if(!L) return {axis:coords, body:null};
   const w = (refL || L)*0.042;             /* halbe Breite des Körpers an der Spitze (refL: feste Breite beim Animieren) */
-  const headLen = Math.min((refL || L)*0.28, w*4.2, L*0.92), headW = w*2.6, tailW = w*0.55, notch = Math.min(w*1.1, L*0.2);
+  const headLen = Math.min((refL || L)*0.28, w*4.2, L*0.92), headW = w*2.6, tailW = w, notch = Math.min(w*1.1, L*0.2);
   const at = d=>{                           /* Punkt und Richtung bei Strecke d */
     let i = 1; while(i < dist.length-1 && dist[i] < d) i++;
     const a = pts[i-1], b = pts[i], seg = (dist[i]-dist[i-1])||1e-12, t = Math.max(0, Math.min(1, (d-dist[i-1])/seg));
@@ -295,7 +295,7 @@ function arrow(coords, refL, planar){
   const baseD = L - headLen, steps = Math.max(12, Math.min(90, Math.round(pts.length*1.2)));
   const left = [], right = [];
   for(let s=0;s<=steps;s++){
-    const d = baseD*s/steps, {p, d:dir} = at(d), f = s/steps, hw = tailW + (w - tailW)*Math.pow(f, 0.8);
+    const d = baseD*s/steps, {p, d:dir} = at(d), f = s/steps, hw = w;   /* überall gleich breit */
     let nx = -dir[1], ny = dir[0];
     if(s===steps){ const cx = tip[0]-p[0], cy = tip[1]-p[1], l = Math.hypot(cx,cy)||1; nx = -cy/l; ny = cx/l; }
     left.push([p[0]+nx*hw, p[1]+ny*hw]); right.push([p[0]-nx*hw, p[1]-ny*hw]);
@@ -428,7 +428,7 @@ function addImportLayers(map){
   map.addLayer({id:"imp-change-label", type:"symbol", source:"imp", minzoom:8, filter:isRecentChange(), layout:{"text-field":["coalesce",["get","name"],["get","datum"],""], "text-font":font, "text-size":11, "symbol-placement":"point"},
     paint:{"text-color":"#ffffff","text-halo-color":"rgba(0,0,0,0.9)","text-halo-width":1.5}}, before);
   const sym = (id, minzoom, size)=>({id, type:"symbol", source:"imp", minzoom, layout:{
-      "icon-image":["concat","imp-",["get","sidc"]], "icon-size":["interpolate",["linear"],["zoom"],4,size*0.38,6,size*0.55,8,size*0.8,12,size],
+      "icon-image":["concat","imp-",["get","sidc"]], "icon-size":["interpolate",["linear"],["zoom"],4,size*0.26,6,size*0.36,8,size*0.5,11,size*0.66,14,size*0.74],
       "icon-allow-overlap":false, "text-optional":true,
       "text-field":["step",["zoom"],"",7.5,["coalesce",["get","name"],""]], "text-font":font, "text-size":11,
       "text-offset":[0,1.5], "text-anchor":"top", "text-max-width":9},
@@ -513,17 +513,29 @@ const open = r => (r.length>1 && r[0][0]===r[r.length-1][0] && r[0][1]===r[r.len
 /* Nächste Randecke einer Fläche der gewählten Ebene, in Bildschirmpixeln */
 function nearestEdge(map, ebene, lngLat, onlyFeature){
   if(!importData) return null;
-  const p = map.project(lngLat); let best = null;
+  const p = map.project(lngLat); let best = null, seg = null;
   for(const f of importData.features){
     if(f.properties.ebene!==ebene || f.properties.art!=="flaeche" || f.geometry.type!=="Polygon") continue;
     if(onlyFeature && f!==onlyFeature) continue;
-    const ring = open(f.geometry.coordinates[0]);
+    const ring = open(f.geometry.coordinates[0]), P = ring.map(q=>map.project(q));
     for(let i=0;i<ring.length;i++){
-      const q = map.project(ring[i]), d = Math.hypot(q.x-p.x, q.y-p.y);
+      const q = P[i], d = Math.hypot(q.x-p.x, q.y-p.y);
       if(!best || d < best.d) best = {f, i, d, pt:ring[i]};
+      /* auch zwischen zwei Punkten: Lot auf die Strecke */
+      const r = P[(i+1) % ring.length], dx = r.x - q.x, dy = r.y - q.y, L = dx*dx + dy*dy; if(!L) continue;
+      const t = ((p.x-q.x)*dx + (p.y-q.y)*dy)/L; if(t <= 0.02 || t >= 0.98) continue;
+      const sx = q.x + t*dx, sy = q.y + t*dy, ds = Math.hypot(p.x-sx, p.y-sy);
+      if(!seg || ds < seg.d){ const ll = map.unproject([sx, sy]); seg = {f, i, d:ds, pt:[+ll.lng.toFixed(5), +ll.lat.toFixed(5)]}; }
     }
   }
+  if(best && seg && seg.f === best.f && seg.d < best.d - 3) best.seg = seg;
   return best;
+}
+/* Treffer auf einer Strecke als echten Punkt in die Linie einsetzen (Form bleibt gleich) und dessen Nummer liefern */
+function snapInsert(n){
+  if(!n || !n.seg) return n;
+  const ring = n.f.geometry.coordinates[0]; ring.splice(n.seg.i + 1, 0, n.seg.pt);
+  return {f:n.f, i:n.seg.i + 1, d:n.seg.d, pt:n.seg.pt, inserted:true};
 }
 function applyFrontEdit(f, iA, iB, pts, meta){
   const ring = open(f.geometry.coordinates[0]);
@@ -619,7 +631,7 @@ function createMap(opts){
 
 /* ---------------- NATO-Symbole als Marker ---------------- */
 /* Zeichen werden beim Herauszoomen kleiner (Zoom 5: knapp halb so gross), damit sie die Karte nicht zudecken */
-function markerScale(z){ return Math.max(0.42, Math.min(1.08, 0.42 + (z - 5)*0.15)); }
+function markerScale(z){ return Math.max(0.3, Math.min(0.74, 0.3 + (z - 5)*0.075)); }
 function hookMarkerZoom(map){
   if(map._nzHook) return; map._nzHook = true;
   const f = ()=>{ try{ map.getContainer().style.setProperty("--nz", markerScale(map.getZoom()).toFixed(3)); }catch(e){} };
@@ -631,6 +643,7 @@ function symbolMarker(map, el, o){
   const r = symbolSVG(el, o.size||30);
   const div = document.createElement("div");
   div.className = "nato"; div.title = (el.name||"")+(el.name?" – ":"")+describe(el);
+  if((el.datum||"") >= changeCutoff()) div.dataset.neu = "1";
   div.innerHTML = `<div class="nz" style="transform-origin:${r.ax}px ${r.ay}px">${r.svg}<i class="ring" style="left:${r.ax}px;top:${r.ay}px"></i></div>`;
   div.style.width = r.w+"px"; div.style.height = r.h+"px";
   const m = new maplibregl.Marker({element:div, anchor:"top-left", offset:[-r.ax,-r.ay], draggable:!!o.draggable})
@@ -639,28 +652,40 @@ function symbolMarker(map, el, o){
   if(o.onDragEnd) m.on("dragend", ()=>{ const ll = m.getLngLat(); o.onDragEnd(el, [+ll.lng.toFixed(5), +ll.lat.toFixed(5)]); });
   return m;
 }
-/* Beim Öffnen: alle Zeichen dreimal mit Ringen markieren */
-function introRings(map){
+/* Beim Öffnen: nur das Neue markieren. Neue Veränderungen (letzte 14 Tage) und neu gesetzte Zeichen
+   bekommen kräftige, gestaffelte Ringe in ihrer Farbe. */
+function introRings(map, els){
   const go = ()=>{
-    document.querySelectorAll(".nato").forEach(n=>{ n.classList.remove("ping"); void n.offsetWidth; n.classList.add("ping"); });
-    setTimeout(()=>document.querySelectorAll(".nato.ping").forEach(n=>n.classList.remove("ping")), 4200);
-    if(!importData || !map.getStyle()) return;
-    const pts = importData.features.filter(f=>f.properties.art==="symbol" && f.geometry && f.geometry.type==="Point" && f.properties.ebene!=="units-lower" && !importHidden.has(f.properties.ebene));
-    if(!pts.length) return;
-    try{ if(map.getLayer("intro-ring")) map.removeLayer("intro-ring"); if(map.getSource("intro-ring")) map.removeSource("intro-ring"); }catch(e){}
+    const ab = changeCutoff(), pts = [];
+    if(importData) changes(importData).filter(f=>(f.properties.datum||"") >= ab).forEach(f=>{
+      const g = f.geometry, r = g.type === "Polygon" ? g.coordinates[0] : g.coordinates[0][0]; let x = 0, y = 0; r.forEach(q=>{ x += q[0]; y += q[1]; });
+      pts.push({type:"Feature", properties:{c: CHANGE_COL[f.properties.richtung] || CHANGE_COL.ru}, geometry:{type:"Point", coordinates:[x/r.length, y/r.length]}}); });
+    (els || []).filter(el=>el.typ === "symbol" && (el.datum||"") >= ab).forEach(el=>pts.push({type:"Feature", properties:{c:"#ffffff"}, geometry:{type:"Point", coordinates:el.koordinaten}}));
+    document.querySelectorAll(".nato[data-neu]").forEach(n=>{ n.classList.remove("ping"); void n.offsetWidth; n.classList.add("ping"); });
+    setTimeout(()=>document.querySelectorAll(".nato.ping").forEach(n=>n.classList.remove("ping")), 7000);
+    if(!pts.length || !map.getStyle()) return;
+    const L = ["intro-r1","intro-r2","intro-r3","intro-kern"];
+    const weg = ()=>{ try{ L.forEach(id=>{ if(map.getLayer(id)) map.removeLayer(id); }); if(map.getSource("intro-ring")) map.removeSource("intro-ring"); }catch(e){} };
+    weg();
     map.addSource("intro-ring", {type:"geojson", data:{type:"FeatureCollection", features:pts}});
-    map.addLayer({id:"intro-ring", type:"circle", source:"intro-ring", minzoom:4.5, paint:{"circle-radius":4, "circle-color":"rgba(0,0,0,0)", "circle-stroke-color":"#ffffff", "circle-stroke-width":1.6, "circle-stroke-opacity":0, "circle-pitch-alignment":"map"}});
-    const t0 = performance.now(), DAUER = 1300, N = 3;
+    L.slice(0,3).forEach(id=>map.addLayer({id, type:"circle", source:"intro-ring", paint:{"circle-radius":6, "circle-color":"rgba(0,0,0,0)", "circle-stroke-color":["get","c"], "circle-stroke-width":3, "circle-stroke-opacity":0, "circle-pitch-alignment":"map"}}));
+    map.addLayer({id:"intro-kern", type:"circle", source:"intro-ring", paint:{"circle-radius":5, "circle-color":["get","c"], "circle-stroke-color":"#ffffff", "circle-stroke-width":2, "circle-opacity":0, "circle-stroke-opacity":0}});
+    const t0 = performance.now(), DAUER = 1600, ENDE = 8200;
     (function tick(){
-      const t = performance.now() - t0; if(!map.getLayer("intro-ring")) return;
-      if(t > DAUER*N){ try{ map.removeLayer("intro-ring"); map.removeSource("intro-ring"); }catch(e){} return; }
-      const p = (t % DAUER)/DAUER, k = markerScale(map.getZoom());
-      map.setPaintProperty("intro-ring", "circle-radius", (6 + 22*p)*k);
-      map.setPaintProperty("intro-ring", "circle-stroke-opacity", (1 - p)*0.9);
+      const t = performance.now() - t0; if(!map.getLayer("intro-r1")) return;
+      if(t > ENDE){ weg(); return; }
+      const aus = t > ENDE - 900 ? (ENDE - t)/900 : Math.min(1, t/300);
+      L.slice(0,3).forEach((id,k)=>{ const p = ((t + k*DAUER/3) % DAUER)/DAUER;
+        map.setPaintProperty(id, "circle-radius", 8 + 46*p);
+        map.setPaintProperty(id, "circle-stroke-width", 4.5 - 3*p);
+        map.setPaintProperty(id, "circle-stroke-opacity", (1 - p)*0.95*aus); });
+      const s = 0.5 + 0.5*Math.sin(t/180);
+      map.setPaintProperty("intro-kern", "circle-radius", 5 + 2.5*s);
+      map.setPaintProperty("intro-kern", "circle-opacity", aus); map.setPaintProperty("intro-kern", "circle-stroke-opacity", aus);
       requestAnimationFrame(tick);
     })();
   };
-  const warte = ()=>{ if(map.getLayer && map.getLayer("imp-sym")) map.once("idle", go); else setTimeout(warte, 250); };
+  const warte = ()=>{ if(map.getLayer && map.getLayer("imp-fill")) map.once("idle", go); else setTimeout(warte, 250); };
   warte();
 }
 
@@ -1394,6 +1419,6 @@ async function exportImage(map, o){
 function emptyData(){ return {version:1, aktualisiert:null, elemente:[]}; }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
-window.Karte = {introRings, markerScale, BILDER, medienHTML, exportWeekVideo, weekChanges, videoMime, canVideo, setRefDate, standSummary, SEITE, changes, gruppen, ensureCids, changeArea, changeBounds, STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
+window.Karte = {snapInsert, introRings, markerScale, BILDER, medienHTML, exportWeekVideo, weekChanges, videoMime, canVideo, setRefDate, standSummary, SEITE, changes, gruppen, ensureCids, changeArea, changeBounds, STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
   addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage, exportLayout, farbe, loadImport, replaceFront, nearestEdge, applyFrontEdit, undoFrontEdit, setImportData, refreshImport, importData: ()=>importData, importMeta: ()=>importData && importData.meta};
 })();

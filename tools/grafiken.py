@@ -199,3 +199,30 @@ def hubschrauber():
     b.rau("hubschrauber", 25)
 
 for f in (fernglas, artillerie, hubschrauber): f()
+
+def gurt():
+    """Munitionsgurt als Kachel (sechs Patronen), nahtlos wiederholbar; doppelte Auflösung."""
+    import random
+    K = 2; P = 46; N = 6; W = P*N; H = 196
+    b = Blatt(W*K, H*K); rnd = random.Random(5)
+    def bez(p0, p1, p2, n=10): return [((1-t)**2*p0[0] + 2*(1-t)*t*p1[0] + t*t*p2[0], (1-t)**2*p0[1] + 2*(1-t)*t*p1[1] + t*t*p2[1]) for t in (i/n for i in range(n+1))]
+    def poly(pts, f=255): b.flaeche([(x*K, y*K) for x, y in pts], f)
+    for k in range(-1, N + 1):                      # eine Patrone links und rechts über den Rand, damit die Kachel nahtlos ist
+        cx = P/2 + k*P; dy = [2, -3, 1, -1, 3, -2][k % N]; a = math.radians([-2.5, 1.5, -1, 2.5, -1.5, 1][k % N])
+        def R(x, y): x -= cx; y -= 110; return (cx + x*math.cos(a) - y*math.sin(a), 110 + dy + x*math.sin(a) + y*math.cos(a))
+        rechts = bez((0, 4), (5.5, 14), (6.6, 34)) + [(6.6, 50), (6.9, 56), (10.4, 66), (10.4, 136), (11.2, 138), (11.2, 146), (8.6, 148), (8.6, 152), (11.2, 154), (11.2, 162)]
+        umriss = rechts + [(-x, y) for x, y in reversed(rechts)]
+        poly([R(x + cx, y) for x, y in umriss])
+        poly([R(x + cx, y) for x, y in [(-3.4, 12), (-2.0, 12), (-2.4, 46), (-3.6, 46)]], 0)       # Glanzlinie auf dem Geschoss
+        poly([R(x + cx, y) for x, y in [(-11.5, 56), (11.5, 56), (11.5, 58.4), (-11.5, 58.4)]], 0)   # Rille am Hals
+        poly([R(x + cx, y) for x, y in [(-6.4, 70), (-4.8, 70), (-4.8, 132), (-6.4, 132)]], 0)       # Glanz auf der Hülse
+    # Gurtglieder: Band quer, Schlaufen um jede Patrone, schmale Lücken dazwischen
+    for k in range(-1, N + 1):
+        cx = P/2 + k*P
+        poly([(cx-14, 92), (cx+14, 92), (cx+14, 126), (cx-14, 126)])                  # Schlaufe
+        poly([(cx+13, 97), (cx+P-13, 97), (cx+P-13, 121), (cx+13, 121)])              # Verbinder
+        poly([(cx+P/2-1.4, 99), (cx+P/2+1.4, 99), (cx+P/2+1.4, 119), (cx+P/2-1.4, 119)], 0)   # Lücke zwischen den Gliedern
+        poly([(cx-14, 104), (cx+14, 104), (cx+14, 105.6), (cx-14, 105.6)], 0); poly([(cx-14, 113), (cx+14, 113), (cx+14, 114.6), (cx-14, 114.6)], 0)
+    b.rau("gurt", 31, wack=0.16, loch=-0.25)
+
+gurt()

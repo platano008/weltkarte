@@ -13,10 +13,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611161212">
+<link rel="stylesheet" href="style.css?v=202611161834">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611161212"></script>
+<script src="karte.js?v=202611161834"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -173,6 +173,8 @@ body.ed-liste .panel .mehr{display:block}
 .vb-t{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:2px 2px 4px}
 .ptbar button{display:flex;align-items:center;gap:8px;min-height:40px;padding:0 10px;border:1px solid var(--line-2);color:var(--fg);font-size:13px;font-weight:600;text-align:left}
 .ptbar button:disabled{opacity:.3}
+.ptbar .vw{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:4px 2px;color:var(--muted)}
+.ptbar .vw[hidden]{display:none}
 .ptbar svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:square}
 .seg2{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line-2)}
 .seg2 button{padding:8px 4px;font-size:12.5px;font-weight:600;color:var(--muted)}
@@ -275,6 +277,7 @@ body.ed-liste .panel .mehr{display:block}
   <div class="vb-t" id="vbT">Punkte</div>
   <button id="vAdd" disabled><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Punkt hinzufügen</button>
   <button id="vDel" disabled><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>Punkt entfernen</button>
+  <label class="vw" id="vWeich" hidden><input type="checkbox" id="vWeichC" checked> Weich ziehen</label>
   <button id="vOk"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>Fertig</button>
 </div>
 <div class="frame" id="frame" hidden><i></i><i></i><i></i><i></i><span id="frameLbl"></span></div>
@@ -294,7 +297,7 @@ const store = {
 };
 
 let DATA = K.emptyData(), sha = null, dirty = false, tool = "select", sel = null, markers = [];
-let vx = null, listeAuf = false;
+let vx = null, listeAuf = false, gummi = null;
 /* Frontlinie */
 let front = null, impSha = null, impDirty = false, undoStack = [], frontEbene = "russian-terr";
 let frontDatum = new Date().toISOString().slice(0,10);
@@ -334,7 +337,7 @@ const map = K.createMap({importLayers:false, onNotice: t=>toast(t), container:"m
   m.addSource("draft", {type:"geojson", data:{type:"FeatureCollection", features:[]}});
   m.addLayer({id:"draft-fill", type:"fill", source:"draft", filter:["==",["geometry-type"],"Polygon"], paint:{"fill-color":"#ffffff","fill-opacity":0.12}});
   m.addLayer({id:"draft-line", type:"line", source:"draft", filter:["==",["geometry-type"],"LineString"], paint:{"line-color":"#ffffff","line-width":2.5,"line-dasharray":[2,1]}});
-  m.addLayer({id:"draft-pts", type:"circle", source:"draft", filter:["==",["geometry-type"],"Point"], paint:{"circle-radius":5,"circle-color":"#0b0b0a","circle-stroke-color":"#ffffff","circle-stroke-width":2}});
+  m.addLayer({id:"draft-pts", type:"circle", source:"draft", filter:["==",["geometry-type"],"Point"], paint:{"circle-radius":["case",["==",["get","snap"],1],9,5],"circle-color":["case",["==",["get","snap"],1],"rgba(255,184,0,.3)","#0b0b0a"],"circle-stroke-color":["case",["==",["get","snap"],1],"#ffb800","#ffffff"],"circle-stroke-width":2.5}});
   m.on("click","lage-hit", onHit); m.on("click","lage-area-fill", onHit);
   updateDraft(); highlight();
 }});
@@ -659,6 +662,8 @@ function highlight(){
 function updateDraft(){
   let src = null; try{ src = map.getSource("draft"); }catch(e){} if(!src) return;
   const f = [];
+  if(tool === "front" && gummi && gummi.snap) f.push({type:"Feature", properties:{snap:1}, geometry:{type:"Point", coordinates:gummi.snap}});
+  if(front && front.start && gummi) f.push({type:"Feature", properties:{}, geometry:{type:"LineString", coordinates:[(front.pts.length ? front.pts[front.pts.length-1] : front.start.pt), gummi.snap || gummi.ll]}});
   if(front && front.start){
     const p = [front.start.pt, ...front.pts];
     p.forEach(c=>f.push({type:"Feature", properties:{}, geometry:{type:"Point", coordinates:c}}));
@@ -853,14 +858,22 @@ function ensureFrontEdge(){
   }catch(e){}
 }
 map.on("style.load", ()=>setTimeout(ensureFrontEdge, 0));
+/* Beim Zeichnen der Front: Linie bis zum Zeiger und ein Kreis, wenn er auf der Front einrasten würde */
+map.on("mousemove", e=>{
+  if(tool !== "front" || !K.importData()) { if(gummi){ gummi = null; updateDraft(); } return; }
+  const ll = [e.lngLat.lng, e.lngLat.lat], n = K.nearestEdge(map, frontEbene, ll, front && front.start ? front.start.f : null);
+  const dn = n ? Math.min(n.d, n.seg ? n.seg.d : 1e9) : 1e9, snap = dn <= SNAP ? (n.seg && n.seg.d < n.d ? n.seg.pt : n.pt) : null;
+  gummi = {ll, snap}; map.getCanvas().style.cursor = snap ? "copy" : "crosshair"; updateDraft();
+});
 const SNAP = 28;
 function frontClick(e){
   if(!K.importData()){ toast("Lagedaten sind noch nicht geladen."); return; }
   const ll = [+e.lngLat.lng.toFixed(5), +e.lngLat.lat.toFixed(5)];
   if(!front.start){
-    const n = K.nearestEdge(map, frontEbene, ll);
-    if(!n || n.d > SNAP){ toast("Tippe direkt auf die weiß gestrichelte Frontlinie."); return; }
-    front.start = n;
+    let n = K.nearestEdge(map, frontEbene, ll);
+    const dn = n ? Math.min(n.d, n.seg ? n.seg.d : 1e9) : 1e9;
+    if(!n || dn > SNAP){ toast("Tippe direkt auf die weiß gestrichelte Frontlinie (näher heranzoomen hilft)."); return; }
+    front.start = K.snapInsert(n);
   } else front.pts.push(ll);
   updateDraft(); renderOpts();
 }
@@ -869,8 +882,8 @@ function finishFront(){
   if(!front || !front.start) return;
   const pts = front.pts.slice();
   if(!pts.length){ toast("Tippe erst den neuen Verlauf und zum Schluss wieder auf die Frontlinie."); return; }
-  const end = K.nearestEdge(map, frontEbene, pts[pts.length-1], front.start.f);
-  if(end && end.d <= SNAP) pts.pop();
+  let end = K.nearestEdge(map, frontEbene, pts[pts.length-1], front.start.f);
+  if(end && Math.min(end.d, end.seg ? end.seg.d : 1e9) <= SNAP){ pts.pop(); end = K.snapInsert(end); if(end.inserted && end.i <= front.start.i) front.start.i++; }
   if(!end || end.i === front.start.i){ toast("Anfang und Ende liegen auf demselben Punkt. Setz das Ende weiter weg."); return; }
   const u = K.applyFrontEdit(front.start.f, front.start.i, end.i, pts, {datum:frontDatum, name:frontMeta.name.trim(), direktion:frontMeta.direktion.trim(), gruppe:frontMeta.gruppe});
   if(!u){ toast("Das hat nicht geklappt. Bitte nochmal versuchen."); return; }
@@ -1052,10 +1065,13 @@ function vxQuelle(){
   if(!map.getStyle()) return null;
   if(!map.getSource("vx")){
     map.addSource("vx", {type:"geojson", data:{type:"FeatureCollection", features:[]}});
+    map.addSource("vx-umriss", {type:"geojson", data:{type:"FeatureCollection", features:[]}});
+    map.addLayer({id:"vx-umriss", type:"line", source:"vx-umriss", layout:{"line-join":"round"}, paint:{"line-color":"#ffb800", "line-width":3, "line-opacity":.9}});
     map.addLayer({id:"vx-pt", type:"circle", source:"vx", filter:["!=",["get","g"],1], paint:{"circle-radius":["case",["==",["get","s"],1],8,6], "circle-color":["case",["==",["get","s"],1],"#ffb800","#ffffff"], "circle-stroke-color":"#000", "circle-stroke-width":2}});
     map.addLayer({id:"vx-neu", type:"circle", source:"vx", filter:["==",["get","g"],1], paint:{"circle-radius":7, "circle-color":"rgba(255,184,0,.25)", "circle-stroke-color":"#ffb800", "circle-stroke-width":2.5}});
     const start = e=>{ if(tool !== "select" || !vx) return; if(e.originalEvent && e.originalEvent.touches && e.originalEvent.touches.length > 1) return;
-      e.preventDefault(); const i = e.features[0].properties.i; vx.drag = {i, moved:false, before: vx.kind === "front" ? JSON.parse(JSON.stringify(vx.f.geometry.coordinates)) : null};
+      e.preventDefault(); const i = e.features[0].properties.i, p0 = vxPts();
+      vx.drag = {i, moved:false, start:p0[i].slice(), orig:p0.map(q=>q.slice()), before: vx.kind === "front" ? JSON.parse(JSON.stringify(vx.f.geometry.coordinates)) : null};
       map.dragPan.disable(); map.on("mousemove", zieh); map.on("touchmove", zieh); map.once("mouseup", los); map.once("touchend", los); };
     map.on("mousedown", "vx-pt", start); map.on("touchstart", "vx-pt", start);
     map.on("mouseenter", "vx-pt", ()=>{ map.getCanvas().style.cursor = "grab"; }); map.on("mouseleave", "vx-pt", ()=>{ map.getCanvas().style.cursor = ""; });
@@ -1064,9 +1080,16 @@ function vxQuelle(){
   return map.getSource("vx");
 }
 let ziehRaf = 0;
-function zieh(e){ if(!vx || !vx.drag) return; vx.drag.moved = true; vxSet(vx.drag.i, [r5(e.lngLat.lng), r5(e.lngLat.lat)]);
+function zieh(e){ if(!vx || !vx.drag) return; vx.drag.moved = true;
+  const d = vx.drag, ziel = [r5(e.lngLat.lng), r5(e.lngLat.lat)], dx = ziel[0] - d.start[0], dy = ziel[1] - d.start[1];
+  if(weich && vx.kind === "front"){ /* Nachbarpunkte im Umkreis gehen weich mit, damit keine Zacke entsteht */
+    const n = vxN(), c = map.project(d.start), R = 70;
+    for(let k=-60;k<=60;k++){ const j = (d.i + k + n) % n, q = d.orig[j], pq = map.project(q), dist = Math.hypot(pq.x - c.x, pq.y - c.y); if(dist > R) continue;
+      const w = Math.pow(Math.cos(dist/R*Math.PI/2), 2); vxSet(j, [r5(q[0] + dx*w), r5(q[1] + dy*w)]); }
+  } else vxSet(d.i, ziel);
   if(ziehRaf) return; ziehRaf = requestAnimationFrame(()=>{ ziehRaf = 0; if(!vx) return; vxDraw(true);
-    if(vx.kind === "el"){ try{ map.getSource("lage").setData(K.toFeatures(DATA.elemente)); }catch(_){} } }); }
+    if(vx.kind === "el"){ try{ map.getSource("lage").setData(K.toFeatures(DATA.elemente)); }catch(_){} }
+    else { const now = performance.now(); if(now - (vx.liveAt||0) > 120){ vx.liveAt = now; K.refreshImport(map); } } }); }
 function los(){
   map.off("mousemove", zieh); map.off("touchmove", zieh); map.dragPan.enable(); if(!vx || !vx.drag) return;
   const d = vx.drag; vx.drag = null; vx.klickAt = Date.now(); vx.i = d.i; vx.add = null;
@@ -1080,7 +1103,9 @@ function vxFertig(before){
 }
 function vxDraw(nurPunkte){
   const src = vxQuelle(); if(!src) return;
-  $("vbar").hidden = !vx; if(!vx){ src.setData({type:"FeatureCollection", features:[]}); return; }
+  $("vbar").hidden = !vx; $("vWeich").hidden = !vx || vx.kind !== "front";
+  const um = map.getSource("vx-umriss"); if(um) um.setData({type:"FeatureCollection", features: vx && vx.kind === "front" ? [{type:"Feature", properties:{}, geometry:{type:"LineString", coordinates:vx.f.geometry.coordinates[0]}}] : []});
+  if(!vx){ src.setData({type:"FeatureCollection", features:[]}); return; }
   const idx = vxSichtbar(), p = vxPts(), f = [];
   if(idx) idx.forEach(i=>f.push({type:"Feature", properties:{i, s: i === vx.i ? 1 : 0}, geometry:{type:"Point", coordinates:p[i]}}));
   if(vx.add) f.push({type:"Feature", properties:{g:1}, geometry:{type:"Point", coordinates:vx.add.ll}});
@@ -1108,6 +1133,7 @@ function vxPlus(){ if(!vx || !vx.add) return; const before = vx.kind === "front"
 function vxWeg(){ if(!vx || vx.i == null || vxN() <= vxMin()) return; const before = vx.kind === "front" ? JSON.parse(JSON.stringify(vx.f.geometry.coordinates)) : null;
   const p = vxPts(); if(vx.kind === "front" && vx.i === 0){ p.shift(); p[p.length-1] = p[0]; } else p.splice(vx.i, 1);
   vx.i = null; vxFertig(before); vxDraw(); renderOpts(); }
+let weich = true; $("vWeichC").onchange = e=>{ weich = e.target.checked; };
 $("vAdd").onclick = vxPlus; $("vDel").onclick = vxWeg;
 $("vOk").onclick = ()=>{ vx = null; select(null); vxDraw(); renderOpts(); };
 /* Frontfläche zum Bearbeiten wählen: die kleinste Fläche unter dem Finger */
