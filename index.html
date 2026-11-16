@@ -19,7 +19,7 @@ if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611160653">
+<link rel="stylesheet" href="style.css?v=202611160700">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -406,7 +406,7 @@ footer .mark{height:22px}
 
 /* ===== Lagetisch in 3D ===== */
 .burger{border:0;background:none}
-#vizbox{perspective:1500px;perspective-origin:var(--fx,50%) var(--fy,50%);animation:fadeIn 1.4s both;left:62%;top:40%;transform:translate(calc(var(--fx,50%)*-1),calc(var(--fy,50%)*-1))}
+#vizbox{perspective:2600px;perspective-origin:var(--fx,50%) var(--fy,50%);animation:fadeIn 1.4s both;left:62%;top:40%;transform:translate(calc(var(--fx,50%)*-1),calc(var(--fy,50%)*-1))}
 .tilt,.tilt.on,.tilt.done{opacity:1;animation:none}
 .orbit{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(56deg) scale(1.5);will-change:transform}
 .dreh{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateZ(-15deg);will-change:transform}
@@ -447,10 +447,10 @@ footer .mark{height:22px}
 @keyframes wand{from{transform:translateX(0)}to{transform:translateX(var(--weg))}}
 .wand-i{position:absolute;left:0;top:0;height:120px;transform-origin:0 0;transform:rotateZ(90deg) rotateX(90deg);background:linear-gradient(0deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.05) 80%,rgba(255,255,255,.5) 100%)}
 .radar{transform:translate(-50%,-50%) translateZ(16px)}
-.lite #vizbox{perspective:1500px}
+.lite #vizbox{perspective:2600px}
 .lite .wand,.lite .saeule::after{display:none}
 .scan{display:none}
-@media (max-width:640px){#vizbox{width:250%;left:50%;top:41%}.orbit{transform:rotateX(56deg) scale(1.95)}.hero-mid{margin-top:44svh}}
+@media (max-width:640px){#vizbox{width:250%;left:50%;top:41%;perspective:2200px}.orbit{transform:rotateX(56deg) scale(1.95)}.hero-mid{margin-top:44svh}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front,.v-ua{stroke-dasharray:none}.ov .run,.radar{display:none}.rv,.tilt{opacity:1;transform:none}}
 </style>
 </head>
@@ -659,7 +659,7 @@ function drawViz(imp, recent){
       const S = mob ? 1.95 : 1.5, A = [], TH = -15, RUNDE = 70000, AN = 3400;
       const k = (rx, sc)=>({transform:`rotateX(${rx}deg) scale(${sc})`});
       A.push($("orbit").animate([k(0, S*0.34), k(54, S)], {duration:AN, easing:"cubic-bezier(.2,.7,.2,1)", fill:"both"}));
-      A.push($("orbit").animate([k(54, S), k(67, S*1.16)], {duration:23000, delay:AN, iterations:Infinity, direction:"alternate", easing:"ease-in-out"}));
+      A.push($("orbit").animate([k(54, S), k(62, S*1.1)], {duration:23000, delay:AN, iterations:Infinity, direction:"alternate", easing:"ease-in-out"}));
       A.push($("dreh").animate([{transform:`rotateZ(${TH}deg)`}, {transform:`rotateZ(${TH - 360}deg)`}], {duration:RUNDE, iterations:Infinity, easing:"linear"}));
       ov.querySelectorAll(".mast").forEach(n=>A.push(n.animate([{transform:`rotateZ(${-TH}deg)`}, {transform:`rotateZ(${-TH + 360}deg)`}], {duration:RUNDE, iterations:Infinity, easing:"linear"})));
       const t0 = document.timeline.currentTime || 0; A.forEach(a=>{ a.startTime = t0; });
