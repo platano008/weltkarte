@@ -19,7 +19,7 @@ if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611161834">
+<link rel="stylesheet" href="style.css?v=202611161854">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -474,14 +474,16 @@ footer .mark{height:22px}
 @media (min-width:700px) and (max-width:1099px){.orbit{transform:rotateX(56deg) scale(1.75)}}
 
 /* ===== Manifest unter dem Titelbild ===== */
-.manifest{position:relative;padding:clamp(70px,12vw,170px) 0 clamp(40px,7vw,90px);text-align:center}
+.manifest{position:relative;padding:clamp(70px,12vw,170px) 0 clamp(20px,4vw,50px);text-align:center}
 .mf-tag{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border:1px solid var(--line-2);font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#bdbdbd}
 .mf-tag i{width:7px;height:7px;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.15);animation:pulse 1.6s steps(1) infinite}
-.mf-satz{margin:clamp(22px,4vw,40px) 0 0;font-family:var(--korn);font-weight:400;font-size:clamp(46px,9.6vw,150px);line-height:.9;letter-spacing:-.01em}
+.mf-satz{margin:0;white-space:nowrap;font-family:var(--korn);font-weight:400;font-size:clamp(26px,7.9vw,130px);line-height:.9;letter-spacing:-.01em}
 .mf-satz .z{display:block;overflow:hidden;padding:.04em 0}
 .mf-satz .z span{display:inline-block;transform:translateY(105%);transition:transform 1.1s cubic-bezier(.16,.9,.2,1)}
 .mf-satz .z:nth-child(2) span{transition-delay:.12s}.mf-satz .z:nth-child(3) span{transition-delay:.24s}
 .mf-satz.an .z span{transform:none}
+.mf-satz em{font-style:normal;color:#fff;background:linear-gradient(transparent 64%,#c21d2e 64%,#c21d2e 92%,transparent 92%) no-repeat 0 0/0% 100%;transition:background-size 1s cubic-bezier(.6,0,.2,1) .9s}
+.mf-satz.an em{background-size:100% 100%}
 .mf-satz .rot span{color:#fff;background:linear-gradient(transparent 62%,#c21d2e 62%,#c21d2e 90%,transparent 90%) no-repeat 0 0/0% 100%;transition:transform 1.1s cubic-bezier(.16,.9,.2,1) .24s,background-size 1s cubic-bezier(.6,0,.2,1) 1.1s}
 .mf-satz.an .rot span{background-size:100% 100%}
 .mf-text{max-width:36em;margin:clamp(26px,4vw,44px) auto 0;font-size:clamp(17px,1.7vw,21px);line-height:1.6;color:#cfcfcf}
@@ -504,14 +506,14 @@ footer .mark{height:22px}
   .gates .gnote{font-size:9px;bottom:12%;white-space:nowrap}
 }
 /* ===== Munitionsgurt: läuft mit dem Scrollen, immer neue Patronen vom Rand ===== */
-.gurte{position:relative;height:clamp(190px,24vw,300px);margin:clamp(40px,7vw,100px) 0 clamp(20px,4vw,60px);overflow:hidden;pointer-events:none}
-.gurt{position:absolute;left:-10%;right:-10%;top:50%;height:clamp(140px,16vw,210px);margin-top:calc(clamp(140px,16vw,210px)/-2);background:url(bild/g-gurt.png) 0 50%/auto 100% repeat-x;will-change:background-position,transform}
+.gurte{position:relative;height:clamp(130px,15vw,210px);margin:clamp(6px,1.5vw,20px) 0 0;overflow:hidden;pointer-events:none}
+.gurt{position:absolute;left:-10%;right:-10%;top:50%;height:clamp(100px,11vw,160px);margin-top:calc(clamp(100px,11vw,160px)/-2);background:url(bild/g-gurt.png) 0 50%/auto 100% repeat-x;will-change:background-position,transform}
 .gurt.g1{transform:rotate(-4deg) skewX(var(--sk,0deg));filter:drop-shadow(0 18px 24px rgba(0,0,0,.8))}
 .gurt.g2{transform:rotate(5deg) scale(.55) skewX(calc(var(--sk,0deg)*-1));opacity:.22;z-index:-1}
 .gurte::before,.gurte::after{content:"";position:absolute;top:0;bottom:0;width:12%;z-index:2}
 .gurte::before{left:0;background:linear-gradient(90deg,#000,transparent)}.gurte::after{right:0;background:linear-gradient(-90deg,#000,transparent)}
 /* ===== Berichte ===== */
-.berichte{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(26px,5vw,80px);align-items:start;padding:clamp(20px,4vw,50px) 0 clamp(50px,8vw,110px)}
+.berichte{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(26px,5vw,80px);align-items:start;padding:clamp(4px,1vw,14px) 0 clamp(50px,8vw,110px)}
 .be-kopf{position:sticky;top:90px}
 .be-kopf h2{margin:12px 0 18px;font-family:var(--korn);font-weight:400;font-size:clamp(40px,5.6vw,84px);line-height:.92}
 .be-kopf p{margin:0 0 26px;max-width:26em;color:#bdbdbd;font-size:clamp(16px,1.4vw,18px);line-height:1.6}
@@ -528,13 +530,21 @@ a.akte:hover{border-color:#fff;transform:translateX(6px)}
 .akte .geschw i.h{background:#2a2a2a;height:18px;margin-bottom:4px}
 .stempel{position:absolute;right:26px;top:50%;transform:translateY(-50%) rotate(-9deg);padding:6px 12px;border:2.5px solid #c21d2e;color:#e0485a;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;opacity:.9;mix-blend-mode:screen}
 @media (max-width:900px){.berichte{grid-template-columns:1fr}.be-kopf{position:static}}
-@media (max-width:640px){.akte{padding:18px 16px 20px}.stempel{right:14px;font-size:10px}.gurte{height:190px}}
+@media (max-width:640px){.akte{padding:18px 16px 20px}.stempel{right:14px;font-size:10px}.gurte{height:130px}}
 /* ===== Titelbild: Nachbarländer und scharfe Zeichen ===== */
-.v-land{fill:none;stroke:rgba(255,255,255,.3);stroke-width:1.2;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:landzug 3.2s cubic-bezier(.4,0,.2,1) .4s forwards}
-@keyframes landzug{to{stroke-dashoffset:0}}
-.v-land-n{fill:rgba(255,255,255,.4);font:600 15px "IBM Plex Mono",monospace;letter-spacing:.42em;text-anchor:middle;opacity:0;animation:fadeIn 1.6s 2.6s forwards}
-.v-land-n.gross{font-size:30px;letter-spacing:.6em;fill:rgba(255,255,255,.34)}
-.v-land-n.meer{font-style:italic;font-weight:400;font-size:13px;letter-spacing:.3em;fill:rgba(140,170,200,.5)}
+.nb{position:absolute;left:-60%;top:-60%;width:220%;height:220%;overflow:visible;pointer-events:none;opacity:0;transition:opacity 2.4s ease .2s;
+  -webkit-mask-image:radial-gradient(ellipse 42% 42% at 50% 50%,#000 55%,transparent 100%);mask-image:radial-gradient(ellipse 42% 42% at 50% 50%,#000 55%,transparent 100%)}
+.nb.an{opacity:1}
+.nb-l{fill:none;stroke:rgba(255,255,255,.34);stroke-width:1.4;stroke-linejoin:round}
+.nb-p{fill:none;stroke:rgba(255,255,255,.14);stroke-width:.8;stroke-linejoin:round;stroke-dasharray:3 3}
+.nb-n{fill:rgba(255,255,255,.42);font:600 15px "IBM Plex Mono",monospace;letter-spacing:.42em;text-anchor:middle}
+.nb-n.gross{font-size:30px;letter-spacing:.6em;fill:rgba(255,255,255,.36)}
+.nb-n.meer{font-style:italic;font-weight:400;font-size:13px;letter-spacing:.3em;fill:rgba(140,170,200,.55)}
+/* Anfang flüssig: in der großen Kartengrafik läuft nichts mehr einzeln, sie wird als Ganzes eingeblendet */
+#viz *{animation:none!important}
+.v-ua,.v-front{stroke-dasharray:none!important}
+#viz{opacity:0;transition:opacity 1.6s ease .5s}
+#viz.an{opacity:1}
 .koepfe{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
 .kopf{position:absolute;left:0;top:0;opacity:0;transition:opacity .5s;will-change:transform}
 .kopf.an{opacity:1}
@@ -575,14 +585,8 @@ a.akte:hover{border-color:#fff;transform:translateX(6px)}
 </section>
 <div class="wrap">
   <section class="manifest" id="intro">
-    <div class="mf-kopf"><span class="mf-tag"><i></i>Unabhängig · Neutral · Nachprüfbar</span></div>
-    <h2 class="mf-satz"><span class="z"><span>Keine Seite.</span></span><span class="z"><span>Keine Parolen.</span></span><span class="z rot"><span>Nur die Lage.</span></span></h2>
+    <h2 class="mf-satz"><span class="z"><span>The <em>unbiased</em> mapping.</span></span></h2>
     <p class="mf-text">Plyus ergreift keine Partei. Wir zeigen, was sich an der Front tatsächlich verändert hat: wo, wann und um wie viele Quadratkilometer. Für beide Seiten nach denselben Regeln, ohne Wertung und ohne Propaganda.</p>
-    <div class="mf-saeulen">
-      <div class="mf-s"><b>01</b><h3>Neutral</h3><p>Vorstoß ist Vorstoß, egal von welcher Seite. Beide Seiten werden nach denselben Maßstäben eingetragen.</p></div>
-      <div class="mf-s"><b>02</b><h3>Nachprüfbar</h3><p>Jede Veränderung mit Datum, Ort und Fläche. Nichts wird übertrieben, nichts weggelassen.</p></div>
-      <div class="mf-s"><b>03</b><h3>Mit Verlauf</h3><p>Jeder Stand bleibt gespeichert. Du kannst zwischen den Updates zurückspulen und selbst vergleichen.</p></div>
-    </div>
   </section>
   <div class="gates">
   <a class="gate rv" href="karte.html" id="g1">
@@ -689,17 +693,17 @@ function drawViz(imp, recent){
   /* Gradnetz */
   for(let lon = Math.ceil(x0); lon <= x1; lon += 2){ const [x] = P([lon,y0]); el("line",{x1:x,y1:0,x2:x,y2:H,class:"v-grid"},g); el("text",{x:x+4,y:H-8,class:"v-lbl"},g).textContent = lon+"°O"; }
   for(let lat = Math.ceil(y0); lat <= y1; lat += 2){ const [,y] = P([x0,lat]); el("line",{x1:0,y1:y,x2:W,y2:y,class:"v-grid"},g); el("text",{x:6,y:y-4,class:"v-lbl"},g).textContent = lat+"°N"; }
-  /* Nachbarländer: Grenzen und Namen, nach außen ausgeblendet (Natural Earth, gemeinfrei) */
-  { const ng = el("g", {}, null); g.insertBefore(ng, g.firstChild);
-    const cxm = W*0.62, cym = H*0.45, rr = Math.max(W, H)*1.05;
-    const defs = el("defs", {}, ng), rg = el("radialGradient", {id:"nbF", gradientUnits:"userSpaceOnUse", cx:cxm, cy:cym, r:rr}, defs);
-    el("stop", {offset:"0", "stop-color":"#fff"}, rg); el("stop", {offset:".55", "stop-color":"#fff"}, rg); el("stop", {offset:"1", "stop-color":"#000"}, rg);
-    const mk = el("mask", {id:"nbM", maskUnits:"userSpaceOnUse", x:-W*2, y:-H*2, width:W*5, height:H*5}, defs); el("rect", {x:-W*2, y:-H*2, width:W*5, height:H*5, fill:"url(#nbF)"}, mk);
-    const lg = el("g", {mask:"url(#nbM)"}, ng);
+  /* Nachbarländer mit Provinzen (Russland, Belarus): eigene Ebene unter der Karte. Sie wird einmal gezeichnet und nur
+     als Ganzes eingeblendet, damit der Anfang flüssig bleibt (Natural Earth, gemeinfrei). */
+  { const NS2 = "http://www.w3.org/2000/svg", nb = document.createElementNS(NS2, "svg"); nb.setAttribute("class", "nb");
+    nb.setAttribute("viewBox", `${(-W*0.6).toFixed(0)} ${(-H*0.6).toFixed(0)} ${(W*2.2).toFixed(0)} ${(H*2.2).toFixed(0)}`); nb.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    const alt = $("dreh").querySelector(".nb"); if(alt) alt.remove(); $("dreh").insertBefore(nb, $("viz"));
+    const zug = l=>{ let dd = ""; for(let k=0;k<l.length;k+=2){ const q = P([l[k], l[k+1]]); dd += (k ? "L" : "M") + q[0].toFixed(1) + " " + q[1].toFixed(1); } return dd; };
     fetch("daten/nachbarn.json").then(r=>r.json()).then(j=>{
-      j.linien.forEach((l,i)=>{ let dd = ""; for(let k=0;k<l.length;k+=2){ const q = P([l[k], l[k+1]]); dd += (k ? "L" : "M") + q[0].toFixed(1) + " " + q[1].toFixed(1); }
-        el("path", {d:dd, class:"v-land", pathLength:1, style:`animation-delay:${(0.3 + (i % 12)*0.08).toFixed(2)}s`}, lg); });
-      j.namen.forEach(([n, lo, la, art])=>{ const q = P([lo, la]); el("text", {x:q[0].toFixed(1), y:q[1].toFixed(1), class:"v-land-n" + (art === 1 ? " gross" : art === 2 ? " meer" : "")}, lg).textContent = n.toUpperCase(); });
+      if(j.provinzen) el("path", {d:j.provinzen.map(zug).join(""), class:"nb-p"}, nb);
+      el("path", {d:j.linien.map(zug).join(""), class:"nb-l"}, nb);
+      j.namen.forEach(([n, lo, la, art])=>{ const q = P([lo, la]); el("text", {x:q[0].toFixed(1), y:q[1].toFixed(1), class:"nb-n" + (art === 1 ? " gross" : art === 2 ? " meer" : "")}, nb).textContent = n.toUpperCase(); });
+      requestAnimationFrame(()=>requestAnimationFrame(()=>nb.classList.add("an")));
     }).catch(()=>{});
   }
   /* Seite nach Füllfarbe aus der Datei: rötlich = russisch, sonst ukrainisch (manche Ebenen sind in der Quelle gemischt) */
@@ -794,6 +798,7 @@ function drawViz(imp, recent){
       window.__kreis = A;
     }
   })();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>$("viz").classList.add("an")));
   const tilt = $("tilt");
   requestAnimationFrame(()=>tilt.classList.add("on"));
   setTimeout(()=>{ const h = document.querySelector(".hero h1"); if(h) h.classList.add("done"); }, 2200);
@@ -967,7 +972,7 @@ Promise.all([
     if(hero.classList.contains("paused")) return;
     if(k.length !== b.length || !k.length){ k = [...document.querySelectorAll("#koepfe .kopf")]; b = [...document.querySelectorAll(".mast .st b")]; if(!k.length) return; }
     const h = sec.getBoundingClientRect(), s = Math.max(0.62, Math.min(1.15, $("vizbox").clientWidth/1500));
-    for(let i=0;i<k.length;i++){ const r = b[i].getBoundingClientRect(); k[i].style.transform = `translate(${(r.left - h.left).toFixed(1)}px,${(r.top - h.top + 1).toFixed(1)}px) scale(${s.toFixed(3)})`; }
+    for(let i=0;i<k.length;i++){ if(!k[i].classList.contains("an")) continue; const r = b[i].getBoundingClientRect(); k[i].style.transform = `translate(${(r.left - h.left).toFixed(1)}px,${(r.top - h.top + 1).toFixed(1)}px) scale(${s.toFixed(3)})`; }
   }
   requestAnimationFrame(lauf);
 })();
