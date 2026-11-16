@@ -19,7 +19,7 @@ if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611160647">
+<link rel="stylesheet" href="style.css?v=202611160653">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -408,15 +408,9 @@ footer .mark{height:22px}
 .burger{border:0;background:none}
 #vizbox{perspective:1500px;perspective-origin:var(--fx,50%) var(--fy,50%);animation:fadeIn 1.4s both;left:62%;top:40%;transform:translate(calc(var(--fx,50%)*-1),calc(var(--fy,50%)*-1))}
 .tilt,.tilt.on,.tilt.done{opacity:1;animation:none}
-.orbit{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(56deg) rotateZ(-15deg) scale(1.5);animation:anflug 3s cubic-bezier(.16,.8,.2,1) both;will-change:transform}
-@keyframes anflug{from{transform:rotateX(0deg) rotateZ(8deg) scale(.5)}}
-@keyframes flug{
-  0%{transform:rotateX(56deg) rotateZ(-15deg) scale(1.5) translate(0,0);animation-timing-function:cubic-bezier(.4,0,.7,1)}
-  22%{transform:rotateX(53deg) rotateZ(-11deg) scale(1.75) translate(-3%,6%)}
-  48%{transform:rotateX(57deg) rotateZ(-4deg) scale(1.6) translate(2%,-7%)}
-  74%{transform:rotateX(52deg) rotateZ(2deg) scale(1.85) translate(6%,-15%);animation-timing-function:cubic-bezier(.3,0,.6,1)}
-  100%{transform:rotateX(55deg) rotateZ(6deg) scale(1.6) translate(10%,-22%)}}
-.orbit::before{content:"";position:absolute;inset:-70%;background:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/4% 4%,linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/4% 4%;-webkit-mask:radial-gradient(closest-side,#000 30%,transparent 100%);mask:radial-gradient(closest-side,#000 30%,transparent 100%)}
+.orbit{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(56deg) scale(1.5);will-change:transform}
+.dreh{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateZ(-15deg);will-change:transform}
+.dreh::before{content:"";position:absolute;inset:-70%;background:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/4% 4%,linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/4% 4%;-webkit-mask:radial-gradient(closest-side,#000 30%,transparent 100%);mask:radial-gradient(closest-side,#000 30%,transparent 100%)}
 .ov{transform-style:preserve-3d}
 .ov > *{position:absolute}
 .lay{overflow:visible;pointer-events:none;animation:fadeIn 1.2s 2.2s both}
@@ -454,10 +448,9 @@ footer .mark{height:22px}
 .wand-i{position:absolute;left:0;top:0;height:120px;transform-origin:0 0;transform:rotateZ(90deg) rotateX(90deg);background:linear-gradient(0deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.05) 80%,rgba(255,255,255,.5) 100%)}
 .radar{transform:translate(-50%,-50%) translateZ(16px)}
 .lite #vizbox{perspective:1500px}
-.lite .orbit{animation:none}
 .lite .wand,.lite .saeule::after{display:none}
 .scan{display:none}
-@media (max-width:640px){#vizbox{width:230%;left:50%;top:30%}.orbit{transform:rotateX(57deg) rotateZ(-16deg) scale(1.5)}}
+@media (max-width:640px){#vizbox{width:250%;left:50%;top:41%}.orbit{transform:rotateX(56deg) scale(1.95)}.hero-mid{margin-top:44svh}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front,.v-ua{stroke-dasharray:none}.ov .run,.radar{display:none}.rv,.tilt{opacity:1;transform:none}}
 </style>
 </head>
@@ -482,7 +475,7 @@ footer .mark{height:22px}
   </nav>
 </div>
 <section class="hero">
-  <div id="hero" aria-hidden="true"><div id="vizbox"><div class="tilt" id="tilt"><div class="orbit" id="orbit"><svg id="viz"></svg><div class="radar" id="radar"></div><div class="ov" id="ov"></div></div></div></div><div class="scan"></div><span class="brk a"></span><span class="brk b"></span>
+  <div id="hero" aria-hidden="true"><div id="vizbox"><div class="tilt" id="tilt"><div class="orbit" id="orbit"><div class="dreh" id="dreh"><svg id="viz"></svg><div class="radar" id="radar"></div><div class="ov" id="ov"></div></div></div></div></div><div class="scan"></div><span class="brk a"></span><span class="brk b"></span>
     <div class="hud"><div>Sektor <b>Ukraine</b></div><div>Lagedaten <b id="hudSrc">–</b></div><div>Veränderungen 14T <b id="hudChg">–</b></div></div></div>
   <div class="hero-mid">
     <div class="kicker"><i></i><span id="kick">Lagekarte Ukraine</span></div>
@@ -621,7 +614,7 @@ function drawViz(imp, recent){
   $("radar").style.left = (rc[0]/W*100).toFixed(2) + "%"; $("radar").style.top = (rc[1]/H*100).toFixed(2) + "%";
 
   /* Blickpunkt: die Bühne dreht sich um den Schwerpunkt der Front, und der liegt im Bild rechts oberhalb der Mitte */
-  { const fx = (rc[0]/W*100).toFixed(1) + "%", fy = (rc[1]/H*100).toFixed(1) + "%"; $("vizbox").style.setProperty("--fx", fx); $("vizbox").style.setProperty("--fy", fy); $("orbit").style.transformOrigin = fx + " " + fy; }
+  { const fx = (rc[0]/W*100).toFixed(1) + "%", fy = (rc[1]/H*100).toFixed(1) + "%"; $("vizbox").style.setProperty("--fx", fx); $("vizbox").style.setProperty("--fy", fy); $("orbit").style.transformOrigin = $("dreh").style.transformOrigin = fx + " " + fy; }
   /* ===== Lagetisch in 3D: alles Weitere steht oder schwebt über der gekippten Karte ===== */
   (function(){
     const NS = "http://www.w3.org/2000/svg", mob = innerWidth < 700;
@@ -660,12 +653,16 @@ function drawViz(imp, recent){
         const tx = k.p[0] + s*k.nx*(L + ab), ty = k.p[1] + s*k.ny*(L + ab), th = Math.atan2(-s*k.ny, -s*k.nx)*180/Math.PI;
         const a = div("pfeil" + (ua ? " ua" : ""), `left:${tx.toFixed(1)}px;top:${ty.toFixed(1)}px;--l:${(L-9).toFixed(0)}px;--w:${(i*0.55 % 4.4).toFixed(2)}s;transform:translateZ(${ua ? 9 : 21}px) rotate(${th.toFixed(1)}deg)`); a.innerHTML = "<b></b><i></i>"; });
     }
-    /* Kamera kreist um die Front. Die stehenden Zeichen drehen sich genau gegenläufig mit, damit sie immer zum Betrachter zeigen. */
+    /* Kamera: Die Drehung um die Front läuft vom ersten Bild an gleichmässig. Kippen und Heranfahren kommen weich dazu,
+       danach senkt und hebt sich die Kamera langsam. So gibt es zwischen Anflug und Kreisen keinen Ruck. */
     if(!matchMedia("(prefers-reduced-motion: reduce)").matches && "animate" in Element.prototype){
-      const T = 64000, t0 = (document.timeline.currentTime || 0) + 3000, A = [], st = "rotateX(56deg) rotateZ(", en = "deg) scale(" + (mob ? 1.5 : 1.5) + ")";
-      const lauf = (n, k)=>{ const a = n.animate(k, {duration:T, iterations:Infinity, easing:"linear"}); a.startTime = t0; A.push(a); };
-      lauf($("orbit"), [{transform:st + "-15" + en}, {transform:st + "345" + en}]);
-      ov.querySelectorAll(".mast").forEach(n=>lauf(n, [{transform:"rotateZ(15deg)"}, {transform:"rotateZ(-345deg)"}]));
+      const S = mob ? 1.95 : 1.5, A = [], TH = -15, RUNDE = 70000, AN = 3400;
+      const k = (rx, sc)=>({transform:`rotateX(${rx}deg) scale(${sc})`});
+      A.push($("orbit").animate([k(0, S*0.34), k(54, S)], {duration:AN, easing:"cubic-bezier(.2,.7,.2,1)", fill:"both"}));
+      A.push($("orbit").animate([k(54, S), k(67, S*1.16)], {duration:23000, delay:AN, iterations:Infinity, direction:"alternate", easing:"ease-in-out"}));
+      A.push($("dreh").animate([{transform:`rotateZ(${TH}deg)`}, {transform:`rotateZ(${TH - 360}deg)`}], {duration:RUNDE, iterations:Infinity, easing:"linear"}));
+      ov.querySelectorAll(".mast").forEach(n=>A.push(n.animate([{transform:`rotateZ(${-TH}deg)`}, {transform:`rotateZ(${-TH + 360}deg)`}], {duration:RUNDE, iterations:Infinity, easing:"linear"})));
+      const t0 = document.timeline.currentTime || 0; A.forEach(a=>{ a.startTime = t0; });
       window.__kreis = A;
     }
   })();
