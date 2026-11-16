@@ -19,7 +19,7 @@ if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611160802">
+<link rel="stylesheet" href="style.css?v=202611160854">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -456,11 +456,13 @@ footer .mark{height:22px}
 @media (min-width:700px) and (max-width:1400px){
   #vizbox{left:50%;top:47%}
   .szug{width:clamp(280px,44vw,600px)}
-  .gates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(14px,2.4vw,30px);margin-top:clamp(44px,6vw,84px)}
+  .gates{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,2.4vw,30px);margin-top:clamp(44px,6vw,84px)}
   .gates .gate,.gates .gate:first-child{margin-top:0}
-  .gates .gv{margin:0;height:auto;aspect-ratio:1/1}
+  .gates .gv{margin:0;height:auto;aspect-ratio:4/3}
+  .gates #g3{grid-column:1/-1}
+  .gates #g3 .gv{aspect-ratio:auto;height:clamp(200px,30vw,340px)}
   .gates .gt{margin-top:-10px;gap:8px;padding-bottom:0}
-  .gates .gt b{font-size:clamp(18px,2.8vw,36px);line-height:1;margin-top:8px}
+  .gates .gt b{font-size:clamp(22px,3.6vw,44px);line-height:1;margin-top:8px}
   .gates .gt .go{width:clamp(20px,3vw,34px)}
   .gates .gt .eyebrow{font-size:10px;letter-spacing:.08em}
   .gates .gside{display:none}
@@ -483,7 +485,7 @@ footer .mark{height:22px}
   <nav>
     <a href="karte.html"><span>01</span>Karte</a>
     <span class="aus"><span>02</span>Drohnenkarte<em>in Arbeit</em></span>
-    <span class="aus"><span>03</span>Blog<em>in Arbeit</em></span>
+    <a href="blog.html"><span>03</span>Blog</a>
     <span class="aus"><span>04</span>Telegram<em>folgt</em></span>
     <span class="aus"><span>05</span>Twitter<em>folgt</em></span>
     <span class="aus"><span>06</span>Mitwirkende<em>folgt</em></span>
@@ -511,11 +513,11 @@ footer .mark{height:22px}
     <div class="gv"><svg id="gDrohnen" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><span class="gnote">Beispielhafte Darstellung</span></div>
     <div class="gt"><div><span class="eyebrow">02 · Drohnen · in Arbeit</span><b>Zur Drohnenkarte</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
   </div>
-  <div class="gate off rv" id="g3">
+  <a class="gate rv" href="blog.html" id="g3">
     <div class="gv gv-b"><div class="rep"><div class="rep-h"><img src="bild/plus.png" alt=""><span>Lagebericht</span></div>
       <i style="--w:92%;--n:0"></i><i style="--w:78%;--n:1"></i><i class="r" style="--w:44%;--n:2"></i><i style="--w:86%;--n:3"></i><i style="--w:63%;--n:4"></i><i style="--w:90%;--n:5"></i><i style="--w:38%;--n:6"></i><b class="cur"></b></div></div>
-    <div class="gt"><div><span class="eyebrow">03 · Berichte · in Arbeit</span><b>Zum Blog</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
-  </div>
+    <div class="gt"><div><span class="eyebrow">03 · Berichte</span><b>Zum Blog</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
+  </a>
   </div>
   <div class="stats rv">
     <div class="stat"><span class="eyebrow">Stand</span><b id="sStand">–</b><small id="sStandS">&nbsp;</small></div>
@@ -528,8 +530,6 @@ footer .mark{height:22px}
     <div class="blk-h rv"><div><span class="eyebrow">Frontverlauf</span><h2>Neueste Veränderungen</h2></div><a href="karte.html">Alle auf der Karte →</a></div>
     <div class="chg rv" id="chg"><div class="empty-l">Lädt …</div></div>
   </section>
-
-  <div class="zeug rv" aria-hidden="true"><img src="bild/g-fernglas.png" alt="" width="640" height="470" loading="lazy"><img src="bild/g-artillerie.png" alt="" width="1000" height="470" loading="lazy"><img src="bild/g-hubschrauber.png" alt="" width="1000" height="440" loading="lazy"><img src="bild/g-panzer.png" alt="" width="1000" height="460" loading="lazy"></div>
 
   <section class="recon" id="zeigt">
     <div class="orb rv"><img class="gl" src="bild/g-globus.png" alt="" width="1240" height="1240" loading="lazy"><div class="sat"><img src="bild/g-satellit.png" alt="" width="700" height="470" loading="lazy"></div></div>

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Blog schreiben · Plyus</title>
+<link rel="icon" type="image/png" href="bild/favicon.png?v=2">
+<link rel="stylesheet" href="style.css?v=202611160854">
+<style>
+.status{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 14px;font-weight:600;font-size:14px;border:1px solid var(--line-2)}
+.btn:hover{border-color:var(--fg)}
+.btn.volt{background:var(--volt);color:var(--ink);border-color:var(--volt)}
+.btn.volt:hover{background:#d9dce1;border-color:#d9dce1}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.sm{min-height:32px;font-size:13px;padding:0 10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.f{width:100%;background:var(--bg);border:1px solid var(--line-2);padding:8px 10px;font-size:14px}
+.f:focus{border-color:var(--volt);outline:none}
+.hint{font-size:13px;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:50;background:var(--fg);color:var(--bg);font-weight:600;font-size:14px;padding:10px 16px;transition:.2s;pointer-events:none;box-shadow:inset 3px 0 0 var(--volt);max-width:calc(100% - 32px)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+html,body{height:auto;overflow:auto;background:#000}
+body{min-height:100vh}
+.be{width:min(820px,100%);margin:0 auto;padding:22px 16px 140px}
+.be-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:26px}
+.be-top a{color:var(--muted);text-decoration:none;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.be h1{font-family:var(--korn);font-size:clamp(30px,6vw,46px);line-height:1;margin:0 0 6px}
+.be .sub{color:var(--muted);font-size:14px;margin:0 0 24px}
+.liste{display:grid;gap:10px;margin:0 0 30px}
+.liste button.eintrag{display:flex;justify-content:space-between;align-items:baseline;gap:14px;text-align:left;width:100%;padding:14px 16px;border:1px solid var(--line-2);background:var(--surface);color:var(--fg);font-size:16px}
+.liste button.eintrag:hover{border-color:var(--fg)}
+.liste small{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap}
+.leer{color:var(--faint);font-size:14px;padding:6px 0}
+.eyebrow{display:block;margin:26px 0 10px}
+.titel{width:100%;font-family:var(--korn);font-size:clamp(26px,5vw,40px);line-height:1.1;padding:10px 0;border:0;border-bottom:1px solid var(--line-2);background:none;color:var(--fg);outline:none}
+.titel:focus{border-color:var(--fg)}
+.block{position:relative;margin-top:18px;padding:12px 12px 12px 14px;border-left:2px solid var(--line-2);background:var(--surface)}
+.block:focus-within{border-left-color:var(--fg)}
+.block .kopf{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.block .kopf span button{width:34px;height:30px;border:1px solid var(--line-2);color:var(--fg);margin-left:4px;font-size:14px}
+.block textarea,.block input[type=text],.block input[type=url]{width:100%;border:0;background:none;color:var(--fg);font:inherit;font-size:17px;line-height:1.6;outline:none;resize:none;padding:0}
+.block.h textarea{font-family:var(--korn);font-size:26px;line-height:1.2}
+.block .cap{margin-top:8px;font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+.block img,.block video{display:block;max-width:100%;max-height:420px;margin:0 auto 4px;background:#111}
+.block .wahl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dazu{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.leiste{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:rgba(0,0,0,.94);border-top:1px solid var(--line-2)}
+.leiste .status{flex-basis:100%;text-align:center;margin:0 0 2px}
+.btn.rot{border-color:#7a2530;color:#ff8f9a}
+.schluessel{border:1px solid var(--line-2);padding:14px;margin-bottom:24px;display:grid;gap:10px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="be">
+  <div class="be-top"><a href="editor.html">← Auswahl</a><a href="blog.html" target="_blank" rel="noopener">Blog ansehen</a></div>
+
+  <div class="schluessel" id="schl" hidden>
+    <b>GitHub-Schlüssel fehlt</b>
+    <span class="hint">Ohne Schlüssel kannst du nichts speichern. Er bleibt nur in diesem Browser. Es ist derselbe wie im Karten-Editor.</span>
+    <div class="row"><input class="f" id="tok" type="password" placeholder="github_pat_…" autocomplete="off" style="flex:1"><button class="btn volt" id="tokOk">Speichern</button></div>
+  </div>
+
+  <!-- Übersicht -->
+  <section id="vListe">
+    <h1>Blog</h1>
+    <p class="sub">Neuen Beitrag schreiben oder an einem Entwurf weiterarbeiten.</p>
+    <button class="btn volt" id="neu">Neuer Beitrag</button>
+    <span class="eyebrow">Entwürfe</span><div class="liste" id="lEntw"><div class="leer">Lädt …</div></div>
+    <span class="eyebrow">Veröffentlicht</span><div class="liste" id="lPub"><div class="leer">Lädt …</div></div>
+  </section>
+
+  <!-- Schreiben -->
+  <section id="vEdit" hidden>
+    <input class="titel" id="titel" placeholder="Titel des Beitrags" maxlength="140">
+    <div id="bloecke"></div>
+    <div class="dazu">
+      <button class="btn sm" data-add="p">+ Text</button><button class="btn sm" data-add="h">+ Überschrift</button><button class="btn sm" data-add="img">+ Bild</button><button class="btn sm" data-add="vid">+ Video</button>
+    </div>
+    <p class="hint" style="margin-top:18px">Bilder werden beim Speichern verkleinert und hochgeladen. Videos am besten als Link einfügen (YouTube oder direkter Link zu einer MP4-Datei). Eigene Videodateien gehen bis 25 MB.</p>
+  </section>
+</div>
+
+<div class="leiste" id="leiste" hidden>
+  <div class="status" id="status"></div>
+  <button class="btn" id="zurueck">Zur Übersicht</button>
+  <button class="btn" id="kopieren">Text kopieren</button>
+  <button class="btn" id="entwurf">Entwurf speichern</button>
+  <button class="btn volt" id="pub">Veröffentlichen</button>
+  <button class="btn rot" id="loeschen">Löschen</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const GH = {owner:"platano008", repo:"weltkarte", branch:"main"}, LS_TOKEN = "lage-gh-token";
+const IDX = "blog/index.json", ENT = "blog/entwuerfe.json", MAX_VID = 25*1024*1024;
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const token = ()=>{ try{ return localStorage.getItem(LS_TOKEN); }catch(e){ return null; } };
+let toastT; function toast(t){ const n = $("toast"); n.textContent = t; n.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(()=>n.classList.remove("on"), 2600); }
+function status(t){ $("status").textContent = t || ""; }
+
+/* ---------- GitHub ---------- */
+const apiOf = p => "https://api.github.com/repos/" + GH.owner + "/" + GH.repo + "/contents/" + p;
+const hdr = ()=>({Authorization:"Bearer " + token(), Accept:"application/vnd.github+json"});
+function b64ToText(b){ const bin = atob(b.replace(/\n/g,"")); return new TextDecoder().decode(Uint8Array.from(bin, c=>c.charCodeAt(0))); }
+function bytesToB64(bytes){ let s = ""; for(let i=0;i<bytes.length;i+=0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i+0x8000)); return btoa(s); }
+const textToB64 = t => bytesToB64(new TextEncoder().encode(t));
+async function ghGet(path){
+  const r = await fetch(apiOf(path) + "?ref=" + GH.branch, {headers:hdr(), cache:"no-store"});
+  if(r.status === 404) return {sha:null, text:null};
+  if(!r.ok) throw {status:r.status};
+  const j = await r.json();
+  return {sha:j.sha, text: j.content ? b64ToText(j.content) : await (await fetch(j.download_url, {cache:"no-store"})).text()};
+}
+async function ghPut(path, b64, sha, msg){
+  const body = {message:msg, content:b64, branch:GH.branch}; if(sha) body.sha = sha;
+  const r = await fetch(apiOf(path), {method:"PUT", headers:Object.assign({"Content-Type":"application/json"}, hdr()), body:JSON.stringify(body)});
+  if(!r.ok) throw {status:r.status};
+  return (await r.json()).content.sha;
+}
+async function ghDel(path, sha, msg){
+  const r = await fetch(apiOf(path), {method:"DELETE", headers:Object.assign({"Content-Type":"application/json"}, hdr()), body:JSON.stringify({message:msg, sha, branch:GH.branch})});
+  if(!r.ok && r.status !== 404) throw {status:r.status};
+}
+/* Liste lesen, ändern, schreiben; bei gleichzeitiger Änderung einmal neu versuchen */
+async function listeAendern(path, fn, msg){
+  for(let v=0; v<2; v++){
+    const r = await ghGet(path); const d = r.text ? JSON.parse(r.text) : {beitraege:[]}; d.beitraege = fn(d.beitraege || []);
+    try{ await ghPut(path, textToB64(JSON.stringify(d, null, 1) + "\n"), r.sha, msg); return; }catch(e){ if(v || (e.status !== 409 && e.status !== 422)) throw e; }
+  }
+}
+function fehler(e){ return e && e.status === 401 ? "Schlüssel ungültig oder abgelaufen." : e && (e.status === 403 || e.status === 404) ? "Schlüssel hat keinen Schreibzugriff." : "Hat nicht geklappt. Internet prüfen und noch einmal versuchen."; }
+
+/* ---------- Übersicht ---------- */
+async function ladeListe(){
+  $("schl").hidden = !!token();
+  const zeig = (ziel, arr, leer)=>{ const n = $(ziel); n.innerHTML = arr.length ? "" : '<div class="leer">' + leer + "</div>";
+    arr.forEach(b=>{ const k = document.createElement("button"); k.className = "eintrag"; k.innerHTML = "<span>" + esc(b.titel || "Ohne Titel") + "</span><small>" + esc((b.datum || "").slice(0,10).split("-").reverse().join(".")) + "</small>"; k.onclick = ()=>oeffnen(b.id); n.appendChild(k); }); };
+  if(!token()){ zeig("lEntw", [], "Erst den Schlüssel eintragen."); zeig("lPub", [], "–"); return; }
+  try{
+    const [e, p] = await Promise.all([ghGet(ENT), ghGet(IDX)]);
+    zeig("lEntw", e.text ? JSON.parse(e.text).beitraege || [] : [], "Keine Entwürfe.");
+    zeig("lPub", p.text ? JSON.parse(p.text).beitraege || [] : [], "Noch nichts veröffentlicht.");
+  }catch(err){ zeig("lEntw", [], fehler(err)); zeig("lPub", [], "–"); }
+}
+$("tokOk").onclick = ()=>{ const v = $("tok").value.trim(); if(!v) return; try{ localStorage.setItem(LS_TOKEN, v); }catch(e){} $("tok").value = ""; ladeListe(); toast("Schlüssel gespeichert"); };
+
+/* ---------- Schreiben ---------- */
+let B = null, dirty = false;      // aktueller Beitrag
+const neuId = ()=>{ const d = new Date(), p = n=>String(n).padStart(2,"0"); return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds()); };
+function zeigeEdit(an){ $("vListe").hidden = an; $("vEdit").hidden = !an; $("leiste").hidden = !an; if(!an){ B = null; ladeListe(); } scrollTo(0,0); }
+function neu(){ B = {id:neuId(), titel:"", status:"neu", datum:"", bloecke:[{t:"p", x:""}]}; dirty = false; male(); zeigeEdit(true); status("Neuer Beitrag, noch nicht gespeichert"); }
+async function oeffnen(id){
+  status("Lädt …"); zeigeEdit(true); $("bloecke").innerHTML = ""; $("titel").value = "";
+  try{ const r = await ghGet("blog/b/" + id + ".json"); if(!r.text) throw {}; B = JSON.parse(r.text); B._sha = r.sha; dirty = false; male(); status(B.status === "veroeffentlicht" ? "Veröffentlicht" : "Entwurf"); }
+  catch(e){ toast("Beitrag konnte nicht geladen werden"); zeigeEdit(false); }
+}
+function wachse(t){ t.style.height = "auto"; t.style.height = (t.scrollHeight + 2) + "px"; }
+function male(){
+  $("titel").value = B.titel || ""; const box = $("bloecke"); box.innerHTML = "";
+  B.bloecke.forEach((b, i)=>{
+    const n = document.createElement("div"); n.className = "block " + b.t;
+    const name = {p:"Text", h:"Überschrift", img:"Bild", vid:"Video"}[b.t];
+    n.innerHTML = '<div class="kopf"><b>' + name + '</b><span><button data-a="hoch" aria-label="Nach oben">↑</button><button data-a="runter" aria-label="Nach unten">↓</button><button data-a="weg" aria-label="Entfernen">✕</button></span></div>';
+    if(b.t === "p" || b.t === "h"){ const t = document.createElement("textarea"); t.rows = 1; t.value = b.x || ""; t.placeholder = b.t === "h" ? "Überschrift" : "Text schreiben …"; t.oninput = ()=>{ b.x = t.value; dirty = true; wachse(t); }; n.appendChild(t); setTimeout(()=>wachse(t), 0); }
+    if(b.t === "img"){
+      if(b.src || b._data){ const im = document.createElement("img"); im.src = b._data || b.src; im.alt = ""; n.appendChild(im); }
+      const w = document.createElement("div"); w.className = "wahl"; w.innerHTML = '<label class="btn sm">' + (b.src || b._data ? "Anderes Bild" : "Bild auswählen") + '<input type="file" accept="image/*" hidden></label>'; n.appendChild(w);
+      w.querySelector("input").onchange = async e=>{ const f = e.target.files[0]; if(!f) return; try{ b._data = await verkleinere(f); b.src = ""; dirty = true; male(); }catch(_){ toast("Bild konnte nicht gelesen werden"); } };
+    }
+    if(b.t === "vid"){
+      if(b._url || b.src){ const y = youtube(b.src); if(y){ const d = document.createElement("div"); d.className = "hint"; d.textContent = "YouTube-Video: " + b.src; n.appendChild(d); } else { const v = document.createElement("video"); v.controls = true; v.playsInline = true; v.src = b._url || b.src; n.appendChild(v); } }
+      const w = document.createElement("div"); w.className = "wahl"; w.innerHTML = '<input type="url" placeholder="Link einfügen (YouTube oder MP4)" style="flex:1;min-width:200px;border-bottom:1px solid var(--line-2);padding:6px 0"><label class="btn sm">Datei<input type="file" accept="video/mp4,video/webm,video/quicktime" hidden></label>'; n.appendChild(w);
+      const u = w.querySelector("input[type=url]"); u.value = b._file ? "" : (b.src || ""); u.onchange = ()=>{ b.src = u.value.trim(); b._file = null; b._url = null; dirty = true; male(); };
+      w.querySelector("input[type=file]").onchange = e=>{ const f = e.target.files[0]; if(!f) return; if(f.size > MAX_VID){ toast("Video ist größer als 25 MB. Bitte als Link einfügen."); return; } b._file = f; b._url = URL.createObjectURL(f); b.src = ""; dirty = true; male(); };
+    }
+    if(b.t === "img" || b.t === "vid"){ const c = document.createElement("input"); c.type = "text"; c.className = "cap"; c.placeholder = "Bildunterschrift (optional)"; c.value = b.cap || ""; c.oninput = ()=>{ b.cap = c.value; dirty = true; }; n.appendChild(c); }
+    n.querySelector(".kopf span").onclick = e=>{ const a = e.target.dataset.a; if(!a) return; const L = B.bloecke;
+      if(a === "weg") L.splice(i, 1); if(a === "hoch" && i > 0) [L[i-1], L[i]] = [L[i], L[i-1]]; if(a === "runter" && i < L.length-1) [L[i+1], L[i]] = [L[i], L[i+1]]; dirty = true; male(); };
+    box.appendChild(n);
+  });
+}
+$("titel").oninput = ()=>{ B.titel = $("titel").value; dirty = true; };
+document.querySelectorAll("[data-add]").forEach(k=>k.onclick = ()=>{ B.bloecke.push({t:k.dataset.add, x:""}); dirty = true; male(); const t = $("bloecke").lastChild.querySelector("textarea"); if(t) t.focus(); else $("bloecke").lastChild.scrollIntoView({block:"center"}); });
+function youtube(u){ const m = /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/.exec(u || ""); return m ? m[1] : null; }
+function verkleinere(file){ return new Promise((ok, no)=>{ const im = new Image(), url = URL.createObjectURL(file); im.onload = ()=>{ const k = Math.min(1, 1800/Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = Math.round(im.width*k); c.height = Math.round(im.height*k); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url); ok(c.toDataURL("image/jpeg", 0.86)); }; im.onerror = no; im.src = url; }); }
+function klartext(){ return [B.titel].concat(B.bloecke.filter(b=>b.t === "p" || b.t === "h").map(b=>(b.x || "").trim()).filter(Boolean)).join("\n\n"); }
+$("kopieren").onclick = async ()=>{ const t = klartext(); try{ await navigator.clipboard.writeText(t); toast("Text kopiert"); }catch(e){ const a = document.createElement("textarea"); a.value = t; document.body.appendChild(a); a.select(); try{ document.execCommand("copy"); toast("Text kopiert"); }catch(_){ toast("Kopieren nicht möglich"); } a.remove(); } };
+
+async function speichern(ziel){
+  if(!token()){ toast("Erst den GitHub-Schlüssel eintragen"); return; }
+  if(!(B.titel || "").trim()){ toast("Bitte einen Titel eingeben"); $("titel").focus(); return; }
+  const knoepfe = ["entwurf","pub","loeschen","zurueck"]; knoepfe.forEach(k=>$(k).disabled = true);
+  try{
+    /* 1. Medien hochladen */
+    let n = 0; const med = B.bloecke.filter(b=>b._data || b._file);
+    for(const b of med){ n++; status("Lädt Medien hoch … " + n + " von " + med.length);
+      if(b._data){ const pfad = "blog/medien/" + B.id + "-" + Date.now().toString(36) + n + ".jpg"; await ghPut(pfad, b._data.split(",")[1], null, "Blog: Bild"); b.src = pfad; delete b._data; }
+      else { const ext = (b._file.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g,"") || "mp4", pfad = "blog/medien/" + B.id + "-" + Date.now().toString(36) + n + "." + ext;
+        await ghPut(pfad, bytesToB64(new Uint8Array(await b._file.arrayBuffer())), null, "Blog: Video"); b.src = pfad; b._file = null; b._url = null; } }
+    /* 2. Beitrag schreiben */
+    status("Speichert …");
+    const war = B.status; B.status = ziel; if(ziel === "veroeffentlicht" && (!B.datum || war !== "veroeffentlicht")) B.datum = new Date().toISOString(); if(!B.datum) B.datum = new Date().toISOString();
+    const sauber = {id:B.id, titel:B.titel.trim(), status:B.status, datum:B.datum, bloecke:B.bloecke.filter(b=>b.t === "p" || b.t === "h" ? (b.x || "").trim() : b.src).map(b=>{ const o = {t:b.t}; if(b.x) o.x = b.x; if(b.src) o.src = b.src; if(b.cap) o.cap = b.cap; return o; })};
+    const pfad = "blog/b/" + B.id + ".json"; let sha = B._sha;
+    try{ B._sha = await ghPut(pfad, textToB64(JSON.stringify(sauber, null, 1) + "\n"), sha, "Blog: " + sauber.titel); }
+    catch(e){ if(e.status === 409 || e.status === 422){ const r = await ghGet(pfad); B._sha = await ghPut(pfad, textToB64(JSON.stringify(sauber, null, 1) + "\n"), r.sha, "Blog: " + sauber.titel); } else throw e; }
+    /* 3. Listen nachführen */
+    const erster = sauber.bloecke.find(b=>b.t === "p"), bild = sauber.bloecke.find(b=>b.t === "img");
+    const karte = {id:B.id, titel:sauber.titel, datum:B.datum, kurz: erster ? erster.x.trim().replace(/\s+/g," ").slice(0, 200) : "", bild: bild ? bild.src : ""};
+    const rein = L=>[karte].concat(L.filter(x=>x.id !== B.id)).sort((a,b)=>(b.datum || "").localeCompare(a.datum || "")), raus = L=>L.filter(x=>x.id !== B.id);
+    await listeAendern(ENT, ziel === "entwurf" ? rein : raus, "Blog: Entwürfe");
+    if(ziel === "veroeffentlicht" || war === "veroeffentlicht") await listeAendern(IDX, ziel === "veroeffentlicht" ? rein : raus, "Blog: Übersicht");
+    dirty = false; male();
+    status(ziel === "veroeffentlicht" ? "Veröffentlicht. In etwa einer Minute auf der Seite sichtbar." : "Entwurf gespeichert");
+    toast(ziel === "veroeffentlicht" ? "Veröffentlicht" : "Entwurf gespeichert");
+  }catch(e){ status(fehler(e)); toast("Speichern fehlgeschlagen"); }
+  knoepfe.forEach(k=>$(k).disabled = false);
+}
+$("entwurf").onclick = ()=>speichern("entwurf");
+$("pub").onclick = ()=>speichern("veroeffentlicht");
+$("neu").onclick = neu;
+$("zurueck").onclick = ()=>{ if(dirty && !confirm("Ungespeicherte Änderungen verwerfen?")) return; zeigeEdit(false); };
+$("loeschen").onclick = async ()=>{
+  if(!confirm("Diesen Beitrag wirklich löschen?")) return;
+  if(B.status === "neu"){ zeigeEdit(false); return; }
+  try{ status("Löscht …"); const r = await ghGet("blog/b/" + B.id + ".json"); if(r.sha) await ghDel("blog/b/" + B.id + ".json", r.sha, "Blog: gelöscht");
+    const raus = L=>L.filter(x=>x.id !== B.id); await listeAendern(ENT, raus, "Blog: Entwürfe"); await listeAendern(IDX, raus, "Blog: Übersicht"); toast("Gelöscht"); zeigeEdit(false); }
+  catch(e){ status(fehler(e)); }
+};
+addEventListener("beforeunload", e=>{ if(dirty){ e.preventDefault(); e.returnValue = ""; } });
+ladeListe(); if(location.hash === "#neu") neu();
+</script>
+</body>
+</html>
