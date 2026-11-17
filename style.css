@@ -1,13 +1,19 @@
+@font-face{font-family:"Plyus Grotesk";src:url(fonts/PlyusGrotesk-Regular.woff) format("woff"),url(fonts/PlyusGrotesk-Regular.ttf) format("truetype");font-weight:100 599;font-style:normal;font-display:swap}
+@font-face{font-family:"Plyus Grotesk";src:url(fonts/PlyusGrotesk-Italic.woff) format("woff"),url(fonts/PlyusGrotesk-Italic.ttf) format("truetype");font-weight:100 599;font-style:italic;font-display:swap}
+@font-face{font-family:"Plyus Grotesk";src:url(fonts/PlyusGrotesk-Bold.woff) format("woff"),url(fonts/PlyusGrotesk-Bold.ttf) format("truetype");font-weight:600 900;font-style:normal;font-display:swap}
+@font-face{font-family:"Plyus Grotesk";src:url(fonts/PlyusGrotesk-BoldItalic.woff) format("woff"),url(fonts/PlyusGrotesk-BoldItalic.ttf) format("truetype");font-weight:600 900;font-style:italic;font-display:swap}
+@font-face{font-family:"Plyus Grotesk Titel";src:url(fonts/PlyusGrotesk-Bold.woff) format("woff"),url(fonts/PlyusGrotesk-Bold.ttf) format("truetype");font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:"Plyus Grotesk Titel";src:url(fonts/PlyusGrotesk-BoldItalic.woff) format("woff"),url(fonts/PlyusGrotesk-BoldItalic.ttf) format("truetype");font-weight:100 900;font-style:italic;font-display:swap}
 @font-face{font-family:"Plyus";src:url(fonts/Plyus-Regular.woff) format("woff"),url(fonts/Plyus-Regular.ttf) format("truetype");font-weight:100 399;font-display:swap}
 @font-face{font-family:"Plyus";src:url(fonts/Plyus-Bold.woff) format("woff"),url(fonts/Plyus-Bold.ttf) format("truetype");font-weight:400 900;font-display:swap}
 @font-face{font-family:"Plyus Korn";src:url(fonts/Plyus-Bold.woff) format("woff"),url(fonts/Plyus-Bold.ttf) format("truetype");font-weight:100 900;font-display:swap}
 :root{
   --bg:#000000; --surface:#0b0b0b; --surface-2:#151515; --line:#232323; --line-2:#3a3a3a;
   --fg:#f4f4f4; --muted:#909090; --faint:#5c5c5c; --volt:#ffffff; --ink:#000000; --danger:#ff6b6b;
-  --display:"Plyus","Archivo",Arial,sans-serif;
-  --korn:"Plyus Korn","Plyus","Archivo",Arial,sans-serif;
-  --body:"Archivo","Helvetica Neue",Arial,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --display:"Plyus Grotesk Titel",Arial,sans-serif;
+  --korn:"Plyus Grotesk Titel",Arial,sans-serif;
+  --body:"Plyus Grotesk","Helvetica Neue",Arial,sans-serif;
+  --mono:"Plyus Grotesk",ui-monospace,Menlo,monospace;
   color-scheme:dark;
 }
 *{box-sizing:border-box;border-radius:0!important}

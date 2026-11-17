@@ -15,11 +15,10 @@
 <link rel="icon" type="image/png" href="bild/favicon.png?v=2">
 <link rel="apple-touch-icon" href="bild/icon-180.png?v=2">
 <script>/* alte geteilte Links (index.html#…) führen weiter zur Karte */
-if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
+if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611171033">
+<link rel="stylesheet" href="style.css?v=202611171222">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -590,6 +589,30 @@ a.gate:hover .gv .eb{transform:translateZ(var(--z))}
 .gd-f{animation-duration:13s}
 .gd-z{animation-duration:13s;stroke-width:2.5}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front,.v-ua{stroke-dasharray:none}.ov .run,.radar{display:none}.rv,.tilt{opacity:1;transform:none}}
+
+/* ===== Neue Textschrift + mittige Kartenblöcke + Weltkugel ===== */
+.gates .gt,.gt{flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px}
+.gt b{font-family:var(--display);font-weight:700;letter-spacing:.01em}
+.gt .go{display:none}
+.gates .gt b{display:inline-flex;align-items:center;gap:.35em;font-size:clamp(26px,4.2vw,54px)}
+a.gate .gt b::after{content:"";width:.62em;height:.62em;flex:none;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='square'%3E%3Cpath d='M3 12h17M13 5l7 7-7 7'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='square'%3E%3Cpath d='M3 12h17M13 5l7 7-7 7'/%3E%3C/svg%3E") center/contain no-repeat;transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+a.gate:hover .gt b::after{transform:translateX(.25em)}
+.gbald{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.neutral{position:relative;padding:clamp(90px,12vw,170px) 0 clamp(40px,6vw,80px);text-align:center}
+.nt-text{position:relative;z-index:2;max-width:860px;margin:0 auto}
+.neutral h2{margin:14px 0 22px;font-family:var(--display);font-weight:700;font-size:clamp(46px,8.4vw,118px);line-height:.92;letter-spacing:-.005em}
+.neutral h2 i{font-style:italic}
+.neutral h2 .hl{color:#7d7d7d}
+.neutral p{margin:0 auto;max-width:34em;font-size:clamp(16px,1.6vw,20px);line-height:1.6;color:#c4c4c4}
+.welt{position:relative;width:min(900px,100%);aspect-ratio:1;margin:clamp(-30px,-2vw,-10px) auto 0}
+#welt{position:absolute;inset:0}
+#welt .maplibregl-canvas{outline:none}
+.welt-glow{position:absolute;inset:9%;border-radius:50%!important;background:radial-gradient(circle,rgba(110,170,255,.0) 58%,rgba(110,170,255,.16) 66%,rgba(110,170,255,0) 72%);pointer-events:none}
+.welt .maplibregl-ctrl-attrib{background:rgba(0,0,0,.6)!important;font-family:var(--mono);font-size:10px}
+.welt .maplibregl-ctrl-attrib a{color:#8d8d8d}
+
 </style>
 </head>
 <body>
@@ -629,11 +652,11 @@ a.gate:hover .gv .eb{transform:translateZ(var(--z))}
   <div class="gates">
   <a class="gate rv" href="karte.html" id="g1">
     <div class="gv"><div class="g3d" id="g3dF"><svg id="gFront" class="eb" style="--z:0px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gFrontK" class="eb" style="--z:7px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gFrontR" class="eb" style="--z:14px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gFrontO" class="eb" style="--z:34px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
-    <div class="gt"><div><span class="eyebrow">01 · Frontverlauf</span><b>Zur Karte</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
+    <div class="gt"><b>Frontline</b><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
   </a>
   <div class="gate off rv" id="g2">
     <div class="gv"><div class="g3d" id="g3dD"><svg id="gDrohnen" class="eb" style="--z:0px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gDrohnenF" class="eb" style="--z:40px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div><span class="gnote">Beispielhafte Darstellung</span></div>
-    <div class="gt"><div><span class="eyebrow">02 · Drohnen · in Arbeit</span><b>Zur Drohnenkarte</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
+    <div class="gt"><b>Dronemap</b><span class="gbald">in Arbeit</span></div>
   </div>
   </div>
   </div>
@@ -664,32 +687,13 @@ a.gate:hover .gv .eb{transform:translateZ(var(--z))}
     <div class="chg rv" id="chg"><div class="empty-l">Lädt …</div></div>
   </section>
 
-  <section class="recon" id="zeigt">
-    <div class="orb rv"><img class="gl" src="bild/g-globus.png" alt="" width="1240" height="1240" loading="lazy"><div class="sat"><img src="bild/g-satellit.png" alt="" width="700" height="470" loading="lazy"></div></div>
-    <div class="rv">
-      <span class="eyebrow">Aufklärung</span>
-      <h2>Lage statt Lärm.</h2>
-      <p>Plyus zeigt den Frontverlauf an einem Ort: was sich verändert hat, wo und um wie viel. Jeder Stand bleibt gespeichert, damit du zwischen den Updates zurückspulen kannst.</p>
-      <a class="btn-l" href="karte.html">Zur Karte <svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a>
+  <section class="neutral" id="neutral">
+    <div class="nt-text rv">
+      <span class="eyebrow">Haltung</span>
+      <h2><i>Keine Seite.</i><br><i class="hl">Nur die Lage.</i></h2>
+      <p><i>Plyus ergreift keine Partei. Jede Veränderung wird nach denselben Regeln erfasst, egal auf welcher Seite der Front sie passiert. Was nicht sicher belegt ist, bleibt Grauzone.</i></p>
     </div>
-  </section>
-
-  <section class="blk">
-    <div class="blk-h rv"><div><span class="eyebrow">Inhalt</span><h2>Was die Karte zeigt</h2></div></div>
-    <div class="feat rv">
-      <div class="f"><div class="ill"><img src="bild/g-radar.png" alt="" width="620" height="620" loading="lazy"></div>
-        <span class="eyebrow">01</span><h3>Frontverlauf</h3>
-        <p>Russisch kontrolliertes Gebiet, Grauzone und ukrainisches Gebiet. Neue Veränderungen sind 14 Tage lang kräftig hervorgehoben.</p></div>
-      <div class="f"><div class="ill"><img src="bild/g-panzer.png" alt="" width="1000" height="460" loading="lazy"></div>
-        <span class="eyebrow">02</span><h3>Bewegungen</h3>
-        <p>Pfeile für Vorstöße und Angriffsrichtungen, Linien für Verteidigungsstellungen und Grenzen.</p></div>
-      <div class="f"><div class="ill"><img src="bild/g-einheiten.png" alt="" width="760" height="420" loading="lazy"></div>
-        <span class="eyebrow">03</span><h3>Einheiten</h3>
-        <p>Verbände und Stützpunkte als NATO-Symbole nach MIL-STD-2525C. Antippen zeigt Namen und Details.</p></div>
-      <div class="f"><div class="ill"><img src="bild/g-fadenkreuz.png" alt="" width="620" height="620" loading="lazy"></div>
-        <span class="eyebrow">04</span><h3>Werkzeuge</h3>
-        <p>Entfernung, Fläche und Radius selbst messen und Koordinaten ablesen, direkt auf der Karte.</p></div>
-    </div>
+    <div class="welt rv" id="weltBox"><div id="welt"></div></div>
   </section>
 </div>
 
@@ -1073,6 +1077,53 @@ Promise.all([
 { const SOZIAL = { telegram: "", twitter: "" };
   document.querySelectorAll("[data-sozial]").forEach(a=>{ const u = SOZIAL[a.dataset.sozial];
     if(u){ a.href = u; } else { a.removeAttribute("href"); a.classList.add("bald"); a.querySelector(".sz-t").textContent = "Link folgt"; } }); }
+</script>
+<script>
+/* Weltkugel: echtes Satellitenbild (MapTiler) auf MapLibre-Globus, dreht sich langsam, nur wenn sichtbar */
+(function(){
+  const box = document.getElementById("weltBox"), el = document.getElementById("welt"); if(!box || !el) return;
+  const KEY = "4TDQhzPsZwABTFDNshhB", V = "5.0.0";
+  let map = null, lng = 18, lauf = false, zuletzt = 0, sichtbar = false;
+  function laden(src, css){ return new Promise((ok, nein)=>{ const e = document.createElement(css ? "link" : "script");
+    if(css){ e.rel = "stylesheet"; e.href = src; } else { e.src = src; } e.onload = ok; e.onerror = nein; document.head.appendChild(e); }); }
+  function zoomFuer(){ const w = el.clientWidth || 600; return Math.log2(w*0.43*2*Math.PI/512); }
+  function dreh(t){
+    if(!map || !sichtbar){ lauf = false; return; }
+    const dt = zuletzt ? Math.min(t - zuletzt, 80) : 16; zuletzt = t;
+    lng = (lng - dt*0.0035 + 540) % 360 - 180;
+    map.jumpTo({center:[lng, 22]});
+    requestAnimationFrame(dreh);
+  }
+  function start(){ if(lauf || !map) return; lauf = true; zuletzt = 0; requestAnimationFrame(dreh); }
+  async function bauen(){
+    try{
+      if(!window.maplibregl){
+        await Promise.all([laden(`https://cdn.jsdelivr.net/npm/maplibre-gl@${V}/dist/maplibre-gl.css`, true), laden(`https://cdn.jsdelivr.net/npm/maplibre-gl@${V}/dist/maplibre-gl.js`)]);
+      }
+      map = new maplibregl.Map({
+        container: el, interactive: false, attributionControl: {compact: true},
+        center: [lng, 22], zoom: zoomFuer(), renderWorldCopies: false, fadeDuration: 0,
+        pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+        style: {
+          version: 8, projection: {type: "globe"},
+          sky: {"atmosphere-blend": 1},
+          sources: {sat: {type: "raster", tileSize: 256, maxzoom: 4,
+            tiles: [`https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=${KEY}`],
+            attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank" rel="noopener">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a>'}},
+          layers: [{id: "sat", type: "raster", source: "sat", paint: {"raster-saturation": -0.08, "raster-contrast": 0.08, "raster-fade-duration": 0}}]
+        }
+      });
+      map.on("load", ()=>{ box.classList.add("an"); start(); });
+      let breite = el.clientWidth; window.addEventListener("resize", ()=>{ if(map && el.clientWidth !== breite){ breite = el.clientWidth; map.setZoom(zoomFuer()); } });
+    }catch(e){
+      el.innerHTML = '<img src="bild/g-globus.png" alt="" style="width:100%;height:100%;object-fit:contain">';
+    }
+  }
+  new IntersectionObserver(es=>{ es.forEach(e=>{
+    sichtbar = e.isIntersecting;
+    if(sichtbar){ if(!map) bauen(); else start(); }
+  }); }, {rootMargin: "400px 0px"}).observe(box);
+})();
 </script>
 </body>
 </html>
