@@ -8,7 +8,7 @@
 <meta name="description" content="Berichte und Einordnungen zur Lage an der Front.">
 <link rel="icon" type="image/png" href="bild/favicon.png?v=2">
 <link rel="apple-touch-icon" href="bild/icon-180.png?v=2">
-<link rel="stylesheet" href="style.css?v=202611171307">
+<link rel="stylesheet" href="style.css?v=202611171324">
 <style>
 html,body{height:auto;overflow:auto;overflow-x:hidden;background:#000}
 .kopf{display:flex;justify-content:space-between;align-items:center;width:min(1100px,100%);margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 16px 0}
@@ -37,10 +37,10 @@ article figcaption{margin:10px 16px 0;font-family:var(--mono);font-size:12px;col
 .zur{display:inline-block;margin-bottom:34px;color:var(--muted);text-decoration:none;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
 .zur:hover{color:var(--fg)}
 @media (max-width:640px){.post{grid-template-columns:1fr}}
-.ascii{position:relative;margin:calc(-1*clamp(40px,8vw,90px) - 64px) calc(50% - 50vw) clamp(110px,15vw,200px);height:clamp(400px,72vh,720px)}
+.ascii{position:relative;margin:calc(-1*clamp(40px,8vw,90px) - 64px) calc(50% - 50vw) clamp(60px,8vw,110px);height:clamp(400px,72vh,720px)}
 .ascii .cv{position:absolute;inset:0;overflow:hidden}
 .ascii canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.ascii .ttl{position:absolute;left:0;right:0;bottom:0;transform:translateY(42%);z-index:2;pointer-events:none;text-align:center}
+.ascii .ttl{position:absolute;left:0;right:0;bottom:0;transform:translateY(16%);z-index:2;pointer-events:none;text-align:center}
 .ascii .ttl .eyebrow{margin-bottom:6px}
 .ascii .gross{margin:0;font-size:clamp(76px,17vw,220px);line-height:.86;text-shadow:0 0 40px rgba(0,0,0,.8)}
 .ascii .cv::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#000 0,transparent 18%,transparent 62%,#000 100%);pointer-events:none}
@@ -216,24 +216,42 @@ function asciiStart(){
   }
   function feld(x, y, t){
     const u = x*0.055, v = y*0.09;
-    let f = Math.sin(u + Math.sin(v*0.9 + t*0.55)*1.8 + t*0.35)
-          + Math.sin(v*1.3 - t*0.42 + Math.sin(u*0.7 - t*0.3)*1.6)
-          + 0.6*Math.sin((u + v)*0.8 + t*0.25 + Math.sin(u*0.35 + t*0.2)*2.2);
-    return f/2.6*0.5 + 0.5;
+    let f = Math.sin(u + Math.sin(v*0.9 + t*0.8)*2.2 + t*0.6)
+          + Math.sin(v*1.3 - t*0.7 + Math.sin(u*0.7 - t*0.5)*2.0)
+          + 0.6*Math.sin((u + v)*0.8 + t*0.45 + Math.sin(u*0.35 + t*0.3)*2.6)
+          + 0.45*Math.sin(u*2.1 - v*1.4 + t*1.9 + Math.sin(v*0.5 + t)*1.5);           // feinere, schnellere Wellen
+    return f/3.0*0.5 + 0.5;
+  }
+  /* Druckwellen: Ringe, die immer wieder irgendwo aufgehen und sich ausbreiten */
+  const ringe = [];
+  let naechsterRing = 0.4;
+  function ringeBewegen(t){
+    if(t > naechsterRing){ ringe.push({x: Math.random()*W, y: H*(0.15 + Math.random()*0.6), t0: t, st: 0.7 + Math.random()*0.5}); naechsterRing = t + 0.9 + Math.random()*1.4; }
+    while(ringe.length && t - ringe[0].t0 > 4.5) ringe.shift();
+  }
+  function ringWert(px, py, t){
+    let w = 0;
+    for(const r of ringe){
+      const a = t - r.t0, rad = a*Math.max(W, 600)*0.16, d = Math.hypot(px - r.x, py - r.y), x = (d - rad)/48;
+      if(x > -3 && x < 3) w += Math.exp(-x*x)*r.st*Math.max(0, 1 - a/4.5) + (x < 0 ? Math.exp(-x*x*0.3)*0.12*Math.max(0, 1 - a/4.5)*Math.sin(d*0.09 - a*9) : 0);
+    }
+    return w;
   }
   function hash(i, j, k){ let h = (i*374761393 + j*668265263 + k*2147483647) | 0; h = (h ^ (h >>> 13))*1274126177; return ((h ^ (h >>> 16)) >>> 0)/4294967296; }
   function bild(now){
     const t = (now - start)/1000, ein = Math.min(1, t/1.6), bw = Math.ceil(ch*dpr), sw = cw*dpr, sh = ch*dpr;
     cx.clearRect(0, 0, cv.width, cv.height);
     const dt = letzt ? Math.min(0.05, (now - letzt)/1000) : 0.016; letzt = now; bewegen(dt, t);
-    const M = maske(t);
+    const M = maske(t); ringeBewegen(t);
     const mx = maus.x/cw, my = maus.y/ch, mAlt = (now - maus.t)/1000, tick = Math.floor(t*12);
     for(let j = 0; j < rows; j++){
       const ny = j/rows;
       for(let i = 0; i < cols; i++){
         const nx = i/cols;
         let b = feld(i*cw/10.8, j*ch/9.4, t);
-        b = Math.pow(b, 1.7);
+        b = Math.pow(b, 1.55);
+        const scan = Math.exp(-Math.pow((nx - ((t*0.11) % 1.4 - 0.2))*14, 2))*0.35;           // Abtaststreifen läuft quer durch
+        b += ringWert(i*cw, j*ch, t)*0.9 + scan*(0.4 + b);
         const rand = Math.min(1, nx*6, (1 - nx)*6);               // weich zum Rand
         b *= 0.35 + 0.65*rand;
         const dx = (i - mx)*cw/15, dy = (j - my)*ch/15, d = Math.sqrt(dx*dx + dy*dy);
@@ -256,7 +274,7 @@ function asciiStart(){
         const r = hash(i, j, 0);
         if(r > ein*1.02 && dv < 0.06 && !drot) continue;                                  // Einblenden: Zeichen tauchen nach und nach auf
         let idx, rot = false, a;
-        const flack = dv < 0.06 && !drot && hash(i, j, tick) < 0.004 + welle*0.05;         // vereinzelt Glitch-Zeichen
+        const flack = dv < 0.06 && !drot && hash(i, j, tick) < 0.006 + welle*0.05 + scan*0.06;         // vereinzelt Glitch-Zeichen
         if(kante >= 0){ idx = RAMPE.length + ZUF.length + kante; a = 1; rot = drot; }
         else if(flack && b > 0.12){ idx = RAMPE.length + Math.floor(hash(j, i, tick)*ZUF.length); a = 0.9; rot = hash(i, j, tick + 7) < 0.25; }
         else {

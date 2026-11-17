@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611171307">
+<link rel="stylesheet" href="style.css?v=202611171324">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -1055,8 +1055,8 @@ Promise.all([
   if("IntersectionObserver" in window) new IntersectionObserver(es=>es.forEach(e=>{ sicht = e.isIntersecting; if(sicht) tick(); }), {rootMargin:"200px 0px"}).observe(box);
   function tick(){
     raf = 0; const y = scrollY, v = y - last; last = y;
-    ziel = Math.max(-9, Math.min(9, v*0.35)); sk += (ziel - sk)*0.18;
-    g1.style.backgroundPositionX = (-y*0.85).toFixed(1) + "px"; g2.style.backgroundPositionX = (y*0.5).toFixed(1) + "px";
+    ziel = Math.max(-5, Math.min(5, v*0.18)); sk += (ziel - sk)*0.18;
+    g1.style.backgroundPositionX = (-y*0.32).toFixed(1) + "px"; g2.style.backgroundPositionX = (y*0.18).toFixed(1) + "px";
     box.style.setProperty("--sk", sk.toFixed(2) + "deg");
     if(sicht && Math.abs(sk) > 0.05) raf = requestAnimationFrame(tick);
   }
