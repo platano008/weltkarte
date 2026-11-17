@@ -19,7 +19,7 @@ if(location.hash.length > 1 && !/^#(lage|zeigt)$/.test(location.hash)) location.
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611161854">
+<link rel="stylesheet" href="style.css?v=202611171033">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -298,7 +298,7 @@ a.gate:hover .gv svg{transform:scale(1.035)}
 .menu nav .aus{color:#6f6f6f}
 .menu nav em{margin-left:auto;font-family:var(--mono);font-style:normal;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
 .menu nav a:hover{padding-left:14px;transition:padding .25s}
-.menu-x{position:fixed;z-index:61;right:max(16px,calc((100vw - 1200px)/2 + 16px));top:max(18px,env(safe-area-inset-top));width:46px;height:46px;border:1px solid var(--line-2);display:grid;place-items:center}
+.menu-x{border:0!important;background:none!important;position:fixed;z-index:61;right:max(16px,calc((100vw - 1200px)/2 + 16px));top:max(18px,env(safe-area-inset-top));width:46px;height:46px;border:1px solid var(--line-2);display:grid;place-items:center}
 .menu-x svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none}
 .hero h1::after{display:none}
 .hero h1{margin-bottom:calc(.3em + 10px)}
@@ -506,7 +506,7 @@ footer .mark{height:22px}
   .gates .gnote{font-size:9px;bottom:12%;white-space:nowrap}
 }
 /* ===== Munitionsgurt: läuft mit dem Scrollen, immer neue Patronen vom Rand ===== */
-.gurte{position:relative;height:clamp(130px,15vw,210px);margin:clamp(6px,1.5vw,20px) 0 0;overflow:hidden;pointer-events:none}
+.gurte{position:relative;height:clamp(130px,15vw,210px);margin:clamp(18px,3vw,40px) 0 0;overflow:hidden;pointer-events:none}
 .gurt{position:absolute;left:-10%;right:-10%;top:50%;height:clamp(100px,11vw,160px);margin-top:calc(clamp(100px,11vw,160px)/-2);background:url(bild/g-gurt.png) 0 50%/auto 100% repeat-x;will-change:background-position,transform}
 .gurt.g1{transform:rotate(-4deg) skewX(var(--sk,0deg));filter:drop-shadow(0 18px 24px rgba(0,0,0,.8))}
 .gurt.g2{transform:rotate(5deg) scale(.55) skewX(calc(var(--sk,0deg)*-1));opacity:.22;z-index:-1}
@@ -550,6 +550,45 @@ a.akte:hover{border-color:#fff;transform:translateX(6px)}
 .kopf.an{opacity:1}
 .kopf svg{display:block;position:absolute;left:0;bottom:0;transform:translateX(-50%)}
 .mast b{position:absolute;left:50%;bottom:100%;width:0;height:0}
+
+/* ===== Menü, Folgen ===== */
+.menu nav > * > span:first-child:empty{display:none}
+.sozial{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);margin:clamp(10px,2vw,30px) 0 clamp(40px,7vw,90px)}
+.sz{position:relative;display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 18px;padding:clamp(22px,3vw,38px) clamp(4px,1vw,14px);color:var(--fg);text-decoration:none;overflow:hidden}
+.sz + .sz{border-left:1px solid var(--line-2);padding-left:clamp(18px,3vw,40px)}
+.sz-n{font-family:var(--korn);font-size:clamp(28px,4vw,54px);line-height:1}
+.sz-t{grid-column:1;font-size:14px;color:var(--muted)}
+.sz svg{grid-row:1/3;grid-column:2;width:clamp(22px,2.6vw,34px);height:auto;fill:none;stroke:currentColor;stroke-width:1.8;transition:transform .4s cubic-bezier(.2,.7,.2,1)}
+.sz::before{content:"";position:absolute;inset:0;background:#fff;transform:scaleY(0);transform-origin:50% 100%;transition:transform .45s cubic-bezier(.6,0,.2,1);z-index:-1}
+.sz:hover{color:#000}.sz:hover .sz-t{color:#333}.sz:hover::before{transform:none}.sz:hover svg{transform:translate(4px,-4px)}
+.sz.bald{pointer-events:none}.sz.bald .sz-n{color:#7a7a7a}.sz.bald svg{opacity:.3}
+@media (max-width:640px){.sozial{grid-template-columns:1fr}.sz + .sz{border-left:0;border-top:1px solid var(--line-2);padding-left:clamp(4px,1vw,14px)}}
+/* ===== Karten-Bilder in 3D ===== */
+@property --rx{syntax:"<angle>";inherits:true;initial-value:46deg}
+@property --rz{syntax:"<angle>";inherits:true;initial-value:-10deg}
+.gv{perspective:1100px;perspective-origin:50% 30%}
+.g3d{position:absolute;inset:-8% -6%;transform-style:preserve-3d;transform:rotateX(var(--rx)) rotateZ(var(--rz)) scale(var(--gs,.96));transition:--rx .9s cubic-bezier(.2,.7,.2,1),--rz .9s cubic-bezier(.2,.7,.2,1);animation:schwing 14s ease-in-out infinite alternate}
+.g3d.maus{animation:none}
+.gate .gv{--gs:.96}
+@media (max-width:699px){.g3d{--gs:.84}}
+@keyframes schwing{from{--rz:-15deg;--rx:44deg}to{--rz:-5deg;--rx:49deg}}
+.g3d .eb{position:absolute;inset:0;width:100%;height:100%;overflow:visible;transform:translateZ(var(--z))}
+a.gate .gv svg,a.gate:hover .gv svg{transition:none}
+a.gate:hover .gv .eb{transform:translateZ(var(--z))}
+.gk-gr{stroke:rgba(255,255,255,.06);stroke-width:1;fill:none}
+.gk-uaf{fill:rgba(47,127,224,.17)}
+.gk-ua{stroke:#5aa9f0;stroke-width:3.5}
+.gk-kante{fill:#3d0710}
+.gk-zone{fill:#c21d2e;fill-opacity:.62}
+.gk-front{stroke:#ff6b7d;stroke-width:3.5}
+.gk-pf{fill:#e23a50;stroke:#000;stroke-width:3;stroke-linejoin:round;paint-order:stroke}
+.gk-sch{fill:rgba(0,0,0,.55)}
+.gd-ua{fill:#161616;stroke:#d9d9d9;stroke-width:2}
+.gd-ru{fill:rgba(194,29,46,.16);stroke:#b23a47}
+.gd-s{fill:none;stroke:rgba(255,255,255,.08);stroke-width:2;stroke-dasharray:1;animation:gdb 13s linear var(--w) infinite both}
+.gd-b{stroke-width:2.6;animation-duration:13s}
+.gd-f{animation-duration:13s}
+.gd-z{animation-duration:13s;stroke-width:2.5}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front,.v-ua{stroke-dasharray:none}.ov .run,.radar{display:none}.rv,.tilt{opacity:1;transform:none}}
 </style>
 </head>
@@ -563,14 +602,14 @@ a.akte:hover{border-color:#fff;transform:translateX(6px)}
 <div class="menu" id="menu" hidden>
   <button class="menu-x" id="menuX" aria-label="Menü schließen"><svg viewBox="0 0 24 24"><path d="M4 4l16 16M20 4L4 20"/></svg></button>
   <nav>
-    <a href="karte.html"><span>01</span>Karte</a>
-    <span class="aus"><span>02</span>Drohnenkarte<em>in Arbeit</em></span>
-    <a href="blog.html"><span>03</span>Blog</a>
-    <span class="aus"><span>04</span>Telegram<em>folgt</em></span>
-    <span class="aus"><span>05</span>Twitter<em>folgt</em></span>
-    <span class="aus"><span>06</span>Mitwirkende<em>folgt</em></span>
-    <span class="aus"><span>07</span>Kontakt<em>folgt</em></span>
-    <span class="aus"><span>08</span>Impressum<em>folgt</em></span>
+    <a href="karte.html">Karte</a>
+    <span class="aus">Drohnenkarte<em>in Arbeit</em></span>
+    <a href="blog.html">Blog</a>
+    <span class="aus">Telegram<em>folgt</em></span>
+    <span class="aus">Twitter<em>folgt</em></span>
+    <span class="aus">Mitwirkende<em>folgt</em></span>
+    <span class="aus">Kontakt<em>folgt</em></span>
+    <span class="aus">Impressum<em>folgt</em></span>
   </nav>
 </div>
 <section class="hero">
@@ -578,7 +617,7 @@ a.akte:hover{border-color:#fff;transform:translateX(6px)}
     <div class="hud"><div>Sektor <b>Ukraine</b></div><div>Lagedaten <b id="hudSrc">–</b></div><div>Veränderungen 14T <b id="hudChg">–</b></div></div></div>
   <div class="hero-mid">
     <div class="kicker"><i></i><span id="kick">Lagekarte Ukraine</span></div>
-    <h1 aria-label="Plyus"><svg class="szug" viewBox="0 0 624.6 100" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><g transform="matrix(1.22 0 -0.903 1 90.3 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z" style="--i:0"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z" style="--i:1"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z" style="--i:2"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z" style="--i:3"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z" style="--i:4"/></g></svg></h1>
+    <h1 aria-label="Plyus"><svg class="szug" viewBox="0 0 558.8 100" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z" style="--i:0"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z" style="--i:1"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z" style="--i:2"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z" style="--i:3"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z" style="--i:4"/></g></svg></h1>
   </div>
   <div class="koepfe" id="koepfe" aria-hidden="true"></div>
   <a class="runter" href="#intro" aria-label="Nach unten"><svg viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></svg></a>
@@ -586,15 +625,14 @@ a.akte:hover{border-color:#fff;transform:translateX(6px)}
 <div class="wrap">
   <section class="manifest" id="intro">
     <h2 class="mf-satz"><span class="z"><span>The <em>unbiased</em> mapping.</span></span></h2>
-    <p class="mf-text">Plyus ergreift keine Partei. Wir zeigen, was sich an der Front tatsächlich verändert hat: wo, wann und um wie viele Quadratkilometer. Für beide Seiten nach denselben Regeln, ohne Wertung und ohne Propaganda.</p>
   </section>
   <div class="gates">
   <a class="gate rv" href="karte.html" id="g1">
-    <div class="gv"><svg id="gFront" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div>
+    <div class="gv"><div class="g3d" id="g3dF"><svg id="gFront" class="eb" style="--z:0px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gFrontK" class="eb" style="--z:7px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gFrontR" class="eb" style="--z:14px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gFrontO" class="eb" style="--z:34px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
     <div class="gt"><div><span class="eyebrow">01 · Frontverlauf</span><b>Zur Karte</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
   </a>
   <div class="gate off rv" id="g2">
-    <div class="gv"><svg id="gDrohnen" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><span class="gnote">Beispielhafte Darstellung</span></div>
+    <div class="gv"><div class="g3d" id="g3dD"><svg id="gDrohnen" class="eb" style="--z:0px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gDrohnenF" class="eb" style="--z:40px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div><span class="gnote">Beispielhafte Darstellung</span></div>
     <div class="gt"><div><span class="eyebrow">02 · Drohnen · in Arbeit</span><b>Zur Drohnenkarte</b></div><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
   </div>
   </div>
@@ -610,7 +648,11 @@ a.akte:hover{border-color:#fff;transform:translateX(6px)}
     </div>
     <div class="be-liste" id="beListe"></div>
   </section>
-  <div class="stats rv">
+  <section class="sozial rv" id="sozial">
+    <a class="sz" data-sozial="telegram" href="#" target="_blank" rel="noopener"><span class="sz-n">Telegram</span><span class="sz-t">Jedes Update direkt aufs Handy</span><svg viewBox="0 0 24 24"><path d="M7 17L17 7M8 7h9v9"/></svg></a>
+    <a class="sz" data-sozial="twitter" href="#" target="_blank" rel="noopener"><span class="sz-n">X / Twitter</span><span class="sz-t">Karten, Videos und Kurzlagen</span><svg viewBox="0 0 24 24"><path d="M7 17L17 7M8 7h9v9"/></svg></a>
+  </section>
+  <div class="stats" hidden>
     <div class="stat"><span class="eyebrow">Stand</span><b id="sStand">–</b><small id="sStandS">&nbsp;</small></div>
     <div class="stat"><span class="eyebrow">Veränderungen</span><b id="sChg">–</b><small>letzte 14 Tage</small></div>
     <div class="stat"><span class="eyebrow">Fläche verändert</span><b id="sArea">–</b><small id="sAreaS">km², letzte 14 Tage</small></div>
@@ -652,7 +694,7 @@ a.akte:hover{border-color:#fff;transform:translateX(6px)}
 </div>
 
 <footer><div class="wrap">
-  <div><a class="logo" href="./" style="text-decoration:none"><img class="mark" src="bild/logo.svg" alt=""><svg class="szug-k" viewBox="0 0 624.6 100" fill="currentColor" fill-rule="evenodd" role="img" aria-label="Plyus"><g transform="matrix(1.22 0 -0.903 1 90.3 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z"/></g></svg></a>
+  <div><a class="logo" href="./" style="text-decoration:none"><img class="mark" src="bild/logo.svg" alt=""><svg class="szug-k" viewBox="0 0 558.8 100" fill="currentColor" fill-rule="evenodd" role="img" aria-label="Plyus"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z"/></g></svg></a>
   <p>Lagekarte Ukraine. Alle Angaben ohne Gewähr, Darstellung kann von der tatsächlichen Lage abweichen.</p></div>
   <div><span class="eyebrow">Quellen</span>
   <p>Lagedaten: <span id="src">ukv3</span> · Karten: © <a href="https://www.maptiler.com/copyright/" target="_blank" rel="noopener">MapTiler</a>, © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap-Mitwirkende</a>, Powered by <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a> · NATO-Symbole: milsymbol</p></div>
@@ -827,81 +869,96 @@ function drawViz(imp, recent){
 (function(){
   const NS = "http://www.w3.org/2000/svg";
   const el = (tag, at, par)=>{ const n = document.createElementNS(NS, tag); for(const k in at) n.setAttribute(k, at[k]); if(par) par.appendChild(n); return n; };
-  /* 01 Karte: ein Vorstoß auf eine Stadt, danach wird das neue Gebiet eingezeichnet */
+  /* 01 Karte: Vorstoß auf eine Stadt. Ebenen übereinander: Gelände und ukrainisches Gebiet, Kante, besetztes Gebiet, Pfeil und Zeichen */
+  const Z_KIPP = 1.42;   /* Zeichen werden in der Höhe gestreckt, damit sie auf der gekippten Fläche normal aussehen */
   (function(){
-    const g = $("gFront"); if(!g) return;
+    const g = $("gFront"), gK = $("gFrontK"), gR = $("gFrontR"), gO = $("gFrontO"); if(!g) return;
     let seed = 11; const rnd = ()=>(seed = (seed*16807) % 2147483647, seed/2147483647);
-    // Gelände: Höhenlinien, Fluss, Strassen
+    const DUR = "12s", KT = "0;0.1;0.5;1", KS = "0 0 1 1;0.45 0 0.2 1;0 0 1 1";
+    const anim = (n, attr, v0, v1)=>el("animate", {attributeName:attr, dur:DUR, repeatCount:"indefinite", values:[v0,v0,v1,v1].join(";"), keyTimes:KT, calcMode:"spline", keySplines:KS}, n);
+    const zug = (n, dx, dy, x, y)=>el("animateTransform", {attributeName:"transform", type:"translate", dur:DUR, repeatCount:"indefinite", values:`${x} ${y};${x} ${y};${x+dx} ${y+dy};${x+dx} ${y+dy}`, keyTimes:KT, calcMode:"spline", keySplines:KS}, n);
+    const R0 = "M940 -40C900 70 960 120 920 190S850 270 900 340S870 420 910 500", R1 = "M940 -40C905 60 880 120 790 160S650 215 690 285S880 380 910 500", ZU = "L1240 500L1240 -40Z";
+    const U0 = "M880 -40C840 70 900 120 860 190S790 270 840 340S810 420 850 500", U1 = "M880 -40C845 60 800 112 712 150S570 215 612 292S800 392 850 500", ZL = "L-40 500L-40 -40Z";
+    // Boden: Gitter, Höhenlinien, ukrainisches Gebiet, Fluss, Strassen, Stadt
+    for(let x=-40;x<=1240;x+=60) el("path", {class:"gk-gr", d:`M${x} -40V500`}, g);
+    for(let y=-40;y<=500;y+=60) el("path", {class:"gk-gr", d:`M-40 ${y}H1240`}, g);
+    anim(el("path", {class:"gk-uaf", d:U0 + ZL}, g), "d", U0 + ZL, U1 + ZL);
     for(let i=0;i<7;i++){ const y = 40 + i*66; el("path", {class:"gk-hl", d:`M-20 ${y}C200 ${y-50+rnd()*60} 420 ${y+50-rnd()*40} 640 ${y-10}S1000 ${y+40-rnd()*70} 1220 ${y-20}`}, g); }
     el("path", {class:"gk-fl", d:"M250 -10C300 90 220 170 290 250S380 380 330 470"}, g);
     [["M-10 300L420 262L560 236", "h"], ["M560 236L800 214L1210 150", "h"], ["M520 -10L548 150L560 236L600 470", ""], ["M560 236L700 330L900 470", ""], ["M430 120L560 236", ""]].forEach(([d,c])=>el("path", {class:"gk-st " + c, d}, g));
-    // Stadt: Häuserblöcke
     for(let ix=-7;ix<=7;ix++) for(let iy=-5;iy<=5;iy++){
       const dx = ix*21, dy = iy*17, r = (dx*dx)/(150*150) + (dy*dy)/(88*88);
       if(r > 1 || rnd() < .14 + r*.35) continue;
       const w = 9 + rnd()*8, h = 7 + rnd()*6;
       el("rect", {class:"gk-bl", x:(560 + dx + dy*.25 - w/2).toFixed(1), y:(236 + dy - dx*.09 - h/2).toFixed(1), width:w.toFixed(1), height:h.toFixed(1), opacity:(.55 + rnd()*.45).toFixed(2)}, g);
     }
-    // Ablauf (12 s): Ruhe, Vorstoß, neue Lage halten, ausblenden
-    const DUR = "12s", KT = "0;0.1;0.5;1", KS = "0 0 1 1;0.45 0 0.2 1;0 0 1 1";
-    const anim = (n, attr, v0, v1)=>el("animate", {attributeName:attr, dur:DUR, repeatCount:"indefinite", values:[v0,v0,v1,v1].join(";"), keyTimes:KT, calcMode:"spline", keySplines:KS}, n);
-    const zug = (n, dx, dy)=>el("animateTransform", {attributeName:"transform", type:"translate", dur:DUR, repeatCount:"indefinite", values:`0 0;0 0;${dx} ${dy};${dx} ${dy}`, keyTimes:KT, calcMode:"spline", keySplines:KS}, n);
-    const dyn = el("g", {}, g);
-    el("animate", {attributeName:"opacity", dur:DUR, repeatCount:"indefinite", values:"0;1;1;0", keyTimes:"0;0.05;0.93;1"}, dyn);
-    // rote Front und besetztes Gebiet: beulen sich mit dem Vorstoß aus
-    const R0 = "M940 -10C900 70 960 120 920 190S850 270 900 340S870 420 910 470", R1 = "M940 -10C905 60 880 120 790 160S650 215 690 285S880 380 910 470", ZU = "L1210 470L1210 -10Z";
-    anim(el("path", {class:"gk-zone", d:R0 + ZU}, dyn), "d", R0 + ZU, R1 + ZU);
-    anim(el("path", {class:"gk-front", d:R0}, dyn), "d", R0, R1);
-    // ukrainische Linie: weicht zurück
-    const U0 = "M880 -10C840 70 900 120 860 190S790 270 840 340S810 420 850 470", U1 = "M880 -10C845 60 800 112 712 150S570 215 612 292S800 392 850 470";
-    anim(el("path", {class:"gk-ua", d:U0}, dyn), "d", U0, U1);
-    // Pfeil: wächst von der alten Front bis an die Stadt
+    anim(el("path", {class:"gk-ua", d:U0}, g), "d", U0, U1);
+    // Kante und besetztes Gebiet: liegen höher, dadurch wirkt die Fläche wie eine Platte
+    anim(el("path", {class:"gk-kante", d:R0 + ZU}, gK), "d", R0 + ZU, R1 + ZU);
+    anim(el("path", {class:"gk-zone", d:R0 + ZU}, gR), "d", R0 + ZU, R1 + ZU);
+    anim(el("path", {class:"gk-front", d:R0}, gR), "d", R0, R1);
+    // Pfeil: gleich breit, wächst von der alten Front bis an die Stadt
     function pfeil(tip){
       const P0 = [1175, 118], C = [(P0[0] + tip[0])/2 + 10, (P0[1] + tip[1])/2 - 34];
       const q = t=>[(1-t)*(1-t)*P0[0] + 2*t*(1-t)*C[0] + t*t*tip[0], (1-t)*(1-t)*P0[1] + 2*t*(1-t)*C[1] + t*t*tip[1]];
       const nrm = t=>{ const a = q(Math.max(0, t - .02)), b = q(Math.min(1, t + .02)), l = Math.hypot(b[0]-a[0], b[1]-a[1]); return [-(b[1]-a[1])/l, (b[0]-a[0])/l]; };
-      const L = Math.hypot(tip[0] - P0[0], tip[1] - P0[1]), tn = 1 - Math.min(.5, 62/L);
+      const L = Math.hypot(tip[0] - P0[0], tip[1] - P0[1]), tn = 1 - Math.min(.5, 58/L);
       const off = (t, w)=>{ const p = q(t), n = nrm(t); return [[p[0] + n[0]*w, p[1] + n[1]*w], [p[0] - n[0]*w, p[1] - n[1]*w]]; };
-      const [a0, b0] = off(0, 21), [am, bm] = off(tn/2, 15), [an, bn] = off(tn, 10), [ah, bh] = off(tn, 30);
+      const [a0, b0] = off(0, 13), [am, bm] = off(tn/2, 13), [an, bn] = off(tn, 13), [ah, bh] = off(tn, 30);
       const f = p=>p[0].toFixed(1) + " " + p[1].toFixed(1);
       return `M${f(a0)}Q${f(am)} ${f(an)}L${f(ah)}L${f(tip)}L${f(bh)}L${f(bn)}Q${f(bm)} ${f(b0)}Z`;
     }
-    anim(el("path", {class:"gk-pf", d:pfeil([905, 205])}, dyn), "d", pfeil([905, 205]), pfeil([708, 244]));
-    // Infanteriezeichen: rot rückt vor, blau weicht aus
-    function zeichen(x, y, rot){
-      const n = el("g", {}, dyn), k = el("g", {transform:`translate(${x} ${y})`}, n);
-      if(rot){ el("path", {d:"M0 -24L30 0L0 24L-30 0Z", fill:"#ff8f9a", stroke:"#000", "stroke-width":2.5}, k); el("path", {d:"M-15 -12L15 12M15 -12L-15 12", stroke:"#000", "stroke-width":2.5, fill:"none"}, k); }
-      else { el("rect", {x:-26, y:-17, width:52, height:34, fill:"#8fd0ff", stroke:"#000", "stroke-width":2.5}, k); el("path", {d:"M-26 -17L26 17M26 -17L-26 17", stroke:"#000", "stroke-width":2.5, fill:"none"}, k); }
-      return n;
+    anim(el("path", {class:"gk-pf", d:pfeil([905, 205])}, gO), "d", pfeil([905, 205]), pfeil([708, 244]));
+    // Infanteriezeichen: rot rückt vor, blau weicht aus; Schatten auf dem Boden
+    function zeichen(x, y, rot, dx, dy){
+      const sch = el("ellipse", {cx:0, cy:0, rx:24, ry:9, class:"gk-sch"}, g); zug(sch, dx, dy, x, y + 10);
+      const n = el("g", {}, gO), k = el("g", {transform:`scale(1 ${Z_KIPP}) translate(0 -14)`}, n);
+      if(rot){ el("path", {d:"M0 -24L30 0L0 24L-30 0Z", fill:"#ff8080", stroke:"#000", "stroke-width":2.5}, k); el("path", {d:"M-15 -12L15 12M15 -12L-15 12", stroke:"#000", "stroke-width":2.5, fill:"none"}, k); }
+      else { el("rect", {x:-26, y:-17, width:52, height:34, fill:"#80e0ff", stroke:"#000", "stroke-width":2.5}, k); el("path", {d:"M-26 -17L26 17M26 -17L-26 17", stroke:"#000", "stroke-width":2.5, fill:"none"}, k); }
+      zug(n, dx, dy, x, y);
     }
-    zug(zeichen(1010, 270, true), -215, 6); zug(zeichen(1000, 78, true), -105, 30); zug(zeichen(985, 400, true), -70, -22);
-    zug(zeichen(800, 232, false), -262, 44); zug(zeichen(815, 96, false), -150, -28); zug(zeichen(795, 392, false), -78, 30);
+    zeichen(1010, 270, true, -215, 6); zeichen(1000, 78, true, -105, 30); zeichen(985, 400, true, -70, -22);
+    zeichen(800, 232, false, -262, 44); zeichen(815, 96, false, -150, -28); zeichen(795, 392, false, -78, 30);
   })();
-  /* 02 Drohnen: Ukraine und Russland als Umriss, wenige Flugbahnen nacheinander (frei erfunden, nur zur Veranschaulichung) */
+  /* 02 Drohnen: Ukraine und Russland, viele Flugbahnen schweben über der Karte (frei erfunden, nur zur Veranschaulichung) */
   let dOk = false;
   function drohnen(){
     if(dOk) return; dOk = true;
-    const g = $("gDrohnen"); if(!g) return;
+    const g = $("gDrohnen"), gF = $("gDrohnenF"); if(!g) return;
     const X = lon=>(lon - 19.5)/(51.5 - 19.5)*1200, Y = lat=>(57.2 - lat)/(57.2 - 43.6)*460;
+    for(let x=-40;x<=1240;x+=60) el("path", {class:"gk-gr", d:`M${x} -40V500`}, g);
+    for(let y=-40;y<=500;y+=60) el("path", {class:"gk-gr", d:`M-40 ${y}H1240`}, g);
     const pfad = rs=>rs.map(r=>{ let d = ""; for(let i=0;i<r.length;i+=2) d += (i?"L":"M") + X(r[i]).toFixed(0) + " " + Y(r[i+1]).toFixed(0); return d + "Z"; }).join("");
+    const boden = el("g", {}, g);
     fetch("daten/laender.json").then(r=>r.json()).then(j=>{
-      const ua = el("path", {class:"gd-ua", d: pfad(j.ua)}); const ru = el("path", {class:"gd-ru", d: pfad(j.ru)});
-      g.insertBefore(ua, g.firstChild); g.insertBefore(ru, g.firstChild);
+      g.insertBefore(el("path", {class:"gd-ua", d: pfad(j.ua)}), boden); g.insertBefore(el("path", {class:"gd-ru", d: pfad(j.ru)}), boden);
     }).catch(()=>{});
     // [Start lon/lat, Ziel lon/lat, Richtung]
-    const B = [[[40.5,52.4],[31.5,50.2],"ru"], [[30.6,47.6],[41.8,55.3],"ua"], [[37.6,47.3],[33.4,48.6],"ru"], [[33.2,50.6],[45.4,52.6],"ua"], [[44.2,50.4],[28.6,49.3],"ru"], [[35.6,48.9],[39.6,51.2],"ua"]];
+    const B = [[[40.5,52.4],[31.5,50.2],"ru"], [[30.6,47.6],[41.8,55.3],"ua"], [[37.6,47.3],[33.4,48.6],"ru"], [[33.2,50.6],[45.4,52.6],"ua"], [[44.2,50.4],[28.6,49.3],"ru"], [[35.6,48.9],[39.6,51.2],"ua"],
+               [[39.2,51.6],[36.2,49.9],"ru"], [[32.4,49.4],[37.6,55.7],"ua"], [[43.4,47.2],[35.1,47.8],"ru"], [[34.8,51.2],[39.9,53.4],"ua"], [[38.1,45.2],[30.7,46.5],"ru"], [[36.4,50.1],[47.0,48.5],"ua"],
+               [[41.7,51.0],[24.0,49.8],"ru"], [[33.8,47.1],[37.9,44.7],"ua"], [[37.2,53.8],[30.5,50.5],"ru"], [[31.0,51.4],[40.2,57.0],"ua"]];
+    const N = B.length, T = 13;
     B.forEach(([a,b,k],i)=>{
-      const x0 = X(a[0]), y0 = Y(a[1]), x1 = X(b[0]), y1 = Y(b[1]), bend = 46 + (i%3)*18;
+      const x0 = X(a[0]), y0 = Y(a[1]), x1 = X(b[0]), y1 = Y(b[1]), bend = 38 + (i%4)*16;
       const d = `M${x0.toFixed(0)} ${y0.toFixed(0)}Q${((x0+x1)/2).toFixed(0)} ${((y0+y1)/2 - bend).toFixed(0)} ${x1.toFixed(0)} ${y1.toFixed(0)}`;
-      const c = k === "ru" ? "#ff4d63" : "#ffffff", w = `--w:${(i*2).toFixed(1)}s`;
-      el("path", {class:"gd-b", d, pathLength:1, stroke:c, style:w}, g);
-      el("path", {class:"gd-f", d:"M-9 -8L11 0L-9 8L-4 0Z", fill:c, style:`offset-path:path("${d}");${w}`}, g);
-      el("circle", {class:"gd-z", cx:x1, cy:y1, r:20, stroke:c, style:w}, g);
+      const c = k === "ru" ? "#ff4d63" : "#8fd0ff", w = `--w:${(i*T/N).toFixed(2)}s`;
+      el("path", {class:"gd-s", d, pathLength:1, style:w}, boden);                                   // Schatten der Bahn auf dem Boden
+      el("path", {class:"gd-b", d, pathLength:1, stroke:c, style:w}, gF);
+      const kopf = el("g", {class:"gd-f", style:`offset-path:path("${d}");${w}`}, gF);
+      el("circle", {r:9, fill:c, opacity:.22}, kopf); el("circle", {r:3.6, fill:"#fff"}, kopf);
+      el("circle", {class:"gd-z", cx:x1, cy:y1, r:18, stroke:c, style:w}, g);
     });
   }
+  /* Beide Bilder kippen leicht zur Maus (am Handy schwingen sie langsam von selbst) */
+  [["g1","g3dF"],["g2","g3dD"]].forEach(([gid, bid])=>{
+    const gate = $(gid), b = $(bid); if(!gate || !b) return;
+    gate.addEventListener("pointermove", e=>{ if(e.pointerType !== "mouse") return; const r = gate.getBoundingClientRect(), mx = (e.clientX - r.left)/r.width*2 - 1, my = (e.clientY - r.top)/r.height*2 - 1;
+      b.style.setProperty("--rx", (46 - my*9).toFixed(1) + "deg"); b.style.setProperty("--rz", (-10 + mx*12).toFixed(1) + "deg"); b.classList.add("maus"); });
+    gate.addEventListener("pointerleave", ()=>{ b.style.removeProperty("--rx"); b.style.removeProperty("--rz"); b.classList.remove("maus"); });
+  });
   if("IntersectionObserver" in window){
     new IntersectionObserver(es=>es.forEach(e=>{
-      e.target.classList.toggle("ruht", !e.isIntersecting); const gf = $("gFront"); if(gf.pauseAnimations) e.isIntersecting ? gf.unpauseAnimations() : gf.pauseAnimations();
+      e.target.classList.toggle("ruht", !e.isIntersecting); e.target.querySelectorAll("svg.eb").forEach(gf=>{ if(gf.pauseAnimations) e.isIntersecting ? gf.unpauseAnimations() : gf.pauseAnimations(); });
       const sv = e.target.querySelector("svg[id]");
       if(e.target.id === "g2" && e.isIntersecting) drohnen();
       
@@ -1011,6 +1068,11 @@ Promise.all([
   }).catch(leer).finally(()=>{ box.querySelectorAll(".rv").forEach(n=>n.classList.add("in")); });
 })();
 }
+
+/* ===== Telegram und Twitter: hier die Adressen eintragen ===== */
+{ const SOZIAL = { telegram: "", twitter: "" };
+  document.querySelectorAll("[data-sozial]").forEach(a=>{ const u = SOZIAL[a.dataset.sozial];
+    if(u){ a.href = u; } else { a.removeAttribute("href"); a.classList.add("bald"); a.querySelector(".sz-t").textContent = "Link folgt"; } }); }
 </script>
 </body>
 </html>

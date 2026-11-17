@@ -2,7 +2,8 @@ import json, math
 G = 7.0                      # Schlitzbreite, überall gleich
 B = (100 - 2*G)/3            # Balkenhöhe: drei Balken und zwei Schlitze füllen die Höhe
 R1, R2 = B + G, 100 - B - G  # Unterkante des 1. Schlitzes, Oberkante des 2. Schlitzes
-KS, SX = 0.74, 1.22
+import os
+KS, SX = float(os.environ.get("KS", 0.2)), 1.22
 RF = 0.14                    # Rundung: 1 = weich und verspielt, 0 = hart und kantig
 def rund(pts):
     """Vieleck mit eigener Rundung je Ecke: [(x, y, r), ...] -> SVG-Pfad"""
