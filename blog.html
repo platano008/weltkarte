@@ -8,7 +8,7 @@
 <meta name="description" content="Berichte und Einordnungen zur Lage an der Front.">
 <link rel="icon" type="image/png" href="bild/favicon.png?v=2">
 <link rel="apple-touch-icon" href="bild/icon-180.png?v=2">
-<link rel="stylesheet" href="style.css?v=202611171222">
+<link rel="stylesheet" href="style.css?v=202611171307">
 <style>
 html,body{height:auto;overflow:auto;overflow-x:hidden;background:#000}
 .kopf{display:flex;justify-content:space-between;align-items:center;width:min(1100px,100%);margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 16px 0}
@@ -37,15 +37,51 @@ article figcaption{margin:10px 16px 0;font-family:var(--mono);font-size:12px;col
 .zur{display:inline-block;margin-bottom:34px;color:var(--muted);text-decoration:none;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
 .zur:hover{color:var(--fg)}
 @media (max-width:640px){.post{grid-template-columns:1fr}}
-.ascii{position:relative;margin:calc(-1*clamp(40px,8vw,90px)) calc(50% - 50vw) clamp(30px,6vw,70px);height:clamp(340px,62vh,640px);overflow:hidden}
+.ascii{position:relative;margin:calc(-1*clamp(40px,8vw,90px) - 64px) calc(50% - 50vw) clamp(110px,15vw,200px);height:clamp(400px,72vh,720px)}
+.ascii .cv{position:absolute;inset:0;overflow:hidden}
 .ascii canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.ascii .ttl{position:absolute;left:max(16px,calc(50vw - 534px));bottom:clamp(20px,4vw,46px);z-index:2;pointer-events:none}
-.ascii .gross{margin:0;text-shadow:0 0 40px #000,0 0 18px #000}
-.ascii::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#000 0,transparent 18%,transparent 62%,#000 100%);pointer-events:none}
+.ascii .ttl{position:absolute;left:0;right:0;bottom:0;transform:translateY(42%);z-index:2;pointer-events:none;text-align:center}
+.ascii .ttl .eyebrow{margin-bottom:6px}
+.ascii .gross{margin:0;font-size:clamp(76px,17vw,220px);line-height:.86;text-shadow:0 0 40px rgba(0,0,0,.8)}
+.ascii .cv::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#000 0,transparent 18%,transparent 62%,#000 100%);pointer-events:none}
+.kopf{position:relative;z-index:5}
+.kopf .logo{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--fg)}
+.kopf .logo img{height:30px}
+.kopf .szug-k{display:block;height:20px;width:auto}
+.burger{width:46px;height:46px;display:grid;align-content:center;gap:7px;padding:0 9px;border:0;background:none;cursor:pointer}
+.burger i{display:block;height:2px;background:var(--fg)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}}
+.menu{position:fixed;inset:0;z-index:60;background:#000;overflow-y:auto;animation:fadeIn .25s both}
+.menu nav{width:min(1200px,100%);margin:0 auto;padding:max(86px,12vh) max(16px,env(safe-area-inset-left)) 0;display:flex;flex-direction:column}
+.menu nav > *{display:flex;align-items:baseline;gap:18px;padding:12px 0;border-bottom:1px solid var(--line);font-family:var(--korn);font-size:clamp(34px,6.4vw,76px);line-height:1;text-decoration:none;color:var(--fg);animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.menu nav > *:nth-child(2){animation-delay:.04s}.menu nav > *:nth-child(3){animation-delay:.08s}.menu nav > *:nth-child(4){animation-delay:.12s}.menu nav > *:nth-child(5){animation-delay:.16s}.menu nav > *:nth-child(6){animation-delay:.2s}.menu nav > *:nth-child(7){animation-delay:.24s}.menu nav > *:nth-child(8){animation-delay:.28s}
+.menu nav .aus{color:#6f6f6f}
+.menu nav em{margin-left:auto;font-family:var(--mono);font-style:normal;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.menu nav a:hover{padding-left:14px;transition:padding .25s}
+.menu-x{border:0;background:none;color:var(--fg);position:fixed;z-index:61;right:max(16px,calc((100vw - 1200px)/2 + 16px));top:max(18px,env(safe-area-inset-top));width:46px;height:46px;display:grid;place-items:center;cursor:pointer}
+.menu-x svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none}
+.menu-logo{display:flex;justify-content:center;align-items:center;gap:14px;padding:clamp(40px,8vh,80px) 16px 60px;animation:rise .6s .3s cubic-bezier(.2,.7,.2,1) both}
+.menu-logo img{height:clamp(30px,4vw,42px);width:auto}
+.menu-logo .szug-k{height:clamp(22px,3vw,32px);width:auto}
 </style>
 </head>
 <body>
-<header class="kopf"><a href="./" aria-label="Plyus"><img src="bild/logo.svg" alt=""></a><nav><a href="karte.html">Karte</a><a href="blog.html">Blog</a></nav></header>
+<header class="kopf"><a class="logo" href="./" aria-label="Plyus"><img src="bild/logo.svg" alt=""><svg class="szug-k" viewBox="0 0 558.8 100" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z"/></g></svg></a><button class="burger" id="burger" aria-label="Menü öffnen" aria-expanded="false"><i></i><i></i><i></i></button></header>
+<div class="menu" id="menu" hidden>
+  <button class="menu-x" id="menuX" aria-label="Menü schließen"><svg viewBox="0 0 24 24"><path d="M4 4l16 16M20 4L4 20"/></svg></button>
+  <nav>
+    <a href="karte.html">Karte</a>
+    <span class="aus">Drohnenkarte<em>in Arbeit</em></span>
+    <a href="blog.html">Blog</a>
+    <span class="aus">Telegram<em>folgt</em></span>
+    <span class="aus">Twitter<em>folgt</em></span>
+    <span class="aus">Mitwirkende<em>folgt</em></span>
+    <span class="aus">Kontakt<em>folgt</em></span>
+    <span class="aus">Impressum<em>folgt</em></span>
+  </nav>
+  <div class="menu-logo"><img src="bild/logo.svg" alt=""><svg class="szug-k" viewBox="0 0 558.8 100" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z"/></g></svg></div>
+</div>
 <main id="main"><p class="leer">Lädt …</p></main>
 <script>
 const main = document.getElementById("main");
@@ -63,11 +99,11 @@ function asciiStart(){
   const box = document.getElementById("ascii"); if(!box) return;
   const cv = box.querySelector("canvas"), cx = cv.getContext("2d");
   const RAMPE = " .·:-~+=*x%#&@", ROT = "+";
-  const ZUF = "!?/\\|<>[]{}()$&%#@*+=-_:;.,'~^0123456789";
-  let W, H, dpr, cw, ch, cols, rows, atlas, aw, start = performance.now(), maus = {x:-1e4, y:-1e4, t:0}, raf = 0, sicht = true;
+  const ZUF = "!?/\\|<>[]{}()$&%#@*+=-_:;.,'~^0123456789", KANTE = "-|/\\";
+  let W, H, dpr, cw, ch, cols, rows, atlas, aw, start = performance.now(), maus = {x:-1e4, y:-1e4, t:0}, raf = 0, sicht = true, letzt = 0;
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   function atlasBauen(){
-    const z = RAMPE + ZUF; aw = Math.ceil(cw*dpr);
+    const z = RAMPE + ZUF + KANTE; aw = Math.ceil(cw*dpr);
     atlas = document.createElement("canvas"); atlas.width = aw*z.length; atlas.height = Math.ceil(ch*dpr)*2;
     const a = atlas.getContext("2d"); a.textAlign = "center"; a.textBaseline = "middle";
     a.font = `${Math.round(ch*0.78*dpr)}px "Plyus Grotesk", ui-monospace, monospace`;
@@ -81,6 +117,102 @@ function asciiStart(){
     dpr = Math.min(window.devicePixelRatio || 1, 2); W = box.clientWidth; H = box.clientHeight;
     cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
     ch = W < 640 ? 10 : 15; cw = ch*0.72; cols = Math.ceil(W/cw); rows = Math.ceil(H/ch); atlasBauen();
+    mk.width = cols; mk.height = rows;
+    if(!drohnen.length) drohnenStart();
+  }
+  /* ---------- Drohnen: werden in eine kleine Maske gezeichnet (1 Pixel = 1 Zeichen) ----------
+     Rot-Kanal = Rumpf (helle Zeichen), Grün = rote Akzente, Blau = Schatten am Boden */
+  const mk = document.createElement("canvas"), mx2 = mk.getContext("2d", {willReadFrequently: true});
+  const drohnen = [];
+  const zufall = (a, b)=>a + Math.random()*(b - a);
+  function neu(d, erst){
+    const gr = Math.min(W, H*1.15)*0.8;
+    const groesse = {quad: 0.26, shahed: 0.24, aufkl: 0.34}[d.typ]*gr*(W < 640 ? 1.25 : 1);
+    const seite = Math.random() < 0.5 ? -1 : 1;
+    d.s = groesse*zufall(0.85, 1.1);
+    d.x = seite < 0 ? -d.s : W + d.s; d.y = zufall(H*0.18, H*0.7);
+    if(erst){ d.x = zufall(W*0.15, W*0.85); }
+    d.kurs = seite < 0 ? zufall(-0.25, 0.25) : Math.PI + zufall(-0.25, 0.25);
+    d.v = {quad: 38, shahed: 120, aufkl: 70}[d.typ]*zufall(0.85, 1.15)*(W < 640 ? 0.7 : 1);
+    d.ph = Math.random()*10; d.spur = [];
+  }
+  function drohnenStart(){
+    ["quad", "shahed", "aufkl"].forEach((typ, k)=>{ const d = {typ}; neu(d, true); if(k === 1){ d.x = -d.s*2; d.kurs = 0.12; } if(k === 2){ d.x = W + d.s*3; d.kurs = Math.PI - 0.1; } drohnen.push(d); });
+  }
+  function bewegen(dt, t){
+    for(const d of drohnen){
+      let dreh = Math.sin(t*0.35 + d.ph)*0.18;                                   // sanfte Kurven
+      const ax = d.x - maus.x, ay = d.y - maus.y, ab = Math.hypot(ax, ay);
+      if(ab < d.s*2.2){ const w = Math.atan2(ay, ax) - d.kurs; dreh += Math.sin(w)*1.6*(1 - ab/(d.s*2.2)); }   // weicht der Maus aus
+      const zy = H*0.45 - d.y; dreh += Math.sign(Math.cos(d.kurs))*zy/H*0.35;          // bleibt grob in der Mitte
+      d.kurs += dreh*dt;
+      d.x += Math.cos(d.kurs)*d.v*dt; d.y += Math.sin(d.kurs)*d.v*dt;
+      d.spur.unshift([d.x, d.y]); if(d.spur.length > (d.typ === "shahed" ? 70 : 40)) d.spur.pop();
+      if(d.x < -d.s*3 || d.x > W + d.s*3 || d.y < -d.s*2 || d.y > H + d.s*2) neu(d, false);
+    }
+  }
+  function form(c, d, t, schatten){
+    const s = d.s, K = (r, g, b, a)=>`rgba(${r},${g},${b},${a})`;
+    const F = schatten ? (a)=>K(0,0,255,a*0.8) : (a)=>K(255,0,0,a), R = schatten ? null : (a)=>K(0,255,0,a);
+    c.save(); c.translate(d.x, d.y); c.rotate(d.kurs);
+    if(d.typ === "quad"){
+      const kipp = Math.sin(t*1.7 + d.ph)*0.06; c.scale(1 + kipp, 1 - kipp);
+      c.strokeStyle = F(0.95); c.lineWidth = s*0.075; c.lineCap = "round";
+      for(const [x, y] of [[1,1],[1,-1],[-1,1],[-1,-1]]){ c.beginPath(); c.moveTo(0, 0); c.lineTo(x*s*0.36, y*s*0.36); c.stroke(); }
+      c.fillStyle = F(1); c.beginPath(); c.roundRect(-s*0.2, -s*0.13, s*0.4, s*0.26, s*0.06); c.fill();
+      for(const [x, y] of [[1,1],[1,-1],[-1,1],[-1,-1]]){
+        const px = x*s*0.36, py = y*s*0.36, r = s*0.2;
+        if(schatten){ c.fillStyle = F(0.35); c.beginPath(); c.arc(px, py, r, 0, 7); c.fill(); }
+        if(!schatten){
+          c.strokeStyle = F(0.7); c.lineWidth = Math.max(s*0.03, cw*0.9); c.beginPath(); c.arc(px, py, r, 0, 7); c.stroke();
+          const w = t*(x*y > 0 ? 19 : -19) + x; c.strokeStyle = F(1); c.lineWidth = s*0.05;
+          c.beginPath(); c.moveTo(px + Math.cos(w)*r, py + Math.sin(w)*r); c.lineTo(px - Math.cos(w)*r, py - Math.sin(w)*r); c.stroke();
+          if(x < 0 && Math.sin(t*6 + d.ph) > 0.4){ c.fillStyle = R(1); c.beginPath(); c.arc(px, py, s*0.07, 0, 7); c.fill(); }
+        }
+      }
+      if(!schatten){ c.fillStyle = R(1); c.beginPath(); c.arc(s*0.21, 0, s*0.06, 0, 7); c.fill(); }
+    } else if(d.typ === "shahed"){
+      c.fillStyle = F(1); c.beginPath();
+      c.moveTo(s*0.55, 0); c.lineTo(-s*0.3, s*0.52); c.lineTo(-s*0.36, s*0.48); c.lineTo(-s*0.2, 0); c.lineTo(-s*0.36, -s*0.48); c.lineTo(-s*0.3, -s*0.52); c.closePath(); c.fill();
+      c.fillRect(-s*0.42, -s*0.05, s*0.9, s*0.1);
+      c.fillRect(-s*0.36, s*0.44, s*0.14, s*0.07); c.fillRect(-s*0.36, -s*0.51, s*0.14, s*0.07);
+      if(!schatten){ const g = 0.6 + 0.4*Math.sin(t*30); c.fillStyle = R(g); c.beginPath(); c.arc(-s*0.47, 0, s*0.09, 0, 7); c.fill(); }
+    } else {
+      c.fillStyle = F(1);
+      c.beginPath(); c.roundRect(-s*0.48, -s*0.045, s*0.92, s*0.09, s*0.045); c.fill();
+      c.beginPath(); c.moveTo(s*0.12, -s*0.7); c.lineTo(s*0.2, -s*0.7); c.lineTo(s*0.2, s*0.7); c.lineTo(s*0.12, s*0.7); c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(-s*0.36, 0); c.lineTo(-s*0.5, -s*0.2); c.lineTo(-s*0.45, -s*0.2); c.lineTo(-s*0.3, 0); c.lineTo(-s*0.45, s*0.2); c.lineTo(-s*0.5, s*0.2); c.closePath(); c.fill();
+      if(!schatten){ const w = t*24; c.strokeStyle = F(0.9); c.lineWidth = s*0.035; c.beginPath(); c.moveTo(-s*0.5, Math.sin(w)*s*0.12); c.lineTo(-s*0.5, -Math.sin(w)*s*0.12); c.stroke(); }
+    }
+    c.restore();
+  }
+  function maske(t){
+    const c = mx2; c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = "source-over"; c.clearRect(0, 0, cols, rows);
+    c.setTransform(1/cw, 0, 0, 1/ch, 0, 0); c.globalCompositeOperation = "lighter";
+    for(const d of drohnen){                                                         // Schatten zuerst, versetzt nach unten rechts
+      const hoch = d.typ === "quad" ? 0.42 : 0.6;
+      c.save(); c.translate(d.s*hoch*0.6, d.s*hoch); c.filter = "blur(" + (d.s*0.05).toFixed(1) + "px)"; form(c, d, t, true); c.restore();
+    }
+    c.filter = "none";
+    for(const d of drohnen){                                                         // Spuren
+      if(d.spur.length < 3 || d.typ === "quad") continue;
+      const rot = d.typ === "shahed";
+      for(let k = 2; k < d.spur.length; k += 1){
+        const a = (1 - k/d.spur.length);
+        const off = rot ? -d.s*0.47 : -d.s*0.5, p = d.spur[k];
+        c.fillStyle = rot ? `rgba(${Math.round(120*a)},${Math.round(255*a*a)},0,1)` : `rgba(${Math.round(150*a)},0,0,1)`;
+        const wk = d.kurs; c.beginPath(); c.arc(p[0] + Math.cos(wk)*off, p[1] + Math.sin(wk)*off, (rot ? d.s*0.06 : d.s*0.025)*(0.6 + a), 0, 7); c.fill();
+      }
+    }
+    for(const d of drohnen) form(c, d, t, false);
+    const z = drohnen.find(d=>d.typ === "shahed");                                  // Zielmarkierung um die Shahed
+    if(z && z.x > 0 && z.x < W){
+      const r = z.s*0.85 + Math.sin(t*4)*z.s*0.05, l = z.s*0.28; c.strokeStyle = "rgba(0,255,0,1)"; c.lineWidth = Math.max(cw, ch)*0.9;
+      c.save(); c.translate(z.x, z.y);
+      for(const [x, y] of [[1,1],[1,-1],[-1,1],[-1,-1]]){ c.beginPath(); c.moveTo(x*r, y*(r - l)); c.lineTo(x*r, y*r); c.lineTo(x*(r - l), y*r); c.stroke(); }
+      c.restore();
+    }
+    return c.getImageData(0, 0, cols, rows).data;
   }
   function feld(x, y, t){
     const u = x*0.055, v = y*0.09;
@@ -93,6 +225,8 @@ function asciiStart(){
   function bild(now){
     const t = (now - start)/1000, ein = Math.min(1, t/1.6), bw = Math.ceil(ch*dpr), sw = cw*dpr, sh = ch*dpr;
     cx.clearRect(0, 0, cv.width, cv.height);
+    const dt = letzt ? Math.min(0.05, (now - letzt)/1000) : 0.016; letzt = now; bewegen(dt, t);
+    const M = maske(t);
     const mx = maus.x/cw, my = maus.y/ch, mAlt = (now - maus.t)/1000, tick = Math.floor(t*12);
     for(let j = 0; j < rows; j++){
       const ny = j/rows;
@@ -105,15 +239,31 @@ function asciiStart(){
         const dx = (i - mx)*cw/15, dy = (j - my)*ch/15, d = Math.sqrt(dx*dx + dy*dy);
         let welle = 0;
         if(d < 26){ welle = Math.max(0, 1 - d/26); b += welle*0.55*Math.max(0, 1 - mAlt*0.4) + Math.sin(d*0.7 - t*7)*0.12*welle; }
+        const o = (j*cols + i)*4, dv = M[o]/255, dr = M[o+1]/255, ds = M[o+2]/255;
+        b *= (1 - 0.7*ds)*(1 - 0.75*Math.min(1, dv*1.5));                           // Schatten und Platz für die Drohne
+        let drot = false;
+        let kante = -1;
+        if(dv > 0.06){
+          const gx = (i + 1 < cols ? M[o+4] : 0) - (i > 0 ? M[o-4] : 0), gy = (j + 1 < rows ? M[o+cols*4] : 0) - (j > 0 ? M[o-cols*4] : 0);
+          const gl = Math.hypot(gx/cw, gy/ch)*ch;
+          if(gl > 150 && dv < 0.97 || gl > 230){                                    // Rand der Drohne: Strichzeichen in Richtung der Kante
+            let w = Math.atan2(gy/ch, gx/cw)*180/Math.PI + 90; w = ((w % 180) + 180) % 180;
+            kante = w < 22.5 || w >= 157.5 ? 0 : w < 67.5 ? 3 : w < 112.5 ? 1 : 2;
+            b = 1;
+          } else b = Math.max(b, 0.42 + dv*0.3);
+        }
+        if(dr > 0.18){ b = Math.max(b, 0.35 + dr*0.65); drot = true; }
         const r = hash(i, j, 0);
-        if(r > ein*1.02) continue;                                  // Einblenden: Zeichen tauchen nach und nach auf
+        if(r > ein*1.02 && dv < 0.06 && !drot) continue;                                  // Einblenden: Zeichen tauchen nach und nach auf
         let idx, rot = false, a;
-        const flack = hash(i, j, tick) < 0.004 + welle*0.05;         // vereinzelt Glitch-Zeichen
-        if(flack && b > 0.12){ idx = RAMPE.length + Math.floor(hash(j, i, tick)*ZUF.length); a = 0.9; rot = hash(i, j, tick + 7) < 0.25; }
+        const flack = dv < 0.06 && !drot && hash(i, j, tick) < 0.004 + welle*0.05;         // vereinzelt Glitch-Zeichen
+        if(kante >= 0){ idx = RAMPE.length + ZUF.length + kante; a = 1; rot = drot; }
+        else if(flack && b > 0.12){ idx = RAMPE.length + Math.floor(hash(j, i, tick)*ZUF.length); a = 0.9; rot = hash(i, j, tick + 7) < 0.25; }
         else {
           const k = Math.min(RAMPE.length - 1, Math.floor(b*RAMPE.length)); if(k <= 0) continue;
           idx = k; a = 0.25 + Math.min(1, b)*0.75;
-          if(b > 0.86 && r < 0.035) rot = true;
+          if((b > 0.86 && r < 0.035 && dv < 0.06) || drot) rot = true;
+          if(drot || dv > 0.06) a = Math.max(a, 0.85);
         }
         cx.globalAlpha = a;
         cx.drawImage(atlas, idx*aw, rot ? bw : 0, aw, bw, i*sw, j*sh, sw, sh);
@@ -137,9 +287,9 @@ async function liste(){
   document.title = "Blog · Plyus";
   try{
     const d = await hole("blog/index.json"), L = d.beitraege || [];
-    main.innerHTML = '<div class="ascii" id="ascii"><canvas></canvas><div class="ttl"><span class="eyebrow">Berichte</span><h1 class="gross">Blog</h1></div></div>' + (L.length ? '<div class="posts">' + L.map(b=>{ const bild = sicher(b.bild);
+    main.innerHTML = '<div class="ascii" id="ascii"><div class="cv"><canvas></canvas></div><div class="ttl"><span class="eyebrow">Berichte</span><h1 class="gross">Blog</h1></div></div>' + (L.length ? '<div class="posts">' + L.map(b=>{ const bild = sicher(b.bild);
       return '<a class="post' + (bild ? "" : " ohne") + '" href="#' + encodeURIComponent(b.id) + '">' + (bild ? '<div class="b" style="background-image:url(&quot;' + esc(bild) + '&quot;)"></div>' : "") + '<div><span class="eyebrow">' + esc(datum(b.datum)) + '</span><h2>' + esc(b.titel) + '</h2><p>' + esc(b.kurz || "") + '</p></div></a>'; }).join("") + '</div>' : '<p class="leer">Noch keine Beiträge.</p>');
-  }catch(e){ main.innerHTML = '<div class="ascii" id="ascii"><canvas></canvas><div class="ttl"><h1 class="gross">Blog</h1></div></div><p class="leer">Die Beiträge konnten nicht geladen werden.</p>'; }
+  }catch(e){ main.innerHTML = '<div class="ascii" id="ascii"><div class="cv"><canvas></canvas></div><div class="ttl"><h1 class="gross">Blog</h1></div></div><p class="leer">Die Beiträge konnten nicht geladen werden.</p>'; }
   asciiStart();
 }
 async function beitrag(id){
@@ -159,6 +309,14 @@ async function beitrag(id){
 }
 function route(){ if(asciiStop){ asciiStop(); asciiStop = null; } const id = decodeURIComponent(location.hash.slice(1)); id ? beitrag(id) : liste(); }
 addEventListener("hashchange", route); route();
+/* Menü */
+(function(){ const m = document.getElementById("menu"), bt = document.getElementById("burger");
+  const auf = on=>{ m.hidden = !on; bt.setAttribute("aria-expanded", on); document.documentElement.style.overflow = on ? "hidden" : ""; };
+  bt.onclick = ()=>auf(true); document.getElementById("menuX").onclick = ()=>auf(false);
+  m.querySelectorAll("a").forEach(a=>a.addEventListener("click", ()=>auf(false)));
+  addEventListener("keydown", e=>{ if(e.key === "Escape") auf(false); });
+})();
+
 </script>
 </body>
 </html>
