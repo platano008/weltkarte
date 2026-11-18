@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611171444">
+<link rel="stylesheet" href="style.css?v=202611181057">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -595,10 +595,10 @@ a.gate:hover .gv .eb{transform:translateZ(var(--z))}
 .gk-sch{fill:rgba(0,0,0,.55)}
 .gd-ua{fill:#161616;stroke:#d9d9d9;stroke-width:2}
 .gd-ru{fill:rgba(194,29,46,.16);stroke:#b23a47}
-.gd-s{fill:none;stroke:rgba(255,255,255,.08);stroke-width:2;stroke-dasharray:1;animation:gdb 13s linear var(--w) infinite both}
-.gd-b{stroke-width:2.6;animation-duration:13s}
-.gd-f{animation-duration:13s}
-.gd-z{animation-duration:13s;stroke-width:2.5}
+.gd-s{fill:none;stroke:rgba(255,255,255,.08);stroke-width:2;stroke-dasharray:1;animation:gdb 15s linear var(--w) infinite both}
+.gd-b{stroke-width:2.6;animation-duration:15s}
+.gd-f{animation-duration:15s}
+.gd-z{animation-duration:15s;stroke-width:2.5}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front,.v-ua{stroke-dasharray:none}.ov .run,.radar{display:none}.rv,.tilt{opacity:1;transform:none}}
 
 /* ===== Neue Textschrift + mittige Kartenblöcke + Weltkugel ===== */
@@ -627,6 +627,37 @@ a.gate:hover .gt b::after{transform:translateX(.25em)}
 .menu-logo{display:flex;justify-content:center;align-items:center;gap:14px;padding:clamp(40px,8vh,80px) 16px 60px;animation:rise .6s .3s cubic-bezier(.2,.7,.2,1) both}
 .menu-logo img{height:clamp(30px,4vw,42px);width:auto}
 .menu-logo .szug-k{height:clamp(22px,3vw,32px);width:auto}
+
+/* ===== Breite Kartenblöcke mit Rahmen, Teile ragen heraus, Titel erst beim Drüberfahren ===== */
+.gates,.gates.gates{display:flex;flex-direction:column;gap:clamp(56px,8vw,110px);margin-top:clamp(50px,7vw,100px)}
+.gate.breit,.gates .gate.breit{position:relative;display:block;margin:0;height:clamp(300px,36vw,450px);border:0;background:none;overflow:visible;text-decoration:none;color:var(--fg)}
+.gate.breit .gv{position:absolute;inset:0;height:auto;margin:0;aspect-ratio:auto;border:0;background:none;-webkit-mask-image:none;mask-image:none;perspective:1300px;perspective-origin:50% 25%}
+.gate.breit .gv-unten{overflow:hidden;border-radius:26px!important;border:1px solid rgba(255,255,255,.14);
+  background:radial-gradient(120% 90% at 50% 110%,rgba(255,255,255,.06),transparent 60%),#040404;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 -60px 80px -60px rgba(255,255,255,.12);transition:border-color .5s,box-shadow .5s}
+.gate.breit .gv-unten::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.7),rgba(0,0,0,.25) 18%,transparent 34%,transparent 80%,rgba(0,0,0,.35))}
+.gate.breit .gv-oben{pointer-events:none;z-index:2;overflow:visible!important;clip-path:inset(-46px -36px -40px -36px round 40px)}
+.gate.breit .g3d{inset:-34% -9%;--gs:1;transform:translateX(var(--tx,0px)) rotateX(var(--rx)) rotateZ(var(--rz)) scale(var(--gs));animation:schwingB 16s ease-in-out infinite alternate;
+  transition:--rx .9s cubic-bezier(.2,.7,.2,1),--rz .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+.gate.breit .g3d.maus{animation:none}
+@keyframes schwingB{from{--rz:-6deg;--rx:39deg}to{--rz:-2deg;--rx:44deg}}
+.gate.breit .gnote{left:24px!important;right:auto!important;bottom:16px!important;transform:none!important;z-index:3}
+.gate.breit .gd-ru{stroke:none}
+.gd-nb{fill:none;stroke:rgba(255,255,255,.28);stroke-width:1.4;stroke-linejoin:round}
+a.gate.breit:hover .gv-unten{border-color:rgba(255,255,255,.4);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 -80px 90px -60px rgba(255,255,255,.2),0 30px 80px -40px rgba(255,255,255,.25)}
+.gate.breit .gt{position:absolute;inset:0;z-index:4;display:grid;place-items:center;margin:0;padding:0;pointer-events:none}
+.gate.breit .gt-in{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 34px 16px;border-radius:22px!important;
+  background:rgba(0,0,0,.42);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);border:1px solid rgba(255,255,255,.12);
+  opacity:0;transform:translateY(14px) scale(.96);filter:blur(6px);transition:opacity .4s,transform .5s cubic-bezier(.2,.8,.2,1),filter .4s}
+.gate.breit .gt b{display:block;margin:0;font-family:var(--display);font-weight:700;font-size:clamp(40px,6.4vw,92px);line-height:.9;text-shadow:0 0 30px rgba(255,255,255,.35)}
+.gate.breit .gt b::after{display:none}
+.gate.breit .gt-sub{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#bdbdbd}
+a.gate.breit .gt-sub::after{content:"→";font-family:var(--body);letter-spacing:0;transition:transform .4s}
+a.gate.breit:hover .gt-sub::after{transform:translateX(5px)}
+.gate.breit:hover .gt-in,.gate.breit:focus-visible .gt-in{opacity:1;transform:none;filter:none}
+.gate.breit.off .gt b{color:#cfcfcf}
+@media (hover:none){.gate.breit .gt{place-items:end center;padding-bottom:18px}.gate.breit .gt-in{opacity:1;transform:none;filter:none;padding:10px 20px 9px;gap:6px}.gate.breit .gt b{font-size:clamp(28px,8vw,46px)}}
+@media (max-width:699px){.gate.breit,.gates .gate.breit{height:clamp(280px,82vw,380px)}.gate.breit .g3d{inset:-18% -14%}}
 </style>
 </head>
 <body>
@@ -665,13 +696,17 @@ a.gate:hover .gt b::after{transform:translateX(.25em)}
     <h2 class="mf-satz"><span class="z"><span>The <em>unbiased</em> mapping.</span></span></h2>
   </section>
   <div class="gates">
-  <a class="gate rv" href="karte.html" id="g1">
-    <div class="gv"><div class="g3d" id="g3dF"><svg id="gFront" class="eb" style="--z:0px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gFrontK" class="eb" style="--z:7px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gFrontR" class="eb" style="--z:14px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gFrontO" class="eb" style="--z:34px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
-    <div class="gt"><b>Frontline</b><svg class="go" viewBox="0 0 24 24"><path d="M3 12h17M13 5l7 7-7 7"/></svg></div>
+  <a class="gate breit rv" href="karte.html" id="g1">
+    <div class="gv gv-unten"><div class="g3d" id="g3dF"><svg id="gFront" class="eb" style="--z:0px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gFrontK" class="eb" style="--z:7px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gFrontR" class="eb" style="--z:14px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
+    <div class="gv gv-oben" aria-hidden="true"><div class="g3d"><svg id="gFrontO" class="eb" style="--z:34px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
+    <div class="gt"><span class="gt-in"><b>Frontline</b><span class="gt-sub">Zur Lagekarte</span></span></div>
   </a>
-  <div class="gate off rv" id="g2">
-    <div class="gv"><div class="g3d" id="g3dD"><svg id="gDrohnen" class="eb" style="--z:0px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gDrohnenF" class="eb" style="--z:40px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div><span class="gnote">Beispielhafte Darstellung</span></div>
-    <div class="gt"><b>Dronemap</b><span class="gbald">in Arbeit</span></div>
+  <div class="gate breit off rv" id="g2">
+    <div class="gv gv-unten"><div class="g3d" id="g3dD"><svg id="gDrohnen" class="eb" style="--z:0px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
+    <div class="gv gv-oben" aria-hidden="true"><div class="g3d"><svg id="gDrohnenF" class="eb" style="--z:40px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
+    <span class="gnote">Beispielhafte Darstellung</span>
+    <div class="gt"><span class="gt-in"><b>Dronemap</b><span class="gt-sub">In Arbeit</span></span></div>
+  </div>
   </div>
   </div>
   </div>
@@ -896,21 +931,28 @@ function drawViz(imp, recent){
     const DUR = "12s", KT = "0;0.1;0.5;1", KS = "0 0 1 1;0.45 0 0.2 1;0 0 1 1";
     const anim = (n, attr, v0, v1)=>el("animate", {attributeName:attr, dur:DUR, repeatCount:"indefinite", values:[v0,v0,v1,v1].join(";"), keyTimes:KT, calcMode:"spline", keySplines:KS}, n);
     const zug = (n, dx, dy, x, y)=>el("animateTransform", {attributeName:"transform", type:"translate", dur:DUR, repeatCount:"indefinite", values:`${x} ${y};${x} ${y};${x+dx} ${y+dy};${x+dx} ${y+dy}`, keyTimes:KT, calcMode:"spline", keySplines:KS}, n);
-    const R0 = "M940 -40C900 70 960 120 920 190S850 270 900 340S870 420 910 500", R1 = "M940 -40C905 60 880 120 790 160S650 215 690 285S880 380 910 500", ZU = "L1240 500L1240 -40Z";
-    const U0 = "M880 -40C840 70 900 120 860 190S790 270 840 340S810 420 850 500", U1 = "M880 -40C845 60 800 112 712 150S570 215 612 292S800 392 850 500", ZL = "L-40 500L-40 -40Z";
+    const R0 = "M955 -330C945 -200 960 -110 940 -40C900 70 960 120 920 190S850 270 900 340S870 420 910 500C930 600 890 700 915 800", R1 = "M955 -330C945 -200 960 -110 940 -40C905 60 880 120 790 160S650 215 690 285S880 380 910 500C930 600 890 700 915 800", ZU = "L2100 800L2100 -330Z";
+    const U0 = "M895 -330C885 -200 900 -110 880 -40C840 70 900 120 860 190S790 270 840 340S810 420 850 500C870 600 830 700 855 800", U1 = "M895 -330C885 -200 900 -110 880 -40C845 60 800 112 712 150S570 215 612 292S800 392 850 500C870 600 830 700 855 800", ZL = "L-900 800L-900 -330Z";
     // Boden: Gitter, Höhenlinien, ukrainisches Gebiet, Fluss, Strassen, Stadt
-    for(let x=-40;x<=1240;x+=60) el("path", {class:"gk-gr", d:`M${x} -40V500`}, g);
-    for(let y=-40;y<=500;y+=60) el("path", {class:"gk-gr", d:`M-40 ${y}H1240`}, g);
+    for(let x=-880;x<=2080;x+=60) el("path", {class:"gk-gr", d:`M${x} -330V800`}, g);
+    for(let y=-340;y<=800;y+=60) el("path", {class:"gk-gr", d:`M-900 ${y}H2100`}, g);
     anim(el("path", {class:"gk-uaf", d:U0 + ZL}, g), "d", U0 + ZL, U1 + ZL);
-    for(let i=0;i<7;i++){ const y = 40 + i*66; el("path", {class:"gk-hl", d:`M-20 ${y}C200 ${y-50+rnd()*60} 420 ${y+50-rnd()*40} 640 ${y-10}S1000 ${y+40-rnd()*70} 1220 ${y-20}`}, g); }
-    el("path", {class:"gk-fl", d:"M250 -10C300 90 220 170 290 250S380 380 330 470"}, g);
-    [["M-10 300L420 262L560 236", "h"], ["M560 236L800 214L1210 150", "h"], ["M520 -10L548 150L560 236L600 470", ""], ["M560 236L700 330L900 470", ""], ["M430 120L560 236", ""]].forEach(([d,c])=>el("path", {class:"gk-st " + c, d}, g));
+    for(let i=0;i<17;i++){ const y = -290 + i*66; el("path", {class:"gk-hl", d:`M-880 ${y+20}C-500 ${y-40+rnd()*60} -200 ${y+30} 0 ${y}C200 ${y-50+rnd()*60} 420 ${y+50-rnd()*40} 640 ${y-10}S1000 ${y+40-rnd()*70} 1220 ${y-20}S1700 ${y+30-rnd()*60} 2080 ${y}`}, g); }
+    el("path", {class:"gk-fl", d:"M180 -330C260 -220 200 -100 250 -10C300 90 220 170 290 250S380 380 330 470S250 650 340 800"}, g);
+    el("path", {class:"gk-fl", d:"M1560 -330C1500 -200 1640 -60 1560 60S1450 260 1540 420S1620 640 1520 800", style:"opacity:.45"}, g);
+    [["M-880 380L-300 330L-10 300L420 262L560 236", "h"], ["M560 236L800 214L1210 150L1700 60L2080 20", "h"], ["M480 -330L520 -10L548 150L560 236L600 470L640 800", ""], ["M560 236L700 330L900 470L1100 800", ""], ["M430 120L560 236", ""], ["M-300 330L-260 -330", ""], ["M-300 330L-380 800", ""], ["M1520 90L1480 -330", ""], ["M1520 90L1640 800", ""]].forEach(([d,c])=>el("path", {class:"gk-st " + c, d}, g));
     for(let ix=-7;ix<=7;ix++) for(let iy=-5;iy<=5;iy++){
       const dx = ix*21, dy = iy*17, r = (dx*dx)/(150*150) + (dy*dy)/(88*88);
       if(r > 1 || rnd() < .14 + r*.35) continue;
       const w = 9 + rnd()*8, h = 7 + rnd()*6;
       el("rect", {class:"gk-bl", x:(560 + dx + dy*.25 - w/2).toFixed(1), y:(236 + dy - dx*.09 - h/2).toFixed(1), width:w.toFixed(1), height:h.toFixed(1), opacity:(.55 + rnd()*.45).toFixed(2)}, g);
     }
+    // weitere Ortschaften links (Hinterland) und rechts (besetzt)
+    [[-300, 330, 90, 60], [1520, 90, 80, 55], [-120, -200, 50, 34], [1360, 620, 55, 36], [180, 640, 50, 32]].forEach(([cx, cy, ax, ay])=>{
+      for(let ix=-5;ix<=5;ix++) for(let iy=-4;iy<=4;iy++){ const dx = ix*19, dy = iy*15, r = (dx*dx)/(ax*ax) + (dy*dy)/(ay*ay);
+        if(r > 1 || rnd() < .2 + r*.35) continue; const w = 8 + rnd()*7, h = 6 + rnd()*5;
+        el("rect", {class:"gk-bl", x:(cx + dx + dy*.25 - w/2).toFixed(1), y:(cy + dy - dx*.09 - h/2).toFixed(1), width:w.toFixed(1), height:h.toFixed(1), opacity:(.4 + rnd()*.4).toFixed(2)}, g); }
+    });
     anim(el("path", {class:"gk-ua", d:U0}, g), "d", U0, U1);
     // Kante und besetztes Gebiet: liegen höher, dadurch wirkt die Fläche wie eine Platte
     anim(el("path", {class:"gk-kante", d:R0 + ZU}, gK), "d", R0 + ZU, R1 + ZU);
@@ -938,6 +980,8 @@ function drawViz(imp, recent){
     }
     zeichen(1010, 270, true, -215, 6); zeichen(1000, 78, true, -105, 30); zeichen(985, 400, true, -70, -22);
     zeichen(800, 232, false, -262, 44); zeichen(815, 96, false, -150, -28); zeichen(795, 392, false, -78, 30);
+    zeichen(1250, 560, true, -60, -10); zeichen(1330, -120, true, -90, 20); zeichen(1420, 300, true, -40, 0);
+    zeichen(560, 560, false, -40, 20); zeichen(420, -110, false, -60, -10); zeichen(150, 330, false, -20, 0);
   })();
   /* 02 Drohnen: Ukraine und Russland, viele Flugbahnen schweben über der Karte (frei erfunden, nur zur Veranschaulichung) */
   let dOk = false;
@@ -945,18 +989,23 @@ function drawViz(imp, recent){
     if(dOk) return; dOk = true;
     const g = $("gDrohnen"), gF = $("gDrohnenF"); if(!g) return;
     const X = lon=>(lon - 19.5)/(51.5 - 19.5)*1200, Y = lat=>(57.2 - lat)/(57.2 - 43.6)*460;
-    for(let x=-40;x<=1240;x+=60) el("path", {class:"gk-gr", d:`M${x} -40V500`}, g);
-    for(let y=-40;y<=500;y+=60) el("path", {class:"gk-gr", d:`M-40 ${y}H1240`}, g);
+    for(let x=-880;x<=2080;x+=60) el("path", {class:"gk-gr", d:`M${x} -330V800`}, g);
+    for(let y=-340;y<=800;y+=60) el("path", {class:"gk-gr", d:`M-900 ${y}H2100`}, g);
     const pfad = rs=>rs.map(r=>{ let d = ""; for(let i=0;i<r.length;i+=2) d += (i?"L":"M") + X(r[i]).toFixed(0) + " " + Y(r[i+1]).toFixed(0); return d + "Z"; }).join("");
     const boden = el("g", {}, g);
     fetch("daten/laender.json").then(r=>r.json()).then(j=>{
       g.insertBefore(el("path", {class:"gd-ua", d: pfad(j.ua)}), boden); g.insertBefore(el("path", {class:"gd-ru", d: pfad(j.ru)}), boden);
     }).catch(()=>{});
+    fetch("daten/nachbarn.json").then(r=>r.json()).then(j=>{                                   // Nachbarländer als feine Linien
+      const d = j.linien.map(r=>{ let s = ""; for(let i=0;i<r.length;i+=2) s += (i?"L":"M") + X(r[i]).toFixed(0) + " " + Y(r[i+1]).toFixed(0); return s; }).join("");
+      g.insertBefore(el("path", {class:"gd-nb", d}), boden);
+    }).catch(()=>{});
     // [Start lon/lat, Ziel lon/lat, Richtung]
     const B = [[[40.5,52.4],[31.5,50.2],"ru"], [[30.6,47.6],[41.8,55.3],"ua"], [[37.6,47.3],[33.4,48.6],"ru"], [[33.2,50.6],[45.4,52.6],"ua"], [[44.2,50.4],[28.6,49.3],"ru"], [[35.6,48.9],[39.6,51.2],"ua"],
                [[39.2,51.6],[36.2,49.9],"ru"], [[32.4,49.4],[37.6,55.7],"ua"], [[43.4,47.2],[35.1,47.8],"ru"], [[34.8,51.2],[39.9,53.4],"ua"], [[38.1,45.2],[30.7,46.5],"ru"], [[36.4,50.1],[47.0,48.5],"ua"],
-               [[41.7,51.0],[24.0,49.8],"ru"], [[33.8,47.1],[37.9,44.7],"ua"], [[37.2,53.8],[30.5,50.5],"ru"], [[31.0,51.4],[40.2,57.0],"ua"]];
-    const N = B.length, T = 13;
+               [[41.7,51.0],[24.0,49.8],"ru"], [[33.8,47.1],[37.9,44.7],"ua"], [[37.2,53.8],[30.5,50.5],"ru"], [[31.0,51.4],[40.2,57.0],"ua"],
+               [[34.9,50.9],[49.1,55.8],"ua"], [[46.0,47.2],[24.0,49.8],"ru"], [[33.6,48.2],[50.2,53.2],"ua"], [[44.9,53.2],[26.2,50.6],"ru"], [[30.4,50.4],[44.5,48.7],"ua"], [[40.2,47.2],[23.6,48.9],"ru"]];
+    const N = B.length, T = 15;
     B.forEach(([a,b,k],i)=>{
       const x0 = X(a[0]), y0 = Y(a[1]), x1 = X(b[0]), y1 = Y(b[1]), bend = 38 + (i%4)*16;
       const d = `M${x0.toFixed(0)} ${y0.toFixed(0)}Q${((x0+x1)/2).toFixed(0)} ${((y0+y1)/2 - bend).toFixed(0)} ${x1.toFixed(0)} ${y1.toFixed(0)}`;
@@ -969,11 +1018,20 @@ function drawViz(imp, recent){
     });
   }
   /* Beide Bilder kippen leicht zur Maus (am Handy schwingen sie langsam von selbst) */
-  [["g1","g3dF"],["g2","g3dD"]].forEach(([gid, bid])=>{
-    const gate = $(gid), b = $(bid); if(!gate || !b) return;
+  /* Bildausschnitt an die Breite anpassen: je breiter der Rahmen, desto mehr von der Szene ist zu sehen */
+  function ausschnitt(){
+    document.querySelectorAll(".gate.breit .g3d").forEach(b=>{
+      const w = b.clientWidth, h = b.clientHeight; if(!w || !h) return;
+      const VH = 760, vw = VH*w/h, x0 = 600 - vw/2;
+      b.querySelectorAll("svg.eb").forEach(sv=>sv.setAttribute("viewBox", `${x0.toFixed(0)} -150 ${vw.toFixed(0)} ${VH}`));
+    });
+  }
+  ausschnitt(); addEventListener("resize", ausschnitt);
+  ["g1","g2"].forEach(gid=>{
+    const gate = $(gid); if(!gate) return; const bs = gate.querySelectorAll(".g3d");
     gate.addEventListener("pointermove", e=>{ if(e.pointerType !== "mouse") return; const r = gate.getBoundingClientRect(), mx = (e.clientX - r.left)/r.width*2 - 1, my = (e.clientY - r.top)/r.height*2 - 1;
-      b.style.setProperty("--rx", (46 - my*9).toFixed(1) + "deg"); b.style.setProperty("--rz", (-10 + mx*12).toFixed(1) + "deg"); b.classList.add("maus"); });
-    gate.addEventListener("pointerleave", ()=>{ b.style.removeProperty("--rx"); b.style.removeProperty("--rz"); b.classList.remove("maus"); });
+      bs.forEach(b=>{ b.style.setProperty("--rx", (41 - my*8).toFixed(1) + "deg"); b.style.setProperty("--rz", (-4 + mx*7).toFixed(1) + "deg"); b.style.setProperty("--tx", (mx*-18).toFixed(1) + "px"); b.classList.add("maus"); }); });
+    gate.addEventListener("pointerleave", ()=>bs.forEach(b=>{ b.style.removeProperty("--rx"); b.style.removeProperty("--rz"); b.style.removeProperty("--tx"); b.classList.remove("maus"); }));
   });
   if("IntersectionObserver" in window){
     new IntersectionObserver(es=>es.forEach(e=>{
