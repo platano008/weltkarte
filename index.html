@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611201012">
+<link rel="stylesheet" href="style.css?v=202611201047">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -699,12 +699,18 @@ a.gate.breit:hover .gt-sub::after{transform:translateX(5px)}
 html.lite .gate.breit .g3d{animation:none}
 html.lite .gx-funken,html.lite .gx-feuer{display:none}
 html.lite .gd-s{display:none}
+
+/* sparsamer Modus (Tablets, Handys, schwache Rechner) */
+html.lite .nb{display:none}
+html.lite .szug{filter:none}
+html.lite .scan,html.lite .radar{display:none}
+html.lite .tick div{animation-duration:70s}
 </style>
-<script src="lang.js?v=202611201012" defer></script>
+<script src="lang.js?v=202611201047" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
-(function(){ try{ const c = navigator.hardwareConcurrency || 8, m = navigator.deviceMemory || 8; if(c <= 4 || m <= 4) document.documentElement.classList.add("lite"); }catch(e){} })();</script>
+(function(){ try{ const c = navigator.hardwareConcurrency || 8, m = navigator.deviceMemory || 8; if(c <= 4 || m <= 4 || matchMedia("(hover:none),(pointer:coarse)").matches) document.documentElement.classList.add("lite"); }catch(e){} })();</script>
 
 <header class="top"><div class="wrap">
   <a class="logo" href="./" aria-label="Plyus"><img class="mark" src="bild/logo.svg" alt=""></a>
@@ -1167,9 +1173,11 @@ Promise.all([
 /* ===== Köpfe der Stäbe: jedes Bild folgt der Spitze seines Stabs ===== */
 (function(){
   const hero = $("hero"), sec = $("koepfe").parentElement; let k = [], b = [];
+  const LITE = document.documentElement.classList.contains("lite"); let jeder = 0;
   function lauf(){
     requestAnimationFrame(lauf);
     if(hero.classList.contains("paused")) return;
+    if(LITE && (jeder++ & 1)) return;                                   // sparsam: Köpfe nur jedes 2. Bild nachführen
     if(k.length !== b.length || !k.length){ k = [...document.querySelectorAll("#koepfe .kopf")]; b = [...document.querySelectorAll(".mast .st b")]; if(!k.length) return; }
     const h = sec.getBoundingClientRect(), s = Math.max(0.62, Math.min(1.15, $("vizbox").clientWidth/1500));
     const rs = k.map((n,i)=>n.classList.contains("an") ? b[i].getBoundingClientRect() : null);            // erst alles messen …
