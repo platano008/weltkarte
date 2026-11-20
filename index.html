@@ -630,22 +630,20 @@ a.gate:hover .gt b::after{transform:translateX(.25em)}
 
 /* ===== Breite Kartenblöcke mit Rahmen, Teile ragen heraus, Titel erst beim Drüberfahren ===== */
 .gates,.gates.gates{display:flex;flex-direction:column;gap:clamp(56px,8vw,110px);margin-top:clamp(50px,7vw,100px)}
-.gate.breit,.gates .gate.breit{position:relative;display:block;margin:0;height:clamp(300px,36vw,450px);border:0;background:none;overflow:visible;text-decoration:none;color:var(--fg)}
-.gate.breit .gv{position:absolute;inset:0;height:auto;margin:0;aspect-ratio:auto;border:0;background:none;-webkit-mask-image:none;mask-image:none;perspective:1300px;perspective-origin:50% 25%}
-.gate.breit .gv-unten{overflow:hidden;border-radius:26px!important;border:1px solid rgba(255,255,255,.14);
-  background:radial-gradient(120% 90% at 50% 110%,rgba(255,255,255,.06),transparent 60%),#040404;
-  box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 -60px 80px -60px rgba(255,255,255,.12);transition:border-color .5s,box-shadow .5s}
-.gate.breit .gv-unten::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.7),rgba(0,0,0,.25) 18%,transparent 34%,transparent 80%,rgba(0,0,0,.35))}
-.gate.breit .gv-oben{pointer-events:none;z-index:2;overflow:visible!important;clip-path:inset(-46px -36px -40px -36px round 40px)}
-.gate.breit .g3d{inset:-34% -9%;--gs:1;transform:translateX(var(--tx,0px)) rotateX(var(--rx)) rotateZ(var(--rz)) scale(var(--gs));animation:schwingB 16s ease-in-out infinite alternate;
+.gate.breit,.gates .gate.breit{position:relative;display:block;margin:0;height:clamp(340px,44vw,560px);border:0;background:none;overflow:visible;text-decoration:none;color:var(--fg)}
+.gate.breit .gv{position:absolute;inset:-16% -3%;height:auto;margin:0;aspect-ratio:auto;border:0;background:none;-webkit-mask-image:none;mask-image:none;perspective:1300px;perspective-origin:50% 25%}
+.gate.breit .gv-unten{overflow:visible;-webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 64%,transparent 100%);mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 64%,transparent 100%)}
+.grahmen{position:absolute;inset:12% 5%;z-index:1;pointer-events:none;border-radius:26px!important;border:1.5px solid rgba(255,255,255,.3);box-shadow:0 0 0 1px rgba(0,0,0,.35),inset 0 0 0 1px rgba(0,0,0,.35),0 0 40px -12px rgba(255,255,255,.25);transition:border-color .5s,box-shadow .5s}
+.gate.breit .gv-oben{pointer-events:none;z-index:2;overflow:visible!important;-webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 74%,transparent 100%);mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 74%,transparent 100%)}
+.gate.breit .g3d{inset:-2% -2%;--gs:1;transform:translateX(var(--tx,0px)) rotateX(var(--rx)) rotateZ(var(--rz)) scale(var(--gs));animation:schwingB 16s ease-in-out infinite alternate;
   transition:--rx .9s cubic-bezier(.2,.7,.2,1),--rz .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
 .gate.breit .g3d.maus{animation:none}
 @keyframes schwingB{from{--rz:-6deg;--rx:39deg}to{--rz:-2deg;--rx:44deg}}
-.gate.breit .gnote{left:24px!important;right:auto!important;bottom:16px!important;transform:none!important;z-index:3}
+.gate.breit .gnote{left:calc(5% + 22px)!important;right:auto!important;bottom:calc(12% + 14px)!important;transform:none!important;z-index:3}
 .gate.breit .gd-ru{stroke:none}
 .gd-nb{fill:none;stroke:rgba(255,255,255,.28);stroke-width:1.4;stroke-linejoin:round}
-a.gate.breit:hover .gv-unten{border-color:rgba(255,255,255,.4);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 -80px 90px -60px rgba(255,255,255,.2),0 30px 80px -40px rgba(255,255,255,.25)}
-.gate.breit .gt{position:absolute;inset:0;z-index:4;display:grid;place-items:center;margin:0;padding:0;pointer-events:none}
+a.gate.breit:hover .grahmen{border-color:rgba(255,255,255,.75);box-shadow:0 0 0 1px rgba(0,0,0,.35),0 0 50px -8px rgba(255,255,255,.4)}
+.gate.breit .gt{position:absolute;inset:12% 5%;z-index:4;display:grid;place-items:center;margin:0;padding:0;pointer-events:none}
 .gate.breit .gt-in{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 34px 16px;border-radius:22px!important;
   background:rgba(0,0,0,.42);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);border:1px solid rgba(255,255,255,.12);
   opacity:0;transform:translateY(14px) scale(.96);filter:blur(6px);transition:opacity .4s,transform .5s cubic-bezier(.2,.8,.2,1),filter .4s}
@@ -657,7 +655,7 @@ a.gate.breit:hover .gt-sub::after{transform:translateX(5px)}
 .gate.breit:hover .gt-in,.gate.breit:focus-visible .gt-in{opacity:1;transform:none;filter:none}
 .gate.breit.off .gt b{color:#cfcfcf}
 @media (hover:none){.gate.breit .gt{place-items:end center;padding-bottom:18px}.gate.breit .gt-in{opacity:1;transform:none;filter:none;padding:10px 20px 9px;gap:6px}.gate.breit .gt b{font-size:clamp(28px,8vw,46px)}}
-@media (max-width:699px){.gate.breit,.gates .gate.breit{height:clamp(280px,82vw,380px)}.gate.breit .g3d{inset:-18% -14%}}
+@media (max-width:699px){.gate.breit,.gates .gate.breit{height:clamp(320px,96vw,440px)}.gate.breit .g3d{inset:-10% -16%}.grahmen,.gate.breit .gt{inset:12% 3%}}
 </style>
 </head>
 <body>
@@ -698,11 +696,13 @@ a.gate.breit:hover .gt-sub::after{transform:translateX(5px)}
   <div class="gates">
   <a class="gate breit rv" href="karte.html" id="g1">
     <div class="gv gv-unten"><div class="g3d" id="g3dF"><svg id="gFront" class="eb" style="--z:0px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gFrontK" class="eb" style="--z:7px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gFrontR" class="eb" style="--z:14px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
+    <div class="grahmen"></div>
     <div class="gv gv-oben" aria-hidden="true"><div class="g3d"><svg id="gFrontO" class="eb" style="--z:34px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
     <div class="gt"><span class="gt-in"><b>Frontline</b><span class="gt-sub">Zur Lagekarte</span></span></div>
   </a>
   <div class="gate breit off rv" id="g2">
     <div class="gv gv-unten"><div class="g3d" id="g3dD"><svg id="gDrohnen" class="eb" style="--z:0px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
+    <div class="grahmen"></div>
     <div class="gv gv-oben" aria-hidden="true"><div class="g3d"><svg id="gDrohnenF" class="eb" style="--z:40px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
     <span class="gnote">Beispielhafte Darstellung</span>
     <div class="gt"><span class="gt-in"><b>Dronemap</b><span class="gt-sub">In Arbeit</span></span></div>
@@ -1022,8 +1022,8 @@ function drawViz(imp, recent){
   function ausschnitt(){
     document.querySelectorAll(".gate.breit .g3d").forEach(b=>{
       const w = b.clientWidth, h = b.clientHeight; if(!w || !h) return;
-      const VH = 760, vw = VH*w/h, x0 = 600 - vw/2;
-      b.querySelectorAll("svg.eb").forEach(sv=>sv.setAttribute("viewBox", `${x0.toFixed(0)} -150 ${vw.toFixed(0)} ${VH}`));
+      const VH = Math.min(1100, Math.max(560, 1000*h/w)), vw = VH*w/h, x0 = 600 - vw/2, y0 = 230 - VH/2;
+      b.querySelectorAll("svg.eb").forEach(sv=>sv.setAttribute("viewBox", `${x0.toFixed(0)} ${y0.toFixed(0)} ${vw.toFixed(0)} ${VH.toFixed(0)}`));
     });
   }
   ausschnitt(); addEventListener("resize", ausschnitt);
