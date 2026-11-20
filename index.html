@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611201047">
+<link rel="stylesheet" href="style.css?v=202611201737">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -636,7 +636,7 @@ a.gate:hover .gt b::after{transform:translateX(.25em)}
 .gate.breit .gv-unten{overflow:hidden}
 .grahmen{position:absolute;inset:12% 5%;z-index:4;pointer-events:none;border-radius:26px!important;border:1.5px solid rgba(255,255,255,.3);box-shadow:0 0 0 1px rgba(0,0,0,.35),inset 0 0 0 1px rgba(0,0,0,.35),0 0 40px -12px rgba(255,255,255,.25);transition:border-color .5s,box-shadow .5s}
 .gate.breit .gv-oben{pointer-events:none;z-index:2}
-.gate.breit .g3d{inset:-2% -2%;--gs:1;transform:translateX(var(--tx,0px)) rotateX(var(--rx)) rotateZ(var(--rz)) scale(var(--gs));animation:schwingB 16s ease-in-out infinite alternate;
+.gate.breit .g3d{inset:-32% -2%;--gs:1;transform:translateX(var(--tx,0px)) rotateX(var(--rx)) rotateZ(var(--rz)) scale(var(--gs));animation:schwingB 16s ease-in-out infinite alternate;
   transition:--rx .9s cubic-bezier(.2,.7,.2,1),--rz .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
 .gate.breit .g3d.maus{animation:none}
 @keyframes schwingB{from{--rz:-6deg;--rx:39deg}to{--rz:-2deg;--rx:44deg}}
@@ -705,8 +705,15 @@ html.lite .nb{display:none}
 html.lite .szug{filter:none}
 html.lite .scan,html.lite .radar{display:none}
 html.lite .tick div{animation-duration:70s}
+
+/* Dronemap im gemeinsamen Gelände */
+.gr-bahn{fill:none;stroke:rgba(255,255,255,.28);stroke-width:1.6;stroke-dasharray:6 8;animation:gdl 2.4s linear infinite}
+.gr-aufkl{offset-rotate:auto;animation:grKreis 26s linear infinite}
+@keyframes grKreis{from{offset-distance:0%}to{offset-distance:100%}}
+.gr-kegel{fill:rgba(255,255,255,.07);stroke:rgba(255,255,255,.18);stroke-width:1}
+.gate.breit .gd-f{offset-rotate:auto 45deg}
 </style>
-<script src="lang.js?v=202611201047" defer></script>
+<script src="lang.js?v=202611201737" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -753,8 +760,8 @@ html.lite .tick div{animation-duration:70s}
     <div class="gv gv-oben" aria-hidden="true"><div class="g3d"><svg id="gFrontO" class="eb" style="--z:34px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
     <div class="gt"><span class="gt-in"><b>Frontline</b><span class="gt-sub">Zur Lagekarte</span></span></div>
   </a>
-  <div class="gate breit off rv" id="g2">
-    <div class="gv gv-unten"><div class="g3d" id="g3dD"><svg id="gDrohnen" class="eb" style="--z:0px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
+  <div class="gate breit off rv" id="g2" data-cy="900">
+    <div class="gv gv-unten"><div class="g3d" id="g3dD"><svg id="gDrohnen" class="eb" style="--z:0px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gDrohnenK" class="eb" style="--z:7px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gDrohnenR" class="eb" style="--z:14px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
     <div class="grahmen"></div>
     <div class="gv gv-oben" aria-hidden="true"><div class="g3d"><svg id="gDrohnenF" class="eb" style="--z:40px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
     <span class="gnote">Beispielhafte Darstellung</span>
@@ -978,50 +985,52 @@ function drawViz(imp, recent){
   const el = (tag, at, par)=>{ const n = document.createElementNS(NS, tag); for(const k in at) n.setAttribute(k, at[k]); if(par) par.appendChild(n); return n; };
   /* 01 Karte: Vorstoß auf eine Stadt. Ebenen übereinander: Gelände und ukrainisches Gebiet, Kante, besetztes Gebiet, Pfeil und Zeichen */
   const Z_KIPP = 1.42;   /* Zeichen werden in der Höhe gestreckt, damit sie auf der gekippten Fläche normal aussehen */
-  (function(){
-    const g = $("gFront"), gK = $("gFrontK"), gR = $("gFrontR"), gO = $("gFrontO"); if(!g) return;
+  /* Ein gemeinsames Gelände für beide Bilder: oben die Stadt mit der Front (Frontline), weiter unten derselbe Frontverlauf mit Drohnen (Dronemap) */
+  function gelaende(g, gK, gR, gO, mitEinheiten){
+    if(!g) return;
     let seed = 11; const rnd = ()=>(seed = (seed*16807) % 2147483647, seed/2147483647);
     const DUR = "16s", KT = "0;0.08;0.42;0.58;0.92;1", KS = "0 0 1 1;0.45 0 0.2 1;0 0 1 1;0.45 0 0.2 1;0 0 1 1";   /* vor, halten, wieder zurück: Endlosschleife */
     const anim = (n, attr, v0, v1)=>el("animate", {attributeName:attr, dur:DUR, repeatCount:"indefinite", values:[v0,v0,v1,v1,v0,v0].join(";"), keyTimes:KT, calcMode:"spline", keySplines:KS}, n);
     const zug = (n, dx, dy, x, y)=>el("animateTransform", {attributeName:"transform", type:"translate", dur:DUR, repeatCount:"indefinite", values:`${x} ${y};${x} ${y};${x+dx} ${y+dy};${x+dx} ${y+dy};${x} ${y};${x} ${y}`, keyTimes:KT, calcMode:"spline", keySplines:KS}, n);
-    const R0 = "M955 -330C945 -200 960 -110 940 -40C900 70 960 120 920 190S850 270 900 340S870 420 910 500C930 600 890 700 915 800", R1 = "M955 -330C945 -200 960 -110 940 -40C905 60 880 120 790 160S650 215 690 285S880 380 910 500C930 600 890 700 915 800", ZU = "L2100 800L2100 -330Z";
-    const U0 = "M895 -330C885 -200 900 -110 880 -40C840 70 900 120 860 190S790 270 840 340S810 420 850 500C870 600 830 700 855 800", U1 = "M895 -330C885 -200 900 -110 880 -40C845 60 800 112 712 150S570 215 612 292S800 392 850 500C870 600 830 700 855 800", ZL = "L-900 800L-900 -330Z";
-    // Boden: Gitter, Höhenlinien, ukrainisches Gebiet, Fluss, Strassen, Stadt
-    for(let x=-880;x<=2080;x+=60) el("path", {class:"gk-gr", d:`M${x} -330V800`}, g);
-    for(let y=-340;y<=800;y+=60) el("path", {class:"gk-gr", d:`M-900 ${y}H2100`}, g);
+    const Y1 = 1560;   /* Gelände reicht bis hier nach unten */
+    const UNT0 = "C930 900 880 1000 905 1100S950 1260 915 1360S880 1480 900 1560", UNT1 = "C930 900 850 960 800 1040S930 1250 915 1360S880 1480 900 1560";
+    const R0 = "M955 -330C945 -200 960 -110 940 -40C900 70 960 120 920 190S850 270 900 340S870 420 910 500C930 600 890 700 915 800" + UNT0,
+          R1 = "M955 -330C945 -200 960 -110 940 -40C905 60 880 120 790 160S650 215 690 285S880 380 910 500C930 600 890 700 915 800" + UNT1, ZU = `L2100 ${Y1}L2100 -330Z`;
+    const v = (d, dx)=>d.replace(/(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g, (m, x, y)=>`${(+x + dx)} ${y}`);
+    const U0 = v(R0, -60), U1 = "M895 -330C885 -200 900 -110 880 -40C845 60 800 112 712 150S570 215 612 292S800 392 850 500C870 600 830 700 855 800" + v(UNT1, -60), ZL = `L-900 ${Y1}L-900 -330Z`;
+    // Boden: Gitter, Höhenlinien, ukrainisches Gebiet, Flüsse, Strassen, Ortschaften
+    for(let x=-880;x<=2080;x+=60) el("path", {class:"gk-gr", d:`M${x} -330V${Y1}`}, g);
+    for(let y=-340;y<=Y1;y+=60) el("path", {class:"gk-gr", d:`M-900 ${y}H2100`}, g);
     anim(el("path", {class:"gk-uaf", d:U0 + ZL}, g), "d", U0 + ZL, U1 + ZL);
-    for(let i=0;i<17;i++){ const y = -290 + i*66; el("path", {class:"gk-hl", d:`M-880 ${y+20}C-500 ${y-40+rnd()*60} -200 ${y+30} 0 ${y}C200 ${y-50+rnd()*60} 420 ${y+50-rnd()*40} 640 ${y-10}S1000 ${y+40-rnd()*70} 1220 ${y-20}S1700 ${y+30-rnd()*60} 2080 ${y}`}, g); }
-    el("path", {class:"gk-fl", d:"M180 -330C260 -220 200 -100 250 -10C300 90 220 170 290 250S380 380 330 470S250 650 340 800"}, g);
-    el("path", {class:"gk-fl", d:"M1560 -330C1500 -200 1640 -60 1560 60S1450 260 1540 420S1620 640 1520 800", style:"opacity:.45"}, g);
-    [["M-880 380L-300 330L-10 300L420 262L560 236", "h"], ["M560 236L800 214L1210 150L1700 60L2080 20", "h"], ["M480 -330L520 -10L548 150L560 236L600 470L640 800", ""], ["M560 236L700 330L900 470L1100 800", ""], ["M430 120L560 236", ""], ["M-300 330L-260 -330", ""], ["M-300 330L-380 800", ""], ["M1520 90L1480 -330", ""], ["M1520 90L1640 800", ""]].forEach(([d,c])=>el("path", {class:"gk-st " + c, d}, g));
+    for(let i=0;i<29;i++){ const y = -290 + i*66; el("path", {class:"gk-hl", d:`M-880 ${y+20}C-500 ${y-40+rnd()*60} -200 ${y+30} 0 ${y}C200 ${y-50+rnd()*60} 420 ${y+50-rnd()*40} 640 ${y-10}S1000 ${y+40-rnd()*70} 1220 ${y-20}S1700 ${y+30-rnd()*60} 2080 ${y}`}, g); }
+    el("path", {class:"gk-fl", d:"M180 -330C260 -220 200 -100 250 -10C300 90 220 170 290 250S380 380 330 470S250 650 340 800S460 1000 380 1150S300 1400 420 1560"}, g);
+    el("path", {class:"gk-fl", d:"M1560 -330C1500 -200 1640 -60 1560 60S1450 260 1540 420S1620 640 1520 800S1400 1050 1480 1250S1600 1450 1540 1560", style:"opacity:.45"}, g);
+    [["M-880 380L-300 330L-10 300L420 262L560 236", "h"], ["M560 236L800 214L1210 150L1700 60L2080 20", "h"], ["M480 -330L520 -10L548 150L560 236L600 470L640 800L700 1100L760 1560", ""],
+     ["M560 236L700 330L900 470L1100 800L1250 1050", ""], ["M430 120L560 236", ""], ["M-300 330L-260 -330", ""], ["M-300 330L-380 800L-300 1200L-360 1560", ""], ["M1520 90L1480 -330", ""], ["M1520 90L1640 800L1600 1560", ""],
+     ["M-880 1180L-100 1120L380 1150L700 1100L1250 1050L2080 980", "h"], ["M240 1150L180 1560", ""], ["M1250 1050L1380 1300", ""]].forEach(([d,c])=>el("path", {class:"gk-st " + c, d}, g));
     for(let ix=-7;ix<=7;ix++) for(let iy=-5;iy<=5;iy++){
       const dx = ix*21, dy = iy*17, r = (dx*dx)/(150*150) + (dy*dy)/(88*88);
       if(r > 1 || rnd() < .14 + r*.35) continue;
       const w = 9 + rnd()*8, h = 7 + rnd()*6;
       el("rect", {class:"gk-bl", x:(560 + dx + dy*.25 - w/2).toFixed(1), y:(236 + dy - dx*.09 - h/2).toFixed(1), width:w.toFixed(1), height:h.toFixed(1), opacity:(.55 + rnd()*.45).toFixed(2)}, g);
     }
-    // weitere Ortschaften links (Hinterland) und rechts (besetzt)
-    [[-300, 330, 90, 60], [1520, 90, 80, 55], [-120, -200, 50, 34], [1360, 620, 55, 36], [180, 640, 50, 32]].forEach(([cx, cy, ax, ay])=>{
+    [[-300, 330, 90, 60], [1520, 90, 80, 55], [-120, -200, 50, 34], [1360, 620, 55, 36], [180, 640, 50, 32],
+     [380, 1150, 70, 44], [1250, 1050, 60, 40], [700, 1360, 45, 30], [1380, 1300, 50, 32], [-100, 1120, 55, 36]].forEach(([cx, cy, ax, ay])=>{
       for(let ix=-5;ix<=5;ix++) for(let iy=-4;iy<=4;iy++){ const dx = ix*19, dy = iy*15, r = (dx*dx)/(ax*ax) + (dy*dy)/(ay*ay);
         if(r > 1 || rnd() < .2 + r*.35) continue; const w = 8 + rnd()*7, h = 6 + rnd()*5;
         el("rect", {class:"gk-bl", x:(cx + dx + dy*.25 - w/2).toFixed(1), y:(cy + dy - dx*.09 - h/2).toFixed(1), width:w.toFixed(1), height:h.toFixed(1), opacity:(.4 + rnd()*.4).toFixed(2)}, g); }
+    });
+    // Stellungen (Zickzack-Gräben) beiderseits der Front im unteren Teil
+    [[770, 720, 0], [720, 930, 0], [700, 1230, 0], [760, 1450, 0], [1040, 760, 1], [1040, 1010, 1], [1060, 1270, 1], [1010, 1480, 1]].forEach(([x, y, ru])=>{
+      let d = `M${x-60} ${y}`; for(let k=1;k<=8;k++) d += `L${x-60 + k*15} ${y + (k%2 ? -9 : 9)}`;
+      el("path", {class:"gk-gr" + (ru ? " ru" : " ua"), d, style:`stroke:${ru ? "rgba(255,90,110,.55)" : "rgba(143,208,255,.5)"};stroke-width:2.2;fill:none`}, g);
     });
     anim(el("path", {class:"gk-ua", d:U0}, g), "d", U0, U1);
     // Kante und besetztes Gebiet: liegen höher, dadurch wirkt die Fläche wie eine Platte
     anim(el("path", {class:"gk-kante", d:R0 + ZU}, gK), "d", R0 + ZU, R1 + ZU);
     anim(el("path", {class:"gk-zone", d:R0 + ZU}, gR), "d", R0 + ZU, R1 + ZU);
     anim(el("path", {class:"gk-front", d:R0}, gR), "d", R0, R1);
-    // Pfeil: gleich breit, wächst von der alten Front bis an die Stadt
-    function pfeil(tip){
-      const P0 = [1175, 118], C = [(P0[0] + tip[0])/2 + 10, (P0[1] + tip[1])/2 - 34];
-      const q = t=>[(1-t)*(1-t)*P0[0] + 2*t*(1-t)*C[0] + t*t*tip[0], (1-t)*(1-t)*P0[1] + 2*t*(1-t)*C[1] + t*t*tip[1]];
-      const nrm = t=>{ const a = q(Math.max(0, t - .02)), b = q(Math.min(1, t + .02)), l = Math.hypot(b[0]-a[0], b[1]-a[1]); return [-(b[1]-a[1])/l, (b[0]-a[0])/l]; };
-      const L = Math.hypot(tip[0] - P0[0], tip[1] - P0[1]), tn = 1 - Math.min(.5, 58/L);
-      const off = (t, w)=>{ const p = q(t), n = nrm(t); return [[p[0] + n[0]*w, p[1] + n[1]*w], [p[0] - n[0]*w, p[1] - n[1]*w]]; };
-      const [a0, b0] = off(0, 13), [am, bm] = off(tn/2, 13), [an, bn] = off(tn, 13), [ah, bh] = off(tn, 30);
-      const f = p=>p[0].toFixed(1) + " " + p[1].toFixed(1);
-      return `M${f(a0)}Q${f(am)} ${f(an)}L${f(ah)}L${f(tip)}L${f(bh)}L${f(bn)}Q${f(bm)} ${f(b0)}Z`;
-    }
+    if(!mitEinheiten || !gO) return;
     // Infanteriezeichen: rot rückt vor, blau weicht aus; Schatten auf dem Boden
     function zeichen(x, y, rot, dx, dy){
       const sch = el("ellipse", {cx:0, cy:0, rx:24, ry:9, class:"gk-sch"}, g); zug(sch, dx, dy, x, y + 10);
@@ -1034,49 +1043,35 @@ function drawViz(imp, recent){
     zeichen(800, 232, false, -262, 44); zeichen(815, 96, false, -150, -28); zeichen(795, 392, false, -78, 30);
     zeichen(1250, 560, true, -60, -10); zeichen(1330, -120, true, -90, 20); zeichen(1420, 300, true, -40, 0);
     zeichen(560, 560, false, -40, 20); zeichen(420, -110, false, -60, -10); zeichen(150, 330, false, -20, 0);
-  })();
-  /* 02 Drohnen: Ukraine und Russland, viele Flugbahnen schweben über der Karte (frei erfunden, nur zur Veranschaulichung) */
+  }
+  gelaende($("gFront"), $("gFrontK"), $("gFrontR"), $("gFrontO"), true);
+  /* 02 Drohnen: derselbe Frontabschnitt weiter südlich. FPV-Drohnen fliegen über die Front und schlagen ein, eine Aufklärungsdrohne kreist (frei erfunden) */
   let dOk = false;
   function drohnen(){
     if(dOk) return; dOk = true;
     const g = $("gDrohnen"), gF = $("gDrohnenF"); if(!g) return;
-    const X = lon=>(lon - 19.5)/(51.5 - 19.5)*1200, Y = lat=>(57.2 - lat)/(57.2 - 43.6)*460;
-    for(let x=-880;x<=2080;x+=60) el("path", {class:"gk-gr", d:`M${x} -330V800`}, g);
-    for(let y=-340;y<=800;y+=60) el("path", {class:"gk-gr", d:`M-900 ${y}H2100`}, g);
-    const pfad = rs=>rs.map(r=>{ let d = ""; for(let i=0;i<r.length;i+=2) d += (i?"L":"M") + X(r[i]).toFixed(0) + " " + Y(r[i+1]).toFixed(0); return d + "Z"; }).join("");
+    gelaende(g, $("gDrohnenK"), $("gDrohnenR"), null, false);
     const boden = el("g", {}, g);
-    fetch("daten/laender.json").then(r=>r.json()).then(j=>{
-      g.insertBefore(el("path", {class:"gd-ua", d: pfad(j.ua)}), boden); g.insertBefore(el("path", {class:"gd-ru", d: pfad(j.ru)}), boden);
-    }).catch(()=>{});
-    fetch("daten/nachbarn.json").then(r=>r.json()).then(j=>{                                   // Nachbarländer als feine Linien
-      const d = j.linien.map(r=>{ let s = ""; for(let i=0;i<r.length;i+=2) s += (i?"L":"M") + X(r[i]).toFixed(0) + " " + Y(r[i+1]).toFixed(0); return s; }).join("");
-      g.insertBefore(el("path", {class:"gd-nb", d}), boden);
-    }).catch(()=>{});
-    // Orte (lon, lat) – alle Starts und Ziele liegen in der Ukraine oder in Russland
-    const O = {kyiv:[30.52,50.45], charkiw:[36.23,49.99], odesa:[30.73,46.48], dnipro:[35.05,48.46], lwiw:[24.03,49.84], saporischschja:[35.14,47.84], mykolajiw:[31.99,46.97],
-      poltawa:[34.55,49.59], sumy:[34.8,50.91], krywyjrih:[33.39,47.91], winnyzja:[28.47,49.23], tschernihiw:[31.29,51.5], krementschuk:[33.42,49.07], riwne:[26.25,50.62], schytomyr:[28.66,50.25],
-      moskau:[37.62,55.75], belgorod:[36.59,50.6], kursk:[36.19,51.73], brjansk:[34.36,53.25], woronesch:[39.2,51.66], rostow:[39.7,47.23], krasnodar:[38.98,45.04], tuapse:[39.07,44.1],
-      noworossijsk:[37.77,44.72], wolgograd:[44.5,48.7], saratow:[46.03,51.53], rjasan:[39.74,54.63], tula:[37.62,54.19], kaluga:[36.26,54.51], orjol:[36.06,52.97], lipezk:[39.6,52.6],
-      tambow:[41.45,52.72], smolensk:[32.05,54.78], taganrog:[38.9,47.2], kasan:[49.1,55.8], millerowo:[40.4,48.9], primorsko:[38.17,46.05], schatalowo:[32.47,54.33], nawlja:[34.5,52.8],
-      tschauda:[35.85,45.0], sudscha:[35.27,51.2], glusch:[34.38,51.36]};
-    // [Start, Ziel, Richtung] – Kiew und Moskau sind häufiger Ziel; ein paar ukrainische Drohnen starten aus Russland (Raum Sudscha)
-    const B = [["kursk","kyiv","ru"], ["sumy","moskau","ua"], ["primorsko","odesa","ru"], ["poltawa","woronesch","ua"], ["millerowo","dnipro","ru"], ["sudscha","kursk","ua"],
-      ["brjansk","kyiv","ru"], ["tschernihiw","moskau","ua"], ["tschauda","saporischschja","ru"], ["charkiw","belgorod","ua"], ["nawlja","schytomyr","ru"], ["krementschuk","rostow","ua"],
-      ["orjol","kyiv","ru"], ["glusch","moskau","ua"], ["taganrog","mykolajiw","ru"], ["dnipro","noworossijsk","ua"], ["schatalowo","lwiw","ru"], ["poltawa","rjasan","ua"],
-      ["kursk","charkiw","ru"], ["sumy","tula","ua"], ["millerowo","krywyjrih","ru"], ["sudscha","lipezk","ua"], ["primorsko","winnyzja","ru"], ["krywyjrih","tuapse","ua"],
-      ["belgorod","kyiv","ru"], ["kyiv","moskau","ua"], ["tschauda","riwne","ru"], ["charkiw","saratow","ua"]];
-    if(document.documentElement.classList.contains("lite")) B.splice(10); else if(matchMedia("(hover:none),(pointer:coarse)").matches) B.splice(16);           // Tablet/Handy: weniger gleichzeitig
+    // [Start x,y → Ziel x,y, Seite]  UA startet links der Front, RU rechts
+    const B = [[520,760, 1120,820,"ua"], [1300,900, 690,960,"ru"], [430,1080, 1080,1040,"ua"], [1350,1180, 760,1250,"ru"], [600,1380, 1150,1320,"ua"], [1250,700, 640,760,"ru"],
+               [380,900, 1000,1180,"ua"], [1420,1050, 820,860,"ru"], [560,1220, 1060,1480,"ua"], [1180,1440, 600,1100,"ru"], [470,690, 1010,980,"ua"], [1320,820, 700,1420,"ru"],
+               [650,1000, 1120,1120,"ua"], [1150,980, 740,1040,"ru"], [500,1300, 1080,1250,"ua"], [1260,1320, 790,1380,"ru"], [700,800, 1180,920,"ua"], [1100,760, 690,860,"ru"],
+               [560,880, 1020,900,"ua"], [1240,1000, 780,1120,"ru"], [620,1150, 1100,1200,"ua"], [1300,1250, 840,1180,"ru"], [520,1000, 990,1060,"ua"], [1200,880, 720,980,"ru"]];
+    if(document.documentElement.classList.contains("lite")) B.splice(10);
     const N = B.length, T = 15;
-    B.forEach(([sa, sb, k], i)=>{
-      const a = O[sa], b = O[sb];
-      const x0 = X(a[0]), y0 = Y(a[1]), x1 = X(b[0]), y1 = Y(b[1]), bend = 30 + (i%4)*14 + Math.hypot(x1-x0, y1-y0)*0.08;
-      const d = `M${x0.toFixed(0)} ${y0.toFixed(0)}Q${((x0+x1)/2).toFixed(0)} ${((y0+y1)/2 - bend).toFixed(0)} ${x1.toFixed(0)} ${y1.toFixed(0)}`;
+    B.forEach(([x0, y0, x1, y1, k], i)=>{
+      const bend = 50 + (i%3)*30;
+      const d = `M${x0} ${y0}Q${((x0+x1)/2).toFixed(0)} ${((y0+y1)/2 - bend).toFixed(0)} ${x1} ${y1}`;
       const c = k === "ru" ? "#ff4d63" : "#8fd0ff", w = `--w:${(i*T/N).toFixed(2)}s`;
       el("path", {class:"gd-s", d, pathLength:1, style:w}, boden);                                   // Schatten der Bahn auf dem Boden
       el("path", {class:"gd-b", d, pathLength:1, stroke:c, style:w}, gF);
-      const kopf = el("g", {class:"gd-f", style:`offset-path:path("${d}");${w}`}, gF);
-      el("circle", {r:9, fill:c, opacity:.22}, kopf); el("circle", {r:3.6, fill:"#fff"}, kopf);
-      // Einschlag: Blitz, Feuerball, zwei Druckringe, Funken, Glut
+      // FPV-Quadrokopter von oben: vier Rotoren, Rumpf, Leuchtpunkt
+      const kopf = el("g", {class:"gd-f", style:`offset-path:path("${d}");offset-rotate:auto 45deg;${w}`}, gF);
+      el("circle", {r:20, fill:c, opacity:.2}, kopf);
+      el("path", {d:"M-8 -8L8 8M8 -8L-8 8", stroke:"#fff", "stroke-width":2.4}, kopf);
+      for(const [px, py] of [[-8,-8],[8,-8],[-8,8],[8,8]]) el("circle", {cx:px, cy:py, r:4.6, fill:"none", stroke:c, "stroke-width":1.8}, kopf);
+      el("rect", {x:-3.5, y:-3.5, width:7, height:7, fill:"#fff"}, kopf);
+      // Einschlag: Blitz, Feuerball, Druckring, Funken
       el("circle", {class:"gx-blitz", cx:x1, cy:y1, r:16, style:w}, gF);
       el("circle", {class:"gx-feuer", cx:x1, cy:y1, r:11, fill:c, style:w}, gF);
       el("circle", {class:"gx-ring", cx:x1, cy:y1, r:20, stroke:c, style:w}, gF);
@@ -1084,13 +1079,19 @@ function drawViz(imp, recent){
       for(let n = 0; n < 10; n++){ const wi = n/10*Math.PI*2 + i, r0 = 6, r1 = 14 + (n%3)*6;
         el("path", {d:`M${(x1 + Math.cos(wi)*r0).toFixed(1)} ${(y1 + Math.sin(wi)*r0).toFixed(1)}L${(x1 + Math.cos(wi)*r1).toFixed(1)} ${(y1 + Math.sin(wi)*r1).toFixed(1)}`, stroke: n%2 ? "#fff" : c}, f); }
     });
+    // Aufklärungsdrohne: kreist über dem Abschnitt, Bahn gestrichelt
+    const bahn = "M640 1060A270 150 0 1 1 1180 1060A270 150 0 1 1 640 1060";
+    el("path", {d:bahn, class:"gr-bahn"}, gF);
+    const ak = el("g", {class:"gr-aufkl", style:`offset-path:path("${bahn}")`}, gF);
+    el("path", {d:"M14 0L-10 -3L-12 -26L-17 -26L-17 -3L-24 -2L-28 -10L-31 -10L-30 0L-31 10L-28 10L-24 2L-17 3L-17 26L-12 26L-10 3Z", fill:"#e9e9e9", stroke:"#000", "stroke-width":1.4}, ak);
+    el("path", {d:"M14 0L120 -46L120 46Z", class:"gr-kegel"}, ak);
   }
   /* Beide Bilder kippen leicht zur Maus (am Handy schwingen sie langsam von selbst) */
   /* Bildausschnitt an die Breite anpassen: je breiter der Rahmen, desto mehr von der Szene ist zu sehen */
   function ausschnitt(){
     document.querySelectorAll(".gate.breit .g3d").forEach(b=>{
-      const w = b.clientWidth, h = b.clientHeight; if(!w || !h) return;
-      const VH = Math.min(1100, Math.max(560, 1000*h/w)), vw = VH*w/h, x0 = 600 - vw/2, y0 = 230 - VH/2;
+      const w = b.clientWidth, h = b.clientHeight; if(!w || !h) return; const cy = +(b.closest(".gate").dataset.cy || 230);
+      const VH = Math.min(1500, Math.max(600, 1000*h/w)), vw = VH*w/h, x0 = 600 - vw/2, y0 = cy - VH/2;
       b.querySelectorAll("svg.eb").forEach(sv=>sv.setAttribute("viewBox", `${x0.toFixed(0)} ${y0.toFixed(0)} ${vw.toFixed(0)} ${VH.toFixed(0)}`));
     });
   }
