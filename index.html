@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611200918">
+<link rel="stylesheet" href="style.css?v=202611200931">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -683,8 +683,15 @@ a.gate.breit:hover .gt-sub::after{transform:translateX(5px)}
 @keyframes gxfunken{0%,21.8%{opacity:0;transform:scale(.3) rotate(0)}22.4%{opacity:1;transform:scale(1)}28%,100%{opacity:0;transform:scale(2.3) rotate(25deg)}}
 .gx-glut{fill:#ffb36b;animation-name:gxglut}
 @keyframes gxglut{0%,22.4%{opacity:0}24%{opacity:1}30%{opacity:.5}34%{opacity:.9}40%{opacity:.4}48%,100%{opacity:0}}
+
+/* Tablets/Handys: keine Unschärfe hinter Glas (teuer über 3D-Szenen) */
+@media (hover:none),(pointer:coarse){
+  *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  .gate.breit .gt-in{background:rgba(0,0,0,.72)}
+  .gx-blitz{filter:none}
+}
 </style>
-<script src="lang.js?v=202611200918" defer></script>
+<script src="lang.js?v=202611200931" defer></script>
 </head>
 <body>
 
@@ -1041,6 +1048,7 @@ function drawViz(imp, recent){
       ["orjol","kyiv","ru"], ["glusch","moskau","ua"], ["taganrog","mykolajiw","ru"], ["dnipro","noworossijsk","ua"], ["schatalowo","lwiw","ru"], ["poltawa","rjasan","ua"],
       ["kursk","charkiw","ru"], ["sumy","tula","ua"], ["millerowo","krywyjrih","ru"], ["sudscha","lipezk","ua"], ["primorsko","winnyzja","ru"], ["krywyjrih","tuapse","ua"],
       ["belgorod","kyiv","ru"], ["kyiv","moskau","ua"], ["tschauda","riwne","ru"], ["charkiw","saratow","ua"]];
+    if(matchMedia("(hover:none),(pointer:coarse)").matches) B.splice(16);           // Tablet/Handy: weniger gleichzeitig
     const N = B.length, T = 15;
     B.forEach(([sa, sb, k], i)=>{
       const a = O[sa], b = O[sb];
@@ -1055,11 +1063,9 @@ function drawViz(imp, recent){
       el("circle", {class:"gx-blitz", cx:x1, cy:y1, r:16, style:w}, gF);
       el("circle", {class:"gx-feuer", cx:x1, cy:y1, r:11, fill:c, style:w}, gF);
       el("circle", {class:"gx-ring", cx:x1, cy:y1, r:20, stroke:c, style:w}, gF);
-      el("circle", {class:"gx-ring r2", cx:x1, cy:y1, r:20, stroke:"#fff", style:w}, gF);
       const f = el("g", {class:"gx-funken", style:w}, gF);
       for(let n = 0; n < 10; n++){ const wi = n/10*Math.PI*2 + i, r0 = 6, r1 = 14 + (n%3)*6;
         el("path", {d:`M${(x1 + Math.cos(wi)*r0).toFixed(1)} ${(y1 + Math.sin(wi)*r0).toFixed(1)}L${(x1 + Math.cos(wi)*r1).toFixed(1)} ${(y1 + Math.sin(wi)*r1).toFixed(1)}`, stroke: n%2 ? "#fff" : c}, f); }
-      el("circle", {class:"gx-glut", cx:x1, cy:y1, r:4, style:w}, gF);
     });
   }
   /* Beide Bilder kippen leicht zur Maus (am Handy schwingen sie langsam von selbst) */
@@ -1201,12 +1207,14 @@ Promise.all([
 (function(){
   const box = document.getElementById("weltBox"), el = document.getElementById("welt"); if(!box || !el) return;
   const KEY = "4TDQhzPsZwABTFDNshhB", V = "5.0.0";
-  let map = null, lng = 18, lauf = false, zuletzt = 0, sichtbar = false;
+  let map = null, lng = 18, lauf = false, zuletzt = 0, sichtbar = false, bauend = false, wegT = 0;
+  const TOUCH = matchMedia("(hover:none),(pointer:coarse)").matches;
   function laden(src, css){ return new Promise((ok, nein)=>{ const e = document.createElement(css ? "link" : "script");
     if(css){ e.rel = "stylesheet"; e.href = src; } else { e.src = src; } e.onload = ok; e.onerror = nein; document.head.appendChild(e); }); }
   function zoomFuer(){ const w = el.clientWidth || 600; return Math.log2(w*0.43*2*Math.PI/512); }
   function dreh(t){
     if(!map || !sichtbar){ lauf = false; return; }
+    if(TOUCH && zuletzt && t - zuletzt < 30){ requestAnimationFrame(dreh); return; }   // Tablet: ~30 Bilder/s reichen
     const dt = zuletzt ? Math.min(t - zuletzt, 80) : 16; zuletzt = t;
     lng = (lng - dt*0.0035 + 540) % 360 - 180;
     map.jumpTo({center:[lng, 22]});
@@ -1214,6 +1222,7 @@ Promise.all([
   }
   function start(){ if(lauf || !map) return; lauf = true; zuletzt = 0; requestAnimationFrame(dreh); }
   async function bauen(){
+    if(bauend) return; bauend = true;
     try{
       if(!window.maplibregl){
         await Promise.all([laden(`https://cdn.jsdelivr.net/npm/maplibre-gl@${V}/dist/maplibre-gl.css`, true), laden(`https://cdn.jsdelivr.net/npm/maplibre-gl@${V}/dist/maplibre-gl.js`)]);
@@ -1221,11 +1230,11 @@ Promise.all([
       map = new maplibregl.Map({
         container: el, interactive: false, attributionControl: {compact: true},
         center: [lng, 22], zoom: zoomFuer(), renderWorldCopies: false, fadeDuration: 0,
-        pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+        pixelRatio: TOUCH ? 1 : Math.min(window.devicePixelRatio || 1, 2),
         style: {
           version: 8, projection: {type: "globe"},
           sky: {"atmosphere-blend": 1},
-          sources: {sat: {type: "raster", tileSize: 256, maxzoom: 4,
+          sources: {sat: {type: "raster", tileSize: 256, maxzoom: TOUCH ? 3 : 4,
             tiles: [`https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=${KEY}`],
             attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank" rel="noopener">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a>'}},
           layers: [{id: "sat", type: "raster", source: "sat", paint: {"raster-saturation": -0.08, "raster-contrast": 0.08, "raster-fade-duration": 0}}]
@@ -1236,11 +1245,16 @@ Promise.all([
     }catch(e){
       el.innerHTML = '<img src="bild/g-globus.png" alt="" style="width:100%;height:100%;object-fit:contain">';
     }
+    bauend = false;
   }
+  /* weit weg gescrollt: Globus ganz abbauen, damit der Grafikspeicher frei wird (wichtig fürs iPad) */
+  function abbauen(){ if(!map) return; try{ map.remove(); }catch(e){} map = null; lauf = false; box.classList.remove("an"); }
   new IntersectionObserver(es=>{ es.forEach(e=>{
-    sichtbar = e.isIntersecting;
+    sichtbar = e.isIntersecting; clearTimeout(wegT);
     if(sichtbar){ if(!map) bauen(); else start(); }
+    else wegT = setTimeout(abbauen, 4000);
   }); }, {rootMargin: "400px 0px"}).observe(box);
+  document.addEventListener("visibilitychange", ()=>{ if(document.hidden) abbauen(); });
 })();
 </script>
 </body>
