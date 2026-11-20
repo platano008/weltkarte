@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611181057">
+<link rel="stylesheet" href="style.css?v=202611200758">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -656,7 +656,16 @@ a.gate.breit:hover .gt-sub::after{transform:translateX(5px)}
 .gate.breit.off .gt b{color:#cfcfcf}
 @media (hover:none){.gate.breit .gt{place-items:end center;padding-bottom:18px}.gate.breit .gt-in{opacity:1;transform:none;filter:none;padding:10px 20px 9px;gap:6px}.gate.breit .gt b{font-size:clamp(28px,8vw,46px)}}
 @media (max-width:699px){.gate.breit,.gates .gate.breit{height:clamp(320px,96vw,440px)}.gate.breit .g3d{inset:-10% -16%}.grahmen,.gate.breit .gt{inset:12% 3%}}
+.menu:not([hidden]){display:flex;flex-direction:column}
+.menu nav{padding-top:max(78px,9vh)!important}
+.menu nav > *{font-size:min(clamp(34px,6.4vw,76px),5vh)!important;padding:min(12px,1.05vh) 0!important}
+.menu-logo{padding:clamp(22px,4.5vh,56px) 16px calc(30px + env(safe-area-inset-bottom))!important}
+.sprachwahl{position:fixed;z-index:61;left:max(16px,calc((100vw - 1200px)/2 + 16px));top:max(22px,env(safe-area-inset-top));display:flex;padding:3px;border:1px solid rgba(255,255,255,.18);border-radius:999px!important;background:rgba(255,255,255,.04)}
+.sprachwahl button{border:0;background:none;color:#8d8d8d;font-family:var(--mono);font-size:12px;letter-spacing:.14em;padding:9px 14px;border-radius:999px!important;cursor:pointer;transition:background .3s,color .3s}
+.sprachwahl button.an{background:#fff;color:#000}
+.sprachwahl button:not(.an):hover{color:#fff}
 </style>
+<script src="lang.js?v=202611200758" defer></script>
 </head>
 <body>
 
@@ -666,6 +675,7 @@ a.gate.breit:hover .gt-sub::after{transform:translateX(5px)}
 </div></header>
 
 <div class="menu" id="menu" hidden>
+  <div class="sprachwahl" role="group" aria-label="Sprache"><button data-sprache="de" data-nolang>DE</button><button data-sprache="en" data-nolang>EN</button></div>
   <button class="menu-x" id="menuX" aria-label="Menü schließen"><svg viewBox="0 0 28 28"><path d="M2 2l24 24M26 2L2 26"/></svg></button>
   <nav>
     <a href="karte.html">Karte</a>

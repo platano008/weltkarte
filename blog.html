@@ -8,7 +8,7 @@
 <meta name="description" content="Berichte und Einordnungen zur Lage an der Front.">
 <link rel="icon" type="image/png" href="bild/favicon.png?v=2">
 <link rel="apple-touch-icon" href="bild/icon-180.png?v=2">
-<link rel="stylesheet" href="style.css?v=202611181057">
+<link rel="stylesheet" href="style.css?v=202611200758">
 <style>
 html,body{height:auto;overflow:auto;overflow-x:hidden;background:#000}
 .kopf{display:flex;justify-content:space-between;align-items:center;width:min(1100px,100%);margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 16px 0}
@@ -64,11 +64,21 @@ article figcaption{margin:10px 16px 0;font-family:var(--mono);font-size:12px;col
 .menu-logo{display:flex;justify-content:center;align-items:center;gap:14px;padding:clamp(40px,8vh,80px) 16px 60px;animation:rise .6s .3s cubic-bezier(.2,.7,.2,1) both}
 .menu-logo img{height:clamp(30px,4vw,42px);width:auto}
 .menu-logo .szug-k{height:clamp(22px,3vw,32px);width:auto}
+.menu:not([hidden]){display:flex;flex-direction:column}
+.menu nav{padding-top:max(78px,9vh)!important}
+.menu nav > *{font-size:min(clamp(34px,6.4vw,76px),5vh)!important;padding:min(12px,1.05vh) 0!important}
+.menu-logo{padding:clamp(22px,4.5vh,56px) 16px calc(30px + env(safe-area-inset-bottom))!important}
+.sprachwahl{position:fixed;z-index:61;left:max(16px,calc((100vw - 1200px)/2 + 16px));top:max(22px,env(safe-area-inset-top));display:flex;padding:3px;border:1px solid rgba(255,255,255,.18);border-radius:999px!important;background:rgba(255,255,255,.04)}
+.sprachwahl button{border:0;background:none;color:#8d8d8d;font-family:var(--mono);font-size:12px;letter-spacing:.14em;padding:9px 14px;border-radius:999px!important;cursor:pointer;transition:background .3s,color .3s}
+.sprachwahl button.an{background:#fff;color:#000}
+.sprachwahl button:not(.an):hover{color:#fff}
 </style>
+<script src="lang.js?v=202611200758" defer></script>
 </head>
 <body>
 <header class="kopf"><a class="logo" href="./" aria-label="Plyus"><img src="bild/logo.svg" alt=""><svg class="szug-k" viewBox="0 0 558.8 100" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z"/></g></svg></a><button class="burger" id="burger" aria-label="Menü öffnen" aria-expanded="false"><i></i><i></i><i></i></button></header>
 <div class="menu" id="menu" hidden>
+  <div class="sprachwahl" role="group" aria-label="Sprache"><button data-sprache="de" data-nolang>DE</button><button data-sprache="en" data-nolang>EN</button></div>
   <button class="menu-x" id="menuX" aria-label="Menü schließen"><svg viewBox="0 0 28 28"><path d="M2 2l24 24M26 2L2 26"/></svg></button>
   <nav>
     <a href="karte.html">Karte</a>
@@ -100,7 +110,7 @@ function asciiStart(){
   const cv = box.querySelector("canvas"), cx = cv.getContext("2d");
   const RAMPE = " .·:-~+=*x%#&@", ROT = "+";
   const ZUF = "!?/\\|<>[]{}()$&%#@*+=-_:;.,'~^0123456789", KANTE = "-|/\\";
-  let W, H, dpr, cw, ch, cols, rows, atlas, aw, start = performance.now(), maus = {x:-1e4, y:-1e4, t:0}, raf = 0, sicht = true, letzt = 0;
+  let W, H, dpr, cw, ch, cols, rows, atlas, aw, start = performance.now(), raf = 0, sicht = true, letzt = 0;
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   function atlasBauen(){
     const z = RAMPE + ZUF + KANTE; aw = Math.ceil(cw*dpr);
@@ -123,27 +133,27 @@ function asciiStart(){
   /* ---------- Drohnen: werden in eine kleine Maske gezeichnet (1 Pixel = 1 Zeichen) ----------
      Rot-Kanal = Rumpf (helle Zeichen), Grün = rote Akzente, Blau = Schatten am Boden */
   const mk = document.createElement("canvas"), mx2 = mk.getContext("2d", {willReadFrequently: true});
-  const drohnen = [];
+  const drohnen = []; window.__drohnen = drohnen;
   const zufall = (a, b)=>a + Math.random()*(b - a);
   function neu(d, erst){
     const gr = Math.min(W, H*1.15)*0.8;
-    const groesse = {quad: 0.26, shahed: 0.24, aufkl: 0.34}[d.typ]*gr*(W < 640 ? 1.25 : 1);
+    const groesse = {quad: 0.26, shahed: 0.24, aufkl: 0.34, lancet: 0.2}[d.typ]*gr*(W < 640 ? 1.25 : 1);
     const seite = Math.random() < 0.5 ? -1 : 1;
     d.s = groesse*zufall(0.85, 1.1);
     d.x = seite < 0 ? -d.s : W + d.s; d.y = zufall(H*0.18, H*0.7);
     if(erst){ d.x = zufall(W*0.15, W*0.85); }
     d.kurs = seite < 0 ? zufall(-0.25, 0.25) : Math.PI + zufall(-0.25, 0.25);
-    d.v = {quad: 38, shahed: 120, aufkl: 70}[d.typ]*zufall(0.85, 1.15)*(W < 640 ? 0.7 : 1);
-    d.ph = Math.random()*10; d.spur = [];
+    d.v = {quad: 38, shahed: 120, aufkl: 70, lancet: 95}[d.typ]*zufall(0.85, 1.15)*(W < 640 ? 0.7 : 1);
+    d.ph = Math.random()*10; d.spur = []; d.weg = 0;
   }
   function drohnenStart(){
-    ["quad", "shahed", "aufkl"].forEach((typ, k)=>{ const d = {typ}; neu(d, true); if(k === 1){ d.x = -d.s*2; d.kurs = 0.12; } if(k === 2){ d.x = W + d.s*3; d.kurs = Math.PI - 0.1; } drohnen.push(d); });
+    ["quad", "shahed", "aufkl", "lancet"].forEach((typ, k)=>{ const d = {typ}; neu(d, true); if(k === 1){ d.x = -d.s*2; d.kurs = 0.12; } if(k === 2){ d.x = W + d.s*3; d.kurs = Math.PI - 0.1; } if(k === 3){ d.x = -d.s*6; d.y = H*0.3; d.kurs = 0.05; } drohnen.push(d); });
   }
   function bewegen(dt, t){
     for(const d of drohnen){
       let dreh = Math.sin(t*0.35 + d.ph)*0.18;                                   // sanfte Kurven
-      const ax = d.x - maus.x, ay = d.y - maus.y, ab = Math.hypot(ax, ay);
-      if(ab < d.s*2.2){ const w = Math.atan2(ay, ax) - d.kurs; dreh += Math.sin(w)*1.6*(1 - ab/(d.s*2.2)); }   // weicht der Maus aus
+      if(d.weg){ if(t > d.weg){ neu(d, false); } continue; }                          // abgeschossen: kommt später neu
+      if(d.typ === "lancet") dreh += Math.sin(t*1.3 + d.ph)*0.25;                     // Lancet schlängelt etwas mehr
       const zy = H*0.45 - d.y; dreh += Math.sign(Math.cos(d.kurs))*zy/H*0.35;          // bleibt grob in der Mitte
       d.kurs += dreh*dt;
       d.x += Math.cos(d.kurs)*d.v*dt; d.y += Math.sin(d.kurs)*d.v*dt;
@@ -177,6 +187,13 @@ function asciiStart(){
       c.fillRect(-s*0.42, -s*0.05, s*0.9, s*0.1);
       c.fillRect(-s*0.36, s*0.44, s*0.14, s*0.07); c.fillRect(-s*0.36, -s*0.51, s*0.14, s*0.07);
       if(!schatten){ const g = 0.6 + 0.4*Math.sin(t*30); c.fillStyle = R(g); c.beginPath(); c.arc(-s*0.47, 0, s*0.09, 0, 7); c.fill(); }
+    } else if(d.typ === "lancet"){                                                   // Lancet-artig: schlanker Rumpf, zwei X-Flügelpaare
+      c.fillStyle = F(1);
+      c.beginPath(); c.roundRect(-s*0.55, -s*0.05, s*1.1, s*0.1, s*0.05); c.fill();
+      for(const [xm, sp] of [[s*0.22, s*0.42], [-s*0.36, s*0.46]]){
+        for(const y of [1, -1]){ c.beginPath(); c.moveTo(xm + s*0.08, 0); c.lineTo(xm - s*0.1, y*sp); c.lineTo(xm - s*0.18, y*sp); c.lineTo(xm - s*0.08, 0); c.closePath(); c.fill(); }
+      }
+      if(!schatten){ c.fillStyle = R(1); c.beginPath(); c.arc(s*0.55, 0, s*0.05, 0, 7); c.fill(); const w = t*26; c.strokeStyle = F(0.9); c.lineWidth = s*0.04; c.beginPath(); c.moveTo(-s*0.57, Math.sin(w)*s*0.12); c.lineTo(-s*0.57, -Math.sin(w)*s*0.12); c.stroke(); }
     } else {
       c.fillStyle = F(1);
       c.beginPath(); c.roundRect(-s*0.48, -s*0.045, s*0.92, s*0.09, s*0.045); c.fill();
@@ -190,12 +207,13 @@ function asciiStart(){
     const c = mx2; c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = "source-over"; c.clearRect(0, 0, cols, rows);
     c.setTransform(1/cw, 0, 0, 1/ch, 0, 0); c.globalCompositeOperation = "lighter";
     for(const d of drohnen){                                                         // Schatten zuerst, versetzt nach unten rechts
+      if(d.weg) continue;
       const hoch = d.typ === "quad" ? 0.42 : 0.6;
       c.save(); c.translate(d.s*hoch*0.6, d.s*hoch); c.filter = "blur(" + (d.s*0.05).toFixed(1) + "px)"; form(c, d, t, true); c.restore();
     }
     c.filter = "none";
     for(const d of drohnen){                                                         // Spuren
-      if(d.spur.length < 3 || d.typ === "quad") continue;
+      if(d.weg || d.spur.length < 3 || d.typ === "quad") continue;
       const rot = d.typ === "shahed";
       for(let k = 2; k < d.spur.length; k += 1){
         const a = (1 - k/d.spur.length);
@@ -204,8 +222,9 @@ function asciiStart(){
         const wk = d.kurs; c.beginPath(); c.arc(p[0] + Math.cos(wk)*off, p[1] + Math.sin(wk)*off, (rot ? d.s*0.06 : d.s*0.025)*(0.6 + a), 0, 7); c.fill();
       }
     }
-    for(const d of drohnen) form(c, d, t, false);
-    const z = drohnen.find(d=>d.typ === "shahed");                                  // Zielmarkierung um die Shahed
+    for(const d of drohnen) if(!d.weg) form(c, d, t, false);
+    explosionen(c, t);
+    const z = drohnen.find(d=>d.typ === "shahed" && !d.weg);                                  // Zielmarkierung um die Shahed
     if(z && z.x > 0 && z.x < W){
       const r = z.s*0.85 + Math.sin(t*4)*z.s*0.05, l = z.s*0.28; c.strokeStyle = "rgba(0,255,0,1)"; c.lineWidth = Math.max(cw, ch)*0.9;
       c.save(); c.translate(z.x, z.y);
@@ -213,6 +232,37 @@ function asciiStart(){
       c.restore();
     }
     return c.getImageData(0, 0, cols, rows).data;
+  }
+  /* Explosionen: Blitz, Feuerring, Rauch, Splitter */
+  const booms = [];
+  function explosionen(c, t){
+    for(let k = booms.length - 1; k >= 0; k--){
+      const e = booms[k], a = t - e.t0, s = e.s;
+      if(a > 2.6){ booms.splice(k, 1); continue; }
+      if(a < 0.45){ c.fillStyle = `rgba(255,0,0,${(1 - a/0.45).toFixed(3)})`; c.beginPath(); c.arc(e.x, e.y, s*(0.25 + a*1.5), 0, 7); c.fill(); }
+      if(a < 1.3){ c.strokeStyle = `rgba(0,255,0,${(1 - a/1.3).toFixed(3)})`; c.lineWidth = Math.max(cw, s*0.22*(1 - a/1.3)); c.beginPath(); c.arc(e.x, e.y, s*(0.3 + a*1.5), 0, 7); c.stroke(); }
+      if(a > 0.15){ const r = s*(0.4 + (a - 0.15)*0.7); c.fillStyle = `rgba(0,0,255,${(0.75*Math.max(0, 1 - (a - 0.15)/2.4)).toFixed(3)})`;
+        for(const [ox, oy] of e.rauch){ c.beginPath(); c.arc(e.x + ox*r*0.6, e.y + oy*r*0.6 - a*s*0.15, r*0.55, 0, 7); c.fill(); } }
+      for(const p of e.teile){
+        const f = a*(1 - a*0.22), x = e.x + p.vx*f, y = e.y + p.vy*f + a*a*s*0.25, al = Math.max(0, 1 - a/p.l); if(al <= 0) continue;
+        c.fillStyle = p.rot ? `rgba(0,255,0,${al.toFixed(3)})` : `rgba(255,0,0,${al.toFixed(3)})`; c.beginPath(); c.arc(x, y, Math.max(cw*0.6, s*0.04), 0, 7); c.fill();
+      }
+    }
+  }
+  function abschuss(d, t){
+    const teile = [];
+    for(let k = 0; k < 26; k++){ const w = Math.random()*Math.PI*2, v = d.s*(0.8 + Math.random()*2.2); teile.push({vx: Math.cos(w)*v, vy: Math.sin(w)*v, l: 0.7 + Math.random()*1.2, rot: Math.random() < 0.55}); }
+    const rauch = []; for(let k = 0; k < 5; k++) rauch.push([Math.random()*2 - 1, Math.random()*2 - 1]);
+    booms.push({x: d.x, y: d.y, s: d.s, t0: t, teile, rauch});
+    ringe.push({x: d.x, y: d.y, t0: t, st: 1.7});
+    blitz = t;
+    d.weg = t + 2.2 + Math.random()*2;
+  }
+  let blitz = -9;
+  function getroffen(px, py){
+    let best = null, bd = 1e9;
+    for(const d of drohnen){ if(d.weg) continue; const ab = Math.hypot(px - d.x, py - d.y); if(ab < d.s*0.62 && ab < bd){ best = d; bd = ab; } }
+    return best;
   }
   function feld(x, y, t){
     const u = x*0.055, v = y*0.09;
@@ -243,7 +293,7 @@ function asciiStart(){
     cx.clearRect(0, 0, cv.width, cv.height);
     const dt = letzt ? Math.min(0.05, (now - letzt)/1000) : 0.016; letzt = now; bewegen(dt, t);
     const M = maske(t); ringeBewegen(t);
-    const mx = maus.x/cw, my = maus.y/ch, mAlt = (now - maus.t)/1000, tick = Math.floor(t*12);
+    const tick = Math.floor(t*12), bl = Math.max(0, 1 - (t - blitz)/0.35)*0.35;
     for(let j = 0; j < rows; j++){
       const ny = j/rows;
       for(let i = 0; i < cols; i++){
@@ -254,9 +304,7 @@ function asciiStart(){
         b += ringWert(i*cw, j*ch, t)*0.9 + scan*(0.4 + b);
         const rand = Math.min(1, nx*6, (1 - nx)*6);               // weich zum Rand
         b *= 0.35 + 0.65*rand;
-        const dx = (i - mx)*cw/15, dy = (j - my)*ch/15, d = Math.sqrt(dx*dx + dy*dy);
-        let welle = 0;
-        if(d < 26){ welle = Math.max(0, 1 - d/26); b += welle*0.55*Math.max(0, 1 - mAlt*0.4) + Math.sin(d*0.7 - t*7)*0.12*welle; }
+        const welle = 0; b += bl;
         const o = (j*cols + i)*4, dv = M[o]/255, dr = M[o+1]/255, ds = M[o+2]/255;
         b *= (1 - 0.7*ds)*(1 - 0.75*Math.min(1, dv*1.5));                           // Schatten und Platz für die Drohne
         let drot = false;
@@ -292,9 +340,9 @@ function asciiStart(){
   function lauf(now){ bild(now); raf = (sicht && !still) ? requestAnimationFrame(lauf) : 0; }
   const zeig = new IntersectionObserver(es=>{ sicht = es[0].isIntersecting; if(sicht && !raf && !still) raf = requestAnimationFrame(lauf); });
   zeig.observe(box);
-  const bewegt = e => { const r = box.getBoundingClientRect(), p = e.touches ? e.touches[0] : e; maus = {x:p.clientX - r.left, y:p.clientY - r.top, t:performance.now()}; };
-  box.addEventListener("pointermove", bewegt); box.addEventListener("touchstart", bewegt, {passive:true});
-  box.addEventListener("pointerleave", ()=>{ maus.x = -1e4; });
+  const lage = e => { const r = box.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  box.addEventListener("pointerdown", e=>{ const [x, y] = lage(e), d = getroffen(x, y); if(d) abschuss(d, (performance.now() - start)/1000); });
+  box.addEventListener("pointermove", e=>{ if(e.pointerType !== "mouse") return; const [x, y] = lage(e); box.style.cursor = getroffen(x, y) ? "crosshair" : ""; });
   const rs = ()=>{ groesse(); if(still) bild(start + 4000); };
   window.addEventListener("resize", rs);
   (document.fonts ? document.fonts.load('15px "Plyus Grotesk"') : Promise.resolve()).then(()=>{ groesse(); if(still) bild(start + 4000); else raf = requestAnimationFrame(lauf); });

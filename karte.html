@@ -17,11 +17,11 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=202611181057">
+<link rel="stylesheet" href="style.css?v=202611200758">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611181057"></script>
-<script src="werkzeuge.js?v=202611181057"></script>
+<script src="karte.js?v=202611200758"></script>
+<script src="werkzeuge.js?v=202611200758"></script>
 <style>
 .item.chg .ic{width:22px}
 .card{right:calc(max(16px,env(safe-area-inset-right)) + 56px)!important}
@@ -182,7 +182,12 @@ body.k-auf .tl{opacity:0;pointer-events:none}
   .maplibregl-ctrl-bottom-right{bottom:calc(env(safe-area-inset-bottom) + 80px)!important}
 }
 @media (prefers-reduced-motion:reduce){.pille::before{animation:none}}
+.k-sprache{position:absolute;right:14px;top:12px;z-index:2;display:flex;padding:2px;border:1px solid rgba(255,255,255,.16);border-radius:999px!important}
+.k-sprache button{border:0;background:none;color:#8d8d8d;font-family:var(--mono);font-size:10px;letter-spacing:.12em;padding:5px 9px;border-radius:999px!important;cursor:pointer}
+.k-sprache button.an{background:#fff;color:#000}
+.panel .ph{position:relative}
 </style>
+<script src="lang.js?v=202611200758" defer></script>
 </head>
 <body>
 <div id="map"></div>
@@ -201,6 +206,7 @@ body.k-auf .tl{opacity:0;pointer-events:none}
 
 <section class="panel" id="panel">
   <div class="ph">
+    <div class="k-sprache" role="group" aria-label="Sprache"><button data-sprache="de" data-nolang>DE</button><button data-sprache="en" data-nolang>EN</button></div>
     <div class="brand"><span class="eyebrow" id="stand">Lagekarte Ukraine</span><button class="hide-btn" id="hide" title="Leiste ausblenden" aria-label="Leiste ausblenden"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M3 4h18v16H3zM9 4v16M17 9l-3 3 3 3"/></svg></button><button class="toggle" id="toggle" aria-label="Liste ein- oder ausklappen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M6 9l6 6 6-6"/></svg></button></div>
     <h1><a href="./" class="home-link" title="Zur Startseite">Plyus</a></h1>
     <div class="chips" id="chips"></div>
