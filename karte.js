@@ -405,7 +405,9 @@ function standSummary(lage, prev){
     s.n++; s[p.richtung in s ? p.richtung : "grau"] += a; });
   ["ru","ua","grau"].forEach(x=>s[x] = Math.round(s[x]*10)/10); return s;
 }
-const isRecentChange = ()=>["all",["==",["get","art"],"aenderung"],[">=",["coalesce",["get","datum"],""],changeCutoff()]];
+/* "veraltet" (alt:true) heißt: Änderung wird nicht mehr hervorgehoben, sondern wie das übrige Gebiet gezeigt */
+const istNeu = p=>!!p && !p.alt && (p.datum||"") >= changeCutoff();
+const isRecentChange = ()=>["all",["==",["get","art"],"aenderung"],["!=",["coalesce",["get","alt"],false],true],[">=",["coalesce",["get","datum"],""],changeCutoff()]];
 function applyImportFilters(map){
   const base = {"imp-fill":["==",["get","art"],"flaeche"], "imp-line":["in",["get","art"],["literal",["flaeche","linie"]]],
     "imp-change-fill":isRecentChange(), "imp-change-line":isRecentChange(), "imp-change-label":isRecentChange(),
@@ -448,7 +450,7 @@ function importLegend(project, inView){
     if(importHidden.has(L.id)) continue;
     if(L.id==="aenderungen"){
       const cut = changeCutoff();
-      const rec = importData.features.filter(f=>f.properties.art==="aenderung" && (f.properties.datum||"") >= cut && f.geometry.coordinates[0].some(inView));
+      const rec = importData.features.filter(f=>f.properties.art==="aenderung" && !f.properties.alt && (f.properties.datum||"") >= cut && f.geometry.coordinates[0].some(inView));
       const lab = {ru:"Neu russisch kontrolliert", ua:"Neu ukrainisch kontrolliert", grau:"Neu Grauzone"};
       for(const k of ["ru","ua","grau"]) if(rec.some(f=>f.properties.richtung===k)) out.push({kind:"flaeche", color:CHANGE_COL[k], dash:false, label:lab[k]});
       continue;
@@ -657,7 +659,7 @@ function symbolMarker(map, el, o){
 function introRings(map, els){
   const go = ()=>{
     const ab = changeCutoff(), pts = [];
-    if(importData) changes(importData).filter(f=>(f.properties.datum||"") >= ab).forEach(f=>{
+    if(importData) changes(importData).filter(f=>!f.properties.alt && (f.properties.datum||"") >= ab).forEach(f=>{
       const g = f.geometry, r = g.type === "Polygon" ? g.coordinates[0] : g.coordinates[0][0]; let x = 0, y = 0; r.forEach(q=>{ x += q[0]; y += q[1]; });
       pts.push({type:"Feature", properties:{c: CHANGE_COL[f.properties.richtung] || CHANGE_COL.ru}, geometry:{type:"Point", coordinates:[x/r.length, y/r.length]}}); });
     (els || []).filter(el=>el.typ === "symbol" && (el.datum||"") >= ab).forEach(el=>pts.push({type:"Feature", properties:{c:"#ffffff"}, geometry:{type:"Point", coordinates:el.koordinaten}}));
@@ -1419,6 +1421,6 @@ async function exportImage(map, o){
 function emptyData(){ return {version:1, aktualisiert:null, elemente:[]}; }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
-window.Karte = {snapInsert, introRings, markerScale, BILDER, medienHTML, exportWeekVideo, weekChanges, videoMime, canVideo, setRefDate, standSummary, SEITE, changes, gruppen, ensureCids, changeArea, changeBounds, STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
+window.Karte = {istNeu, changeCutoff, snapInsert, introRings, markerScale, BILDER, medienHTML, exportWeekVideo, weekChanges, videoMime, canVideo, setRefDate, standSummary, SEITE, changes, gruppen, ensureCids, changeArea, changeBounds, STYLES, START, SIDES, UNITS, ECHELONS, sidcOf, symbolSVG, describe, lineKm, areaKm2, toFeatures,
   addDataLayers, DATA_LAYERS, createMap, symbolMarker, emptyData, esc, applyTheme, exportImage, exportLayout, farbe, loadImport, replaceFront, nearestEdge, applyFrontEdit, undoFrontEdit, setImportData, refreshImport, importData: ()=>importData, importMeta: ()=>importData && importData.meta};
 })();

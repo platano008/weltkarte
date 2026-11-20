@@ -12,10 +12,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=202611200758">
+<link rel="stylesheet" href="style.css?v=202611200918">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611200758"></script>
+<script src="karte.js?v=202611200918"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -186,6 +186,14 @@ body.ed-liste .panel .mehr{display:block}
   .vb-t{display:none}
   .panel{bottom:calc(66px + env(safe-area-inset-bottom))}
 }
+.chg-log{max-height:280px;overflow:auto;display:grid;gap:2px;margin-top:4px}
+.log-mon{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#8d8d8d;padding:10px 2px 4px;border-bottom:1px solid rgba(255,255,255,.08)}
+.log-row{display:flex;align-items:center;gap:8px;padding:5px 2px}
+.log-row i{width:10px;height:10px;flex:none}
+.log-row.alt i{opacity:.35}
+.log-n{flex:1;min-width:0;text-align:left;border:0;background:none;color:inherit;font:inherit;font-size:13px;cursor:pointer;padding:0}
+.log-n small{display:block;font-family:var(--mono);font-size:10px;color:#8d8d8d;letter-spacing:.06em}
+.log-row.alt .log-n{color:#9a9a9a}
 </style>
 </head>
 <body>
@@ -302,6 +310,7 @@ let front = null, impSha = null, impDirty = false, undoStack = [], frontEbene = 
 let frontDatum = new Date().toISOString().slice(0,10);
 /* Angaben für die nächste Änderung: Name, Richtung, Gruppe (Richtung und Gruppe bleiben für die nächste stehen) */
 let frontMeta = {name:"", direktion:"", gruppe:""}, frontMode = "vor";
+let chgE = null;   /* im Auswahl-Werkzeug angeklickte Änderung */
 let chgOpen = null, chgDel = null;
 const IMP_PATH = "import/lage.geojson";
 let draft = null; /* {typ, pts:[], replaceId} */
@@ -356,7 +365,7 @@ map.on("click", e=>{
   if(tool==="front"){ frontClick(e); return; }
   if(vx && vxKlick(e)) return;
   if(!map.getLayer("lage-hit")) return;
-  if(!map.queryRenderedFeatures(e.point,{layers:["lage-hit","lage-area-fill"]}).length){ if(!frontWaehlen(e)) select(null); }
+  if(!map.queryRenderedFeatures(e.point,{layers:["lage-hit","lage-area-fill"]}).length){ if(!chgWaehlen(e) && !frontWaehlen(e)) select(null); }
 });
 map.on("dblclick", e=>{ if(DRAW.includes(tool)){ e.preventDefault(); finishDraft(); } else if(tool==="front"){ e.preventDefault(); finishFront(); } });
 document.addEventListener("keydown", e=>{
@@ -685,7 +694,7 @@ function setTool(t, opt){
   document.body.classList.toggle("drawing", DRAW.includes(t) || t==="symbol" || t==="front");
   $("frame").hidden = t!=="bild"; if(t==="bild") placeFrame();
   $("tools").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.t===t));
-  if(t!=="select"){ vx = null; select(null, false, true); }
+  if(t!=="select"){ vx = null; chgE = null; chgMarkieren(); select(null, false, true); }
   updateDraft(); renderOpts(); renderList();
 }
 $("tools").querySelectorAll("button").forEach(b=>b.onclick=()=>{ if(b.dataset.t === "select" && tool === "select"){ listeAuf = !listeAuf; if(listeAuf) $("mehr").open = true; panelZustand(); return; } setTool(b.dataset.t); if(b.dataset.t === "select"){ listeAuf = true; $("mehr").open = true; panelZustand(); } });
@@ -935,7 +944,7 @@ function frontOpts(o){
   }
 }
 
-function panelZustand(){ document.body.classList.toggle("ed-auf", tool !== "select" || !!sel || !!vx); document.body.classList.toggle("ed-liste", tool === "select" && listeAuf); }
+function panelZustand(){ document.body.classList.toggle("ed-auf", tool !== "select" || !!sel || !!vx || !!chgE); document.body.classList.toggle("ed-liste", tool === "select" && listeAuf); }
 function renderOpts(){
   const o = $("opts"); setTimeout(panelZustand, 0);
   if(tool==="front"){ frontOpts(o); return; }
@@ -959,6 +968,7 @@ function renderOpts(){
     return;
   }
   /* select tool */
+  if(!sel && chgE){ chgOpts(o); return; }
   if(!sel){ o.innerHTML = vxFelder(); vxFelderVerbinden(); return; }
   const el = sel;
   o.innerHTML = vxFelder() + `<div><label class="lbl" for="fName">Name</label><input class="f" id="fName" value="${esc(el.name)}" placeholder="${esc(K.describe(el))}" maxlength="80"></div>
@@ -997,7 +1007,7 @@ function changeQuiet(redrawMarkers){
 }
 
 function select(el, fly, quiet){
-  sel = el || null;
+  sel = el || null; if(sel){ chgE = null; chgMarkieren(); }
   if(sel && tool === "select" && ["linie","pfeil","flaeche"].includes(sel.typ)){ if(!vx || vx.el !== sel) vx = {kind:"el", el:sel, i:null, add:null}; }
   else if(!(vx && vx.kind === "front" && !sel)) vx = null;
   if(!sel && vx && vx.kind === "el") vx = null;
@@ -1135,6 +1145,43 @@ function vxWeg(){ if(!vx || vx.i == null || vxN() <= vxMin()) return; const befo
 let weich = true; $("vWeichC").onchange = e=>{ weich = e.target.checked; };
 $("vAdd").onclick = vxPlus; $("vDel").onclick = vxWeg;
 $("vOk").onclick = ()=>{ vx = null; select(null); vxDraw(); renderOpts(); };
+/* Änderung anklicken (nur hervorgehobene, nicht veraltete) */
+function punktIn(pt, r){ let c = false; for(let i=0,j=r.length-1;i<r.length;j=i++){ const a = r[i], b = r[j]; if((a[1] > pt[1]) !== (b[1] > pt[1]) && pt[0] < (b[0]-a[0])*(pt[1]-a[1])/(b[1]-a[1]) + a[0]) c = !c; } return c; }
+function chgRing(f){ return f.geometry.type === "Polygon" ? f.geometry.coordinates[0] : f.geometry.coordinates[0][0]; }
+function chgWaehlen(e){
+  const d = K.importData(); if(tool !== "select" || !d) return false;
+  const pt = [e.lngLat.lng, e.lngLat.lat];
+  const kand = K.changes(d).filter(f=>K.istNeu(f.properties) && punktIn(pt, chgRing(f)));
+  if(!kand.length){ if(chgE){ chgE = null; chgMarkieren(); } return false; }
+  kand.sort((a,b)=>K.changeArea(a) - K.changeArea(b));
+  sel = null; vx = null; vxDraw(); highlight(); chgE = kand[0]; chgMarkieren(); renderOpts(); renderList();
+  return true;
+}
+function chgMarkieren(){
+  try{
+    if(!map.getSource("imp")) return;
+    if(!map.getLayer("ed-chg-sel")) map.addLayer({id:"ed-chg-sel", type:"line", source:"imp", filter:["==",["get","cid"],"__none"], paint:{"line-color":"#ffd400","line-width":3,"line-dasharray":[2,1]}});
+    map.setFilter("ed-chg-sel", ["==",["get","cid"], chgE ? (chgE.properties.cid || "__none") : "__none"]);
+  }catch(e){}
+}
+const RICHT_TXT = {ru:"Russischer Gewinn", ua:"Ukrainischer Gewinn", grau:"Neue Grauzone"};
+function chgOpts(o){
+  const p = chgE.properties, grp = K.gruppen(K.importData()), g = grp.find(x=>x.id === p.gruppe);
+  o.innerHTML = `<div class="eyebrow"><span>Änderung · ${esc((p.datum||"").split("-").reverse().join("."))}</span></div>
+    <div class="hint"><b>${esc(p.name || RICHT_TXT[p.richtung] || "Änderung")}</b><br>${esc(RICHT_TXT[p.richtung]||"")} · ${K.changeArea(chgE).toFixed(1).replace(".",",")} km²${p.direktion ? " · " + esc(p.direktion) : ""}${g ? " · Gruppe: " + esc(g.name) : ""}</div>
+    <div><label class="lbl" for="cNm">Name</label><input class="f" id="cNm" maxlength="60" value="${esc(p.name||"")}" placeholder="z. B. Vorstoß bei Myrnohrad"></div>
+    <button class="btn volt" id="cErw">Mit Front erweitern</button>
+    <div class="hint">Zeichnet mit dem Front-Werkzeug weiter. Das Ergebnis wird eine <b>neue Änderung</b> mit gleichem Namen, gleicher Richtung und Gruppe.</div>
+    <button class="btn" id="cAlt">Änderung veralten</button>
+    <div class="hint">Danach wird sie nicht mehr kräftig rot bzw. blau gezeigt, sondern wie das übrige Gebiet. Rückgängig: „Änderung hinzufügen“ → Log.</div>
+    <div class="row"><button class="btn sm" id="cFront">Frontlinie hier bearbeiten</button><button class="btn sm" id="cZu">Schließen</button></div>`;
+  $("cNm").oninput = e=>{ const v = e.target.value.trim(); if(v) p.name = v; else delete p.name; impChange(); };
+  $("cErw").onclick = ()=>{ frontMeta = {name:p.name||"", direktion:p.direktion||"", gruppe:p.gruppe||""}; frontMode = p.richtung === "ua" ? "zurueck" : "vor"; chgE = null; chgMarkieren(); setTool("front"); toast("Front-Werkzeug: an die Kante tippen und weiterzeichnen. Wird als neue Änderung gespeichert."); };
+  $("cAlt").onclick = ()=>{ p.alt = true; chgE = null; chgMarkieren(); impChange(); renderOpts(); toast("Änderung veraltet – sie passt sich jetzt dem übrigen Gebiet an"); };
+  $("cFront").onclick = ()=>{ const r = chgRing(chgE), c = r.reduce((a,q)=>[a[0]+q[0]/r.length, a[1]+q[1]/r.length], [0,0]); chgE = null; chgMarkieren();
+    if(!frontWaehlen({lngLat:{lng:c[0], lat:c[1]}})){ renderOpts(); toast("Keine Frontfläche gefunden"); } };
+  $("cZu").onclick = ()=>{ chgE = null; chgMarkieren(); renderOpts(); };
+}
 /* Frontfläche zum Bearbeiten wählen: die kleinste Fläche unter dem Finger */
 function frontWaehlen(e){
   const d = K.importData(); if(tool !== "select" || !d || !map.getLayer("imp-fill")) return false;
@@ -1174,7 +1221,8 @@ function chgRender(){
     : `<div class="hint">Noch keine neue Änderung. Zeichne sie zuerst mit dem Werkzeug <b>Änderung</b>, dann ordnest du sie hier einer Gruppe zu.</div><button class="btn sm" id="chgTool">Werkzeug „Änderung“ öffnen</button>`)
     + `<div class="eyebrow" style="margin-top:6px"><span>Gruppe für die nächsten Änderungen</span></div><select class="f" id="chgNext">${auswahl(frontMeta.gruppe)}</select>
     <div class="eyebrow" style="margin-top:6px"><span>Neue Gruppe erstellen</span></div><div class="row" style="flex-wrap:nowrap"><input class="f" id="chgGName" placeholder="z. B. Offensive Pokrowsk" maxlength="50"><button class="btn sm" id="chgGNeu">Erstellen</button></div>
-    ${grp.length ? `<div class="hint">Vorhandene Gruppen: ${grp.map(g=>esc(g.name)).join(", ")}</div>` : ""}`;
+    ${grp.length ? `<div class="hint">Vorhandene Gruppen: ${grp.map(g=>esc(g.name)).join(", ")}</div>` : ""}
+    <div class="eyebrow" style="margin-top:10px"><span>Log · alle Änderungen (${K.changes(d).length})</span></div><div class="chg-log">${logHTML(d)}</div>`;
   const gruppeNeu = (name)=>{ const n = (name || prompt("Name der neuen Gruppe:") || "").trim(); if(!n) return null; const g = {id:"g" + Date.now().toString(36), name:n}; K.gruppen(d).push(g); impChange(); return g; };
   b.querySelectorAll("[data-cn]").forEach(x=>x.oninput = ()=>{ neu[+x.dataset.cn].properties.name = x.value.trim() || undefined; if(!x.value.trim()) delete neu[+x.dataset.cn].properties.name; impChange(); });
   b.querySelectorAll("[data-cg]").forEach(x=>x.onchange = ()=>{ const c = neu[+x.dataset.cg]; let v = x.value; if(v === "__neu"){ const g = gruppeNeu(); v = g ? g.id : (c.properties.gruppe || ""); }
@@ -1182,6 +1230,23 @@ function chgRender(){
   $("chgNext").onchange = ()=>{ let v = $("chgNext").value; if(v === "__neu"){ const g = gruppeNeu(); v = g ? g.id : ""; } frontMeta.gruppe = v; chgRender(); };
   $("chgGNeu").onclick = ()=>{ const g = gruppeNeu($("chgGName").value); if(g){ frontMeta.gruppe = g.id; chgRender(); toast("Gruppe erstellt"); } };
   if($("chgTool")) $("chgTool").onclick = ()=>{ $("popChg").hidden = true; setTool("front"); };
+  b.querySelectorAll("[data-alt]").forEach(x=>x.onclick = ()=>{ const f = K.changes(d).find(c=>c.properties.cid === x.dataset.alt); if(!f) return;
+    if(f.properties.alt) delete f.properties.alt; else f.properties.alt = true; impChange(); chgRender(); });
+  b.querySelectorAll("[data-flieg]").forEach(x=>x.onclick = ()=>{ const f = K.changes(d).find(c=>c.properties.cid === x.dataset.flieg); if(!f) return;
+    const r = chgRing(f), bb = r.reduce((q,p)=>q.extend(p), new maplibregl.LngLatBounds(r[0], r[0])); map.fitBounds(bb, {padding:80, maxZoom:12, duration:800}); });
+}
+/* Log: alle Änderungen nach Monat, neueste zuerst; veralten / wieder hervorheben */
+function logHTML(d){
+  K.ensureCids(d);
+  const all = K.changes(d).slice().sort((a,b)=>(b.properties.datum||"").localeCompare(a.properties.datum||""));
+  if(!all.length) return `<div class="hint">Noch keine Änderungen.</div>`;
+  let html = "", mon = "";
+  for(const f of all){ const p = f.properties, m = (p.datum||"").slice(0,7);
+    if(m !== mon){ mon = m; const dt = new Date(m + "-01T12:00:00"); html += `<div class="log-mon">${isNaN(dt) ? "Ohne Datum" : dt.toLocaleDateString("de-DE",{month:"long", year:"numeric"})}</div>`; }
+    const col = p.richtung==="ua" ? "#2f7fe0" : p.richtung==="grau" ? "#d6d6d6" : "#d8344a", neu = K.istNeu(p);
+    html += `<div class="log-row${p.alt ? " alt" : ""}"><i style="background:${col}"></i><button class="log-n" data-flieg="${esc(p.cid)}">${esc(p.name || RICHT_TXT[p.richtung] || "Änderung")}<small>${esc((p.datum||"").split("-").reverse().join("."))} · ${K.changeArea(f).toFixed(1).replace(".",",")} km²${neu ? " · neu" : p.alt ? " · veraltet" : ""}</small></button><button class="btn sm" data-alt="${esc(p.cid)}">${p.alt ? "Wieder neu" : "Veralten"}</button></div>`;
+  }
+  return html;
 }
 function popAuf(id){ ["popChg","popSave"].forEach(x=>{ $(x).hidden = x !== id ? true : !$(x).hidden; }); if(id === "popChg" && !$("popChg").hidden) chgRender(); }
 $("chgBtn").onclick = ()=>popAuf("popChg"); $("saveBtn").onclick = ()=>popAuf("popSave");

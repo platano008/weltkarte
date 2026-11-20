@@ -9,7 +9,7 @@
     "Mitwirkende":"Contributors", "Kontakt":"Contact", "Impressum":"Legal notice", "Menü öffnen":"Open menu", "Menü schließen":"Close menu",
     "Nach unten":"Scroll down", "Sprache":"Language", "Zur Startseite":"Back to home", "Schließen":"Close",
     // Startseite
-    "Sektor":"Sector", "Lagedaten":"Map data", "Veränderungen":"Changes", "Lagekarte Ukraine":"Ukraine situation map",
+    "Sektor":"Sector", "Russo-Ukrainian War":"Russo-Ukrainian War", "Lagedaten":"Map data", "Veränderungen":"Changes", "Lagekarte Ukraine":"Ukraine situation map",
     "Zur Lagekarte":"Open the map", "Beispielhafte Darstellung":"Illustrative example", "03 · Berichte":"03 · Reports", "Berichte":"Reports",
     "Einordnung":"Context", "statt Eilmeldung.":"not breaking news.",
     "Hintergründe zu den wichtigsten Veränderungen: was passiert ist, warum es zählt und was als Nächstes kommen kann.":"Background on the most important changes: what happened, why it matters and what could come next.",
@@ -27,7 +27,7 @@
     "Noch keine Beiträge.":"No posts yet.", "Die Beiträge konnten nicht geladen werden.":"The posts could not be loaded.", "Zurück":"Back", "Alle Beiträge":"All posts",
     "Zurück zur Übersicht":"Back to overview", "Beitrag nicht gefunden.":"Post not found.",
     // Karte
-    "Karte lädt":"Loading map", "Lädt …":"Loading …", "Karte wird geladen …":"Loading map …", "Satellit":"Satellite", "Gelände":"Terrain", "Globus":"Globe", "Flach":"Flat",
+    "Karte lädt":"Loading map", "Lädt …":"Loading …", "Neu":"New", "Log":"Log", "Ohne Datum":"No date", "Karte wird geladen …":"Loading map …", "Satellit":"Satellite", "Gelände":"Terrain", "Globus":"Globe", "Flach":"Flat",
     "Symbole":"Symbols", "Linien":"Lines", "Linien & Pfeile":"Lines & arrows", "Flächen":"Areas", "Ukrainisches Gebiet":"Ukrainian territory", "Grauzone":"Grey zone",
     "Basen":"Bases", "Russisch kontrolliert":"Russian-controlled", "Großverbände":"Formations", "Verbände":"Units",
     "Freund":"Friendly", "Feind":"Hostile", "Unbekannt":"Unknown", "- - - vermutet":"- - - assumed",
