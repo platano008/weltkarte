@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611212025">
+<link rel="stylesheet" href="style.css?v=202611212043">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -724,7 +724,7 @@ html.lite .tick div{animation-duration:70s}
 @media (max-width:699px){.gate.breit,.gates .gate.breit{--rh:calc(clamp(320px,96vw,440px)*.76)}.gate.breit .grahmen,.gate.breit .gt{inset:45px 3%}}
 
 /* ===== Weiße Berichte-Fläche ===== */
-.weiss{position:relative;background:#fff;color:#0a0a0a;margin-top:clamp(150px,16vw,220px);padding:clamp(10px,2vw,30px) 0 clamp(70px,9vw,120px)}
+.weiss{position:relative;z-index:4;background:#fff;color:#0a0a0a;margin-top:clamp(150px,16vw,220px);padding:clamp(10px,2vw,30px) 0 clamp(70px,9vw,120px)}
 .w-kante{position:absolute;left:0;right:0;bottom:100%;width:100%;height:clamp(150px,16vw,220px);display:block;margin-bottom:-1px}
 .w-kante.unten{top:100%;bottom:auto;height:24px;margin:0 0 0;margin-top:-1px}
 .w-flaeche{fill:#fff}
@@ -820,7 +820,14 @@ html.lite .tick div{animation-duration:70s}
 .wb[data-sozial=telegram]:hover{background:#2a9df4}
 .wb.bald{cursor:default}
 .weiss{padding-bottom:clamp(90px,12vw,150px)!important}
-.w-pfeil{position:absolute;left:50%;top:-34px;width:30px;height:30px;fill:none;stroke:#8f8f8f;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;opacity:0}
+.w-pfeil{position:absolute;z-index:6;left:50%;top:-38px;width:34px;height:38px;pointer-events:none;opacity:0}
+.w-jet{position:absolute;inset:0}
+.w-jet svg{position:absolute;inset:0;width:100%;height:100%;fill:#8f8f8f}
+.w-spur{position:absolute;left:50%;top:80%;width:2px;height:0;margin-left:-1px;background:linear-gradient(180deg,rgba(160,160,160,.7),rgba(160,160,160,0));border-radius:2px!important}
+.w-pfeil.los .w-jet{animation:wJet 3.2s cubic-bezier(.5,0,.75,.4) .2s forwards}
+.w-pfeil.los .w-spur{animation:wSpur 3.2s cubic-bezier(.5,0,.75,.4) .2s forwards}
+@keyframes wJet{0%{transform:translateY(0) scale(1);opacity:1}12%{transform:translateY(6px) scale(1)}75%{opacity:1}100%{transform:translateY(-460px) scale(.5);opacity:0}}
+@keyframes wSpur{0%{height:0;opacity:0}20%{opacity:1}100%{height:260px;opacity:0}}
 /* Ende der weißen Fläche: Front, dahinter rote Zone; Telegram/X untereinander auf der Front */
 .w-kante.unten{height:clamp(220px,22vw,280px)!important}
 .w-front{fill:none;stroke:#ff3550;stroke-width:3;vector-effect:non-scaling-stroke;stroke-linejoin:round}
@@ -828,7 +835,7 @@ html.lite .tick div{animation-duration:70s}
 .w-sozial.unten{position:absolute;left:50%;top:100%;z-index:3;margin:0;transform:translate(-50%,calc(clamp(220px,22vw,280px)*.36 - 50%));flex-direction:column;gap:12px}
 .w-sozial.unten .wb{box-shadow:0 10px 26px -8px rgba(0,0,0,.5)}
 </style>
-<script src="lang.js?v=202611212025" defer></script>
+<script src="lang.js?v=202611212043" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -884,7 +891,7 @@ html.lite .tick div{animation-duration:70s}
   </div>
   <section class="weiss" id="weiss">
     <svg class="w-kante" id="wKante" viewBox="0 0 1200 220" preserveAspectRatio="none" aria-hidden="true"><path class="w-flaeche" id="wFl"/><path class="w-rand" id="wRand"/></svg>
-    <svg class="w-pfeil" id="wPfeil" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V5M6 11l6-6 6 6"/></svg>
+    <div class="w-pfeil" id="wPfeil" aria-hidden="true"><div class="w-jet"><i class="w-spur"></i><svg viewBox="-30 -34 60 68"><path d="M0 -32L4 -20L5 -8L28 8L28 13L5 6L4 20L12 27L12 31L2 28L0 31L-2 28L-12 31L-12 27L-4 20L-5 6L-28 13L-28 8L-5 -8L-4 -20Z"/></svg></div></div>
     <div class="wrap">
       <div class="w-kopf"><a class="w-titel" href="blog.html"><h2>Berichte</h2><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a></div>
       <div class="be-liste" id="beListe"></div>
@@ -1375,7 +1382,10 @@ function flimmern(root){
     const d = `M0 ${BASIS}L120 ${BASIS}C390 ${BASIS} 470 ${y.toFixed(1)} 600 ${y.toFixed(1)}C730 ${y.toFixed(1)} 810 ${BASIS} 1080 ${BASIS}L1200 ${BASIS}`;
     rd.setAttribute("d", d); fl.setAttribute("d", d + "L1200 220L0 220Z");
     const pf = $("wPfeil"), kh = $("wKante").getBoundingClientRect().height;   /* kleiner Pfeil an der Spitze, zeigt die Richtung des Vorstoßes */
-    if(pf){ pf.style.transform = `translate(-50%, ${((y - BASIS)/220*kh + 44).toFixed(1)}px)`; pf.style.opacity = Math.min(1, e*1.6).toFixed(2); }
+    if(pf){ pf.style.transform = `translate(-50%, ${((y - BASIS)/220*kh + 40).toFixed(1)}px)`; pf.style.opacity = Math.min(1, e*1.6).toFixed(2);
+      /* Jet: steht in der Spitze; ist der Vorstoß ganz draußen, fliegt er hoch ins Schwarze und verschwindet */
+      if(e > 0.97 && !pf.classList.contains("los")) pf.classList.add("los");
+      else if(e < 0.25) pf.classList.remove("los"); }
   }
   let raf = 0; addEventListener("scroll", ()=>{ if(!raf) raf = requestAnimationFrame(()=>{ raf = 0; malen(); }); }, {passive:true});
   addEventListener("resize", malen); malen();
