@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611211319">
+<link rel="stylesheet" href="style.css?v=202611211322">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -793,8 +793,12 @@ html.lite .tick div{animation-duration:70s}
 .be-bild > i{position:absolute;inset:0;background:#1a1a1a center/cover no-repeat;-webkit-mask:linear-gradient(180deg,transparent,#000 34px,#000 calc(100% - 40px),transparent);mask:linear-gradient(180deg,transparent,#000 34px,#000 calc(100% - 40px),transparent)}
 .be-bild.leer{background:radial-gradient(circle at 50% 40%,#2a2a2a,#0d0d0d)!important}
 .be-karte{top:60px!important}
+/* Rahmen läuft gerade in die Textbox, Bild blendet stärker aus */
+.be-bildr::after{inset:0 0 -24px 0!important;border-bottom:0!important;border-radius:22px 22px 0 0!important}
+.be-bild{-webkit-mask:linear-gradient(90deg,transparent,#000 64px,#000 calc(100% - 64px),transparent)!important;mask:linear-gradient(90deg,transparent,#000 64px,#000 calc(100% - 64px),transparent)!important}
+.be-bild > i{-webkit-mask:linear-gradient(180deg,transparent,#000 64px,#000 calc(100% - 70px),transparent)!important;mask:linear-gradient(180deg,transparent,#000 64px,#000 calc(100% - 70px),transparent)!important}
 </style>
-<script src="lang.js?v=202611211319" defer></script>
+<script src="lang.js?v=202611211322" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
