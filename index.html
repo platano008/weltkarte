@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611211230">
+<link rel="stylesheet" href="style.css?v=202611211246">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -744,8 +744,26 @@ html.lite .tick div{animation-duration:70s}
 .weiss .akte p{color:#3a3a3a;font-size:clamp(16px,1.5vw,19px);-webkit-line-clamp:unset;display:block;overflow:visible;max-width:46em}
 .weiss .akte .geschw i{background:#ececec}.weiss .akte .geschw i.h{background:#dedede}
 .weiss .stempel{mix-blend-mode:normal}
+
+/* Berichte als wischbare Karten (weiß, Schatten, quadratisches Bild) */
+.be-reihe{display:flex;gap:clamp(14px,2vw,24px);overflow-x:auto;scroll-snap-type:x mandatory;padding:10px max(16px,calc((100vw - 1200px)/2 + 16px)) 40px;margin:0 calc(50% - 50vw);scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.be-reihe::-webkit-scrollbar{display:none}
+.be-karte{flex:0 0 min(360px,78vw);scroll-snap-align:start;scroll-margin-left:max(16px,calc((100vw - 1200px)/2 + 16px));display:flex;flex-direction:column;padding:clamp(14px,1.6vw,18px) clamp(14px,1.6vw,18px) 26px;background:#fff;border-radius:26px!important;color:#0a0a0a;text-decoration:none;
+  box-shadow:0 2px 6px rgba(0,0,0,.05),0 18px 40px -14px rgba(0,0,0,.22);transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s}
+.be-karte:hover{transform:translateY(-4px);box-shadow:0 4px 10px rgba(0,0,0,.06),0 26px 50px -16px rgba(0,0,0,.3)}
+.be-bild{aspect-ratio:1;border-radius:18px!important;background:#1a1a1a center/cover no-repeat;display:grid;place-items:center}
+.be-bild.leer{background:radial-gradient(circle at 50% 40%,#2a2a2a,#0d0d0d)}
+.be-bild.leer img{width:34%;opacity:.5}
+.be-karte h3{margin:22px 4px 10px;font-family:var(--display);font-weight:700;font-size:clamp(20px,2vw,26px);line-height:1.05;text-transform:uppercase;letter-spacing:.01em}
+.be-karte p{margin:0 4px;color:#222;font-size:16px;line-height:1.45}
+.flimmer .fz{display:inline-block;text-align:center;overflow:hidden;vertical-align:bottom;white-space:pre}
+.be-alle{justify-content:center;align-items:center;gap:16px;background:#0a0a0a;color:#fff;min-height:100%;flex-basis:min(260px,60vw)}
+.be-alle span{font-family:var(--display);font-weight:700;font-size:clamp(26px,2.6vw,34px);text-transform:uppercase;text-align:center;line-height:1}
+.be-alle svg{width:46px;height:46px;fill:none;stroke:currentColor;stroke-width:1.8;transition:transform .35s}
+.be-alle:hover svg{transform:translateX(8px)}
+.weiss .be-reihe + *{margin-top:0}
 </style>
-<script src="lang.js?v=202611211230" defer></script>
+<script src="lang.js?v=202611211246" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -1249,33 +1267,38 @@ Promise.all([
 
 /* Vorschautext flimmert zum Ende hin in Zeichensalat aus */
 function flimmern(root){
-  const ZS = "!?/\\|<>[]{}$&%#@*+=-_:;0123456789ABCDEFGHJKLMNPQRSTUVWXYZ", zuf = ()=>ZS[Math.floor(Math.random()*ZS.length)];
+  /* jedes flimmernde Zeichen hat eine feste Breite – dadurch springt nichts und keine Zeile bricht neu um */
+  const ZS = "ABCDEFGHKLMNOPRSTUVXYZ0123456789#%&$@*+=<>?/", zuf = ()=>ZS[Math.floor(Math.random()*ZS.length)];
   const spans = [];
   root.querySelectorAll(".flimmer").forEach(p=>{
     const t = (p.dataset.t || "").trim(), L = Math.min(70, Math.max(12, Math.floor(t.length*0.45)));
-    p.textContent = t.slice(0, t.length - L); const ende = t.slice(t.length - L);
-    for(let k = 0; k < ende.length + 16; k++){ const sp = document.createElement("span"), f = k/(ende.length + 15); sp.dataset.o = ende[k] || ""; sp.dataset.f = f; sp.textContent = ende[k] || zuf(); sp.style.opacity = (1 - f*0.85).toFixed(2); p.appendChild(sp); spans.push(sp); }
+    p.textContent = t.slice(0, t.length - L); const ende = t.slice(t.length - L) + "\u0000".repeat(14);
+    const mess = document.createElement("span"); mess.style.cssText = "position:absolute;visibility:hidden;white-space:pre"; p.appendChild(mess);
+    const zeichen = [...ende].map(ch=>{
+      if(ch === " "){ p.appendChild(document.createTextNode(" ")); return null; }
+      const sp = document.createElement("span"); sp.className = "fz"; sp.dataset.o = ch === "\u0000" ? "" : ch; p.appendChild(sp); return sp;
+    }).filter(Boolean);
+    const n = zeichen.length;
+    zeichen.forEach((sp, k)=>{ const f = k/(n - 1); mess.textContent = sp.dataset.o || "M"; sp.style.width = Math.max(mess.getBoundingClientRect().width, 6).toFixed(1) + "px";
+      sp.dataset.f = f; sp.textContent = sp.dataset.o || zuf(); sp.style.opacity = (1 - f*0.8).toFixed(2); spans.push(sp); });
+    mess.remove();
   });
   if(!spans.length || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  let sicht = false; new IntersectionObserver(es=>{ sicht = es[0].isIntersecting; }).observe(root);
-  setInterval(()=>{ if(!sicht || document.hidden) return; for(const sp of spans){ const f = +sp.dataset.f, o = sp.dataset.o; if(o === " ") continue; sp.textContent = (!o || Math.random() < f*f*0.95) ? zuf() : o; } }, 90);
+  let sicht = false; new IntersectionObserver(es=>{ sicht = es.some(e=>e.isIntersecting); }).observe(root);
+  setInterval(()=>{ if(!sicht || document.hidden) return; for(const sp of spans){ const f = +sp.dataset.f, o = sp.dataset.o; sp.textContent = (!o || Math.random() < f*f*0.95) ? zuf() : o; } }, 110);
 }
 /* Weiße Fläche: beginnt als gerade Kante mit grauem Rand; beim Scrollen wölbt sie sich nach oben wie ein Vorstoß auf der Karte */
 (function(){
   const sec = $("weiss"), fl = $("wFl"), rd = $("wRand"); if(!sec || !fl) return;
-  const BASIS = 200, N = 60;
-  // Form des Vorstoßes: unregelmäßige Ausbuchtung, Werte 0..1 über die Breite
-  const form = x=>{ const g = (m, b)=>Math.exp(-Math.pow((x - m)/b, 2));
-    return Math.min(1, g(560, 230)*0.95 + g(760, 120)*0.45 + g(380, 90)*0.25 + g(900, 70)*0.18 - g(640, 40)*0.18 + Math.sin(x*0.09)*0.025*g(560, 320)); };
-  const pts = Array.from({length:N + 1}, (_, i)=>{ const x = i*1200/N; return [x, Math.max(0, form(x))]; });
+  const BASIS = 200;
   let letzt = -1;
   function malen(){
     const r = sec.getBoundingClientRect(), vh = innerHeight;
     const p = Math.max(0, Math.min(1, (vh - r.top)/(vh*0.75)));
     const e = p < .5 ? 2*p*p : 1 - Math.pow(-2*p + 2, 2)/2;
     if(Math.abs(e - letzt) < 0.002) return; letzt = e;
-    const hoehe = 175*e;
-    let d = ""; pts.forEach(([x, f], i)=>{ d += (i ? "L" : "M") + x.toFixed(0) + " " + (BASIS - f*hoehe).toFixed(1); });
+    const h = 170*e, y = BASIS - h;          /* ein einziger, sauberer Bogen */
+    const d = `M0 ${BASIS}L250 ${BASIS}C430 ${BASIS} 440 ${y.toFixed(1)} 600 ${y.toFixed(1)}C760 ${y.toFixed(1)} 770 ${BASIS} 950 ${BASIS}L1200 ${BASIS}`;
     rd.setAttribute("d", d); fl.setAttribute("d", d + "L1200 220L0 220Z");
   }
   let raf = 0; addEventListener("scroll", ()=>{ if(!raf) raf = requestAnimationFrame(()=>{ raf = 0; malen(); }); }, {passive:true});
@@ -1288,9 +1311,13 @@ function flimmern(root){
   const dat = d=>{ const t = new Date(d); return isNaN(t) ? "" : t.toLocaleDateString("de-DE", {day:"2-digit", month:"long", year:"numeric"}); };
   const leer = ()=>{ box.innerHTML = [["86%","70%","92%","60%"]].map((w,i)=>`<div class="akte rv"><span class="nr">BERICHT ${String(i+1).padStart(3,"0")}</span><span class="dt">Akte in Vorbereitung</span><div class="geschw"><i class="h" style="--w:${w[0]}"></i><i style="--w:${w[1]}"></i><i style="--w:${w[2]}"></i><i style="--w:${w[3]}"></i></div><span class="stempel">In Vorbereitung</span></div>`).join(""); };
   fetch("blog/index.json", {cache:"no-cache"}).then(r=>r.ok ? r.json() : null).then(d=>{
-    const L = d && d.beitraege ? d.beitraege.slice(0, 1) : [];
+    const L = d && d.beitraege ? d.beitraege.slice(0, 8) : [];
     if(!L.length) return leer();
-    box.innerHTML = L.map((b,i)=>`<a class="akte rv" href="blog.html#${encodeURIComponent(b.id)}"><span class="nr">BERICHT ${String(i+1).padStart(3,"0")}</span><span class="dt">${esc2(dat(b.datum))}</span><h3>${esc2(b.titel)}</h3><p class="flimmer" data-t="${esc2(String(b.kurz || "").replace(/\{\/?(rot|blau|grau|gelb)\}/g, "").replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1"))}"></p></a>`).join("");
+    const sicher = u=>/^(blog\/medien\/[\w.-]+|https:\/\/[^"'<>\s]+)$/.test(u || "") ? u : "";
+    box.className = "be-reihe";
+    box.innerHTML = L.map(b=>{ const bild = sicher(b.cover || b.bild);
+      return `<a class="be-karte" href="blog.html#${encodeURIComponent(b.id)}"><div class="be-bild${bild ? "" : " leer"}"${bild ? ` style="background-image:url('${esc2(bild)}')"` : ""}>${bild ? "" : '<img src="bild/logo.svg" alt="">'}</div><h3>${esc2(b.titel)}</h3><p class="flimmer" data-t="${esc2(String(b.kurz || "").replace(/\{\/?(rot|blau|grau|gelb)\}/g, "").replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1"))}"></p></a>`; }).join("")
+      + `<a class="be-karte be-alle" href="blog.html"><span>Alle Berichte</span><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a>`;
     flimmern(box);
   }).catch(leer).finally(()=>{ box.querySelectorAll(".rv").forEach(n=>n.classList.add("in")); });
 })();
