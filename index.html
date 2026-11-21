@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611211312">
+<link rel="stylesheet" href="style.css?v=202611211319">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -775,8 +775,26 @@ html.lite .tick div{animation-duration:70s}
 .be-punkte{display:flex;justify-content:center;gap:7px;margin-top:2px}
 .be-punkte button{width:7px;height:7px;padding:0;border:0;border-radius:50%!important;background:#cfcfcf;cursor:pointer;transition:background .25s,transform .25s}
 .be-punkte button.an{background:#0a0a0a;transform:scale(1.2)}
+
+/* Karte: Bild oben frei mit weißem Rahmen, darunter eigene weiße Textbox mit runden Ecken */
+.be-karte{background:none!important;box-shadow:none!important;padding:0!important}
+.be-karte::after{display:none}
+.be-bildr::after{content:"";position:absolute;inset:0;border:1.5px solid rgba(255,255,255,.95);border-radius:22px!important;pointer-events:none;z-index:2}
+.be-bild{inset:-22px -22px -30px!important;border-radius:0!important;
+  -webkit-mask:linear-gradient(90deg,transparent,#000 34px,#000 calc(100% - 34px),transparent),linear-gradient(180deg,transparent,#000 34px,#000 calc(100% - 40px),transparent)!important;-webkit-mask-composite:source-in!important;
+  mask:linear-gradient(90deg,transparent,#000 34px,#000 calc(100% - 34px),transparent) intersect,linear-gradient(180deg,transparent,#000 34px,#000 calc(100% - 40px),transparent)!important}
+.be-txt{position:relative;z-index:3;margin-top:-24px;padding:16px 0 18px;background:#fff;border-radius:22px!important;
+  box-shadow:0 -6px 18px -10px rgba(0,0,0,.18),0 18px 34px -16px rgba(0,0,0,.3)}
+.be-karte.mitte .be-txt{box-shadow:0 -6px 18px -10px rgba(0,0,0,.2),0 28px 46px -18px rgba(0,0,0,.4)}
+.be-txt h3{margin-top:0!important}
+
+/* weiches Ausblenden: außen waagrecht, innen senkrecht (zwei Ebenen statt Masken-Verknüpfung) */
+.be-bild{background:none!important;-webkit-mask:linear-gradient(90deg,transparent,#000 34px,#000 calc(100% - 34px),transparent)!important;mask:linear-gradient(90deg,transparent,#000 34px,#000 calc(100% - 34px),transparent)!important}
+.be-bild > i{position:absolute;inset:0;background:#1a1a1a center/cover no-repeat;-webkit-mask:linear-gradient(180deg,transparent,#000 34px,#000 calc(100% - 40px),transparent);mask:linear-gradient(180deg,transparent,#000 34px,#000 calc(100% - 40px),transparent)}
+.be-bild.leer{background:radial-gradient(circle at 50% 40%,#2a2a2a,#0d0d0d)!important}
+.be-karte{top:60px!important}
 </style>
-<script src="lang.js?v=202611211312" defer></script>
+<script src="lang.js?v=202611211319" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -1331,7 +1349,7 @@ function flimmern(root){
     /* Karussell im Kreis: mittlere Karte groß, links ältere, rechts neuere Berichte; endlos */
     box.className = "be-kreis";
     const karteHTML = b=>{ const bild = sicher(b.cover || b.bild);
-      return `<a class="be-karte" href="blog.html#${encodeURIComponent(b.id)}" draggable="false"><div class="be-bildr">${bild ? `<div class="be-bild" style="background-image:url('${esc2(bild)}')"></div>` : '<div class="be-bild leer"><img src="bild/logo.svg" alt=""></div>'}</div><h3>${esc2(b.titel)}</h3><p>${esc2(String(b.kurz || "").replace(/\{\/?(rot|blau|grau|gelb)\}/g, "").replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1"))}</p></a>`; };
+      return `<a class="be-karte" href="blog.html#${encodeURIComponent(b.id)}" draggable="false"><div class="be-bildr">${bild ? `<div class="be-bild"><i style="background-image:url('${esc2(bild)}')"></i></div>` : '<div class="be-bild leer"><img src="bild/logo.svg" alt=""></div>'}</div><div class="be-txt"><h3>${esc2(b.titel)}</h3><p>${esc2(String(b.kurz || "").replace(/\{\/?(rot|blau|grau|gelb)\}/g, "").replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1"))}</p></div></a>`; };
     const n = L.length, wdh = Math.max(1, Math.ceil(5/n)), M = n*wdh;            // wenige Berichte: so oft wiederholen, dass der Kreis voll ist
     box.innerHTML = '<div class="be-spur">' + Array.from({length:M}, (_, k)=>karteHTML(L[k % n])).join("") + '</div>';
     const karten = [...box.querySelectorAll(".be-karte")];
@@ -1340,7 +1358,7 @@ function flimmern(root){
     const punkte = [...pk.children];
     let pos = 0, ziel = 0, raf2 = 0, zug = null;
     const breite = ()=>karten[0].offsetWidth || 260;
-    const abstand = ()=>innerWidth < 700 ? breite()*1.02 : breite()*1.1;
+    const abstand = ()=>innerWidth < 700 ? breite()*1.2 : breite()*1.1;
     const wrap = x=>{ x = ((x % M) + M) % M; return x > M/2 ? x - M : x; };
     function legen(){
       const a = abstand();
@@ -1363,7 +1381,7 @@ function flimmern(root){
     box.addEventListener("pointerup", los); box.addEventListener("pointercancel", ()=>{ zug = null; geh(Math.round(pos)); });
     box.addEventListener("click", e=>e.preventDefault());
     box.addEventListener("wheel", e=>{ if(Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return; e.preventDefault(); clearTimeout(box._w); pos = ziel = pos + e.deltaX/abstand()*0.6; legen(); box._w = setTimeout(()=>geh(Math.round(pos)), 120); }, {passive:false});
-    const hoehe = ()=>{ box.style.height = (Math.max(...karten.map(k=>k.offsetHeight))*1.02 + 50) + "px"; };
+    const hoehe = ()=>{ box.style.height = (Math.max(...karten.map(k=>k.offsetHeight))*1.02 + 90) + "px"; };
     box._hoehe = hoehe;
     addEventListener("resize", ()=>{ hoehe(); legen(); }); hoehe(); legen(); if(document.fonts) document.fonts.ready.then(()=>{ hoehe(); legen(); });
     if(box._hoehe) box._hoehe();
