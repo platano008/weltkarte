@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611211307">
+<link rel="stylesheet" href="style.css?v=202611211312">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -752,12 +752,15 @@ html.lite .tick div{animation-duration:70s}
 .be-karte{position:absolute;left:50%;top:26px;width:var(--kw);display:flex;flex-direction:column;padding:12px 12px 20px;background:#fff;border-radius:22px!important;color:#0a0a0a;text-decoration:none;
   box-shadow:0 2px 6px rgba(0,0,0,.05),0 16px 34px -16px rgba(0,0,0,.28);transform-origin:50% 60%;will-change:transform;-webkit-user-drag:none;transition:box-shadow .4s}
 .be-karte.mitte{box-shadow:0 4px 10px rgba(0,0,0,.06),0 30px 50px -20px rgba(0,0,0,.38)}
-.be-bildr{position:relative;aspect-ratio:1;border-radius:14px!important}
-.be-bildr::after{content:"";position:absolute;inset:0;border:1px solid rgba(200,200,200,.95);border-radius:14px!important;box-shadow:0 0 0 1px rgba(0,0,0,.25);pointer-events:none}
-.be-bild{position:absolute;inset:-10px;background:#1a1a1a center/cover no-repeat;display:grid;place-items:center;
-  -webkit-mask:linear-gradient(90deg,transparent,#000 10px,#000 calc(100% - 10px),transparent),linear-gradient(180deg,transparent,#000 10px,#000 calc(100% - 10px),transparent);-webkit-mask-composite:source-in;
-  mask:linear-gradient(90deg,transparent,#000 10px,#000 calc(100% - 10px),transparent) intersect,linear-gradient(180deg,transparent,#000 10px,#000 calc(100% - 10px),transparent);z-index:-1}
-.be-bildr{isolation:isolate}
+.be-karte{padding:0 0 18px!important}
+.be-karte::after{content:"";position:absolute;inset:0;border-radius:22px!important;padding:1.5px;pointer-events:none;z-index:2;
+  background:linear-gradient(180deg,#a3a3a3 0,#a3a3a3 calc(var(--kw)*.75),rgba(163,163,163,0) calc(var(--kw) + 30px));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.be-bildr{position:relative;aspect-ratio:1;z-index:1}
+.be-bild{position:absolute;inset:-16px -16px -6px;background:#1a1a1a center/cover no-repeat;display:grid;place-items:center;border-radius:26px!important;
+  -webkit-mask:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 18px),transparent),linear-gradient(180deg,transparent,#000 18px,#000 calc(100% - 34px),transparent);-webkit-mask-composite:source-in;
+  mask:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 18px),transparent) intersect,linear-gradient(180deg,transparent,#000 18px,#000 calc(100% - 34px),transparent)}
+.be-karte h3{margin-left:16px!important;margin-right:16px!important}.be-karte p{margin:0 16px!important;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .be-bild.leer{background:radial-gradient(circle at 50% 40%,#2a2a2a,#0d0d0d)}
 .be-bild.leer img{width:34%;opacity:.5}
 .be-karte h3{margin:16px 4px 6px;font-family:var(--display);font-weight:700;font-size:clamp(15px,1.3vw,17px);line-height:1.08;text-transform:uppercase}
@@ -773,7 +776,7 @@ html.lite .tick div{animation-duration:70s}
 .be-punkte button{width:7px;height:7px;padding:0;border:0;border-radius:50%!important;background:#cfcfcf;cursor:pointer;transition:background .25s,transform .25s}
 .be-punkte button.an{background:#0a0a0a;transform:scale(1.2)}
 </style>
-<script src="lang.js?v=202611211307" defer></script>
+<script src="lang.js?v=202611211312" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -1328,7 +1331,7 @@ function flimmern(root){
     /* Karussell im Kreis: mittlere Karte groß, links ältere, rechts neuere Berichte; endlos */
     box.className = "be-kreis";
     const karteHTML = b=>{ const bild = sicher(b.cover || b.bild);
-      return `<a class="be-karte" href="blog.html#${encodeURIComponent(b.id)}" draggable="false"><div class="be-bildr">${bild ? `<div class="be-bild" style="background-image:url('${esc2(bild)}')"></div>` : '<div class="be-bild leer"><img src="bild/logo.svg" alt=""></div>'}</div><h3>${esc2(b.titel)}</h3><p class="flimmer" data-t="${esc2(String(b.kurz || "").replace(/\{\/?(rot|blau|grau|gelb)\}/g, "").replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1"))}"></p></a>`; };
+      return `<a class="be-karte" href="blog.html#${encodeURIComponent(b.id)}" draggable="false"><div class="be-bildr">${bild ? `<div class="be-bild" style="background-image:url('${esc2(bild)}')"></div>` : '<div class="be-bild leer"><img src="bild/logo.svg" alt=""></div>'}</div><h3>${esc2(b.titel)}</h3><p>${esc2(String(b.kurz || "").replace(/\{\/?(rot|blau|grau|gelb)\}/g, "").replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1"))}</p></a>`; };
     const n = L.length, wdh = Math.max(1, Math.ceil(5/n)), M = n*wdh;            // wenige Berichte: so oft wiederholen, dass der Kreis voll ist
     box.innerHTML = '<div class="be-spur">' + Array.from({length:M}, (_, k)=>karteHTML(L[k % n])).join("") + '</div>';
     const karten = [...box.querySelectorAll(".be-karte")];
@@ -1345,15 +1348,14 @@ function flimmern(root){
         k.style.transform = `translateX(calc(-50% + ${(o*a).toFixed(1)}px)) translateY(${(-nah*14).toFixed(1)}px) scale(${(0.86 + nah*0.14).toFixed(3)})`;
         k.style.opacity = ab > 2.6 ? 0 : (1 - Math.max(0, ab - 1.6)).toFixed(2);
         k.style.zIndex = String(100 - Math.round(ab*10)); k.classList.toggle("mitte", ab < 0.5); });
-      box.style.height = (Math.max(...karten.map(k=>k.offsetHeight))*1.02 + 80) + "px";
       const akt = ((Math.round(pos) % M) + M) % M % n; punkte.forEach((p, i)=>p.classList.toggle("an", i === akt));
     }
     function laufen(){ pos += (ziel - pos)*0.16; if(Math.abs(ziel - pos) < 0.001) pos = ziel; legen(); raf2 = pos !== ziel ? requestAnimationFrame(laufen) : 0; }
     const geh = z=>{ ziel = z; if(!raf2) raf2 = requestAnimationFrame(laufen); };
     punkte.forEach((p, i)=>p.onclick = ()=>{ const jetzt = Math.round(pos), basis = ((jetzt % M) + M) % M % n; let d = i - basis; if(d > n/2) d -= n; if(d < -n/2) d += n; geh(jetzt + d); });
     // Ziehen / Wischen
-    box.addEventListener("pointerdown", e=>{ zug = {x:e.clientX, p:pos, t:performance.now(), bewegt:false}; box.setPointerCapture(e.pointerId); });
-    box.addEventListener("pointermove", e=>{ if(!zug) return; const dx = e.clientX - zug.x; if(Math.abs(dx) > 6) zug.bewegt = true; if(zug.bewegt){ pos = ziel = zug.p - dx/abstand(); legen(); } });
+    box.addEventListener("pointerdown", e=>{ zug = {x:e.clientX, p:pos, t:performance.now(), bewegt:false, a:abstand()}; cancelAnimationFrame(raf2); raf2 = 0; box.setPointerCapture(e.pointerId); });
+    let zrf = 0; box.addEventListener("pointermove", e=>{ if(!zug) return; const dx = e.clientX - zug.x; if(Math.abs(dx) > 6) zug.bewegt = true; if(zug.bewegt){ pos = ziel = zug.p - dx/zug.a; if(!zrf) zrf = requestAnimationFrame(()=>{ zrf = 0; legen(); }); } });
     const los = e=>{ if(!zug) return; const dx = e.clientX - zug.x, v = dx/Math.max(1, performance.now() - zug.t);
       if(zug.bewegt) geh(Math.round(pos - (Math.abs(v) > 0.4 ? Math.sign(v)*0.5 : 0)));
       else { const k = e.target.closest(".be-karte"); if(k && !k.classList.contains("mitte")){ geh(Math.round(pos) + Math.sign(wrap(karten.indexOf(k) - pos))); } else if(k) location.href = k.href; }
@@ -1361,8 +1363,10 @@ function flimmern(root){
     box.addEventListener("pointerup", los); box.addEventListener("pointercancel", ()=>{ zug = null; geh(Math.round(pos)); });
     box.addEventListener("click", e=>e.preventDefault());
     box.addEventListener("wheel", e=>{ if(Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return; e.preventDefault(); clearTimeout(box._w); pos = ziel = pos + e.deltaX/abstand()*0.6; legen(); box._w = setTimeout(()=>geh(Math.round(pos)), 120); }, {passive:false});
-    addEventListener("resize", legen); legen(); box._legen = legen; if(document.fonts) document.fonts.ready.then(legen);
-    flimmern(box); if(box._legen) box._legen();
+    const hoehe = ()=>{ box.style.height = (Math.max(...karten.map(k=>k.offsetHeight))*1.02 + 50) + "px"; };
+    box._hoehe = hoehe;
+    addEventListener("resize", ()=>{ hoehe(); legen(); }); hoehe(); legen(); if(document.fonts) document.fonts.ready.then(()=>{ hoehe(); legen(); });
+    if(box._hoehe) box._hoehe();
   }).catch(leer).finally(()=>{ box.querySelectorAll(".rv").forEach(n=>n.classList.add("in")); });
 })();
 }
