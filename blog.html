@@ -8,7 +8,7 @@
 <meta name="description" content="Berichte und Einordnungen zur Lage an der Front.">
 <link rel="icon" type="image/png" href="bild/favicon.png?v=2">
 <link rel="apple-touch-icon" href="bild/icon-180.png?v=2">
-<link rel="stylesheet" href="style.css?v=202611211246">
+<link rel="stylesheet" href="style.css?v=202611211257">
 <style>
 html,body{height:auto;overflow:auto;overflow-x:hidden;background:#000}
 .kopf{display:flex;justify-content:space-between;align-items:center;width:min(1100px,100%);margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 16px 0}
@@ -83,7 +83,7 @@ article figure.cover img{border-radius:18px!important;aspect-ratio:16/9;object-f
 .post p.flimmer{overflow-wrap:normal}
 .flimmer .fz{display:inline-block;text-align:center;overflow:hidden;vertical-align:bottom;white-space:pre}
 </style>
-<script src="lang.js?v=202611211246" defer></script>
+<script src="lang.js?v=202611211257" defer></script>
 </head>
 <body>
 <script>(function(){ try{ const c = navigator.hardwareConcurrency || 8, m = navigator.deviceMemory || 8; if(c <= 4 || m <= 4 || matchMedia("(hover:none),(pointer:coarse)").matches) document.documentElement.classList.add("lite"); }catch(e){} })();</script>
@@ -397,11 +397,12 @@ function flimmern(){
   const spans = [];
   document.querySelectorAll(".flimmer").forEach(p=>{
     const t = (p.dataset.t || "").trim(), L = Math.min(70, Math.max(12, Math.floor(t.length*0.45)));
-    p.textContent = t.slice(0, t.length - L); const ende = t.slice(t.length - L) + "\u0000".repeat(14);
+    const cut = Math.max(0, t.lastIndexOf(" ", t.length - L) + 1); p.textContent = t.slice(0, cut); const ende = t.slice(cut) + "\u0000".repeat(14); let wort = null;
     const mess = document.createElement("span"); mess.style.cssText = "position:absolute;visibility:hidden;white-space:pre"; p.appendChild(mess);
     const zeichen = [...ende].map(ch=>{
-      if(ch === " "){ p.appendChild(document.createTextNode(" ")); return null; }
-      const sp = document.createElement("span"); sp.className = "fz"; sp.dataset.o = ch === "\u0000" ? "" : ch; p.appendChild(sp); return sp;
+      if(ch === " "){ p.appendChild(document.createTextNode(" ")); wort = null; return null; }
+      if(!wort){ wort = document.createElement("span"); wort.style.whiteSpace = "nowrap"; p.appendChild(wort); }      /* Wörter nie mitten drin umbrechen */
+      const sp = document.createElement("span"); sp.className = "fz"; sp.dataset.o = ch === "\u0000" ? "" : ch; wort.appendChild(sp); return sp;
     }).filter(Boolean);
     const n = zeichen.length;
     zeichen.forEach((sp, k)=>{ const f = k/(n - 1); mess.textContent = sp.dataset.o || "M"; sp.style.width = Math.max(mess.getBoundingClientRect().width, 6).toFixed(1) + "px";

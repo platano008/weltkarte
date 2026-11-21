@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611211246">
+<link rel="stylesheet" href="style.css?v=202611211257">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -762,8 +762,24 @@ html.lite .tick div{animation-duration:70s}
 .be-alle svg{width:46px;height:46px;fill:none;stroke:currentColor;stroke-width:1.8;transition:transform .35s}
 .be-alle:hover svg{transform:translateX(8px)}
 .weiss .be-reihe + *{margin-top:0}
+
+/* kleinere Karten, erste mittig, Punkte darunter, Pfeil am Titel */
+.w-titel{display:inline-flex;align-items:center;gap:clamp(12px,1.6vw,24px);color:#0a0a0a;text-decoration:none}
+.w-titel svg{width:clamp(40px,6vw,90px);height:clamp(40px,6vw,90px);fill:none;stroke:currentColor;stroke-width:2.2;transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.w-titel:hover svg{transform:translateX(10px)}
+.weiss .w-kopf{justify-content:center}
+.be-reihe{--kw:min(250px,56vw);gap:max(14px,calc(50vw - var(--kw)/2 - 80px))!important;padding:10px calc(50vw - var(--kw)/2) 26px!important;scroll-snap-type:x mandatory}
+.be-karte{flex:0 0 var(--kw)!important;scroll-snap-align:center!important;padding:10px 10px 18px!important;border-radius:20px!important}
+.be-bild{border-radius:13px!important}
+.be-karte h3{margin:14px 4px 6px!important;font-size:clamp(15px,1.3vw,17px)!important}
+.be-karte p{font-size:13px!important;line-height:1.45!important}
+.be-alle{flex-basis:var(--kw)!important}
+.be-alle span{font-size:20px!important}.be-alle svg{width:34px!important;height:34px!important}
+.be-punkte{display:flex;justify-content:center;gap:7px;margin-top:2px}
+.be-punkte button{width:7px;height:7px;padding:0;border:0;border-radius:50%!important;background:#cfcfcf;cursor:pointer;transition:background .25s,transform .25s}
+.be-punkte button.an{background:#0a0a0a;transform:scale(1.2)}
 </style>
-<script src="lang.js?v=202611211246" defer></script>
+<script src="lang.js?v=202611211257" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -820,7 +836,7 @@ html.lite .tick div{animation-duration:70s}
   <section class="weiss" id="weiss">
     <svg class="w-kante" id="wKante" viewBox="0 0 1200 220" preserveAspectRatio="none" aria-hidden="true"><path class="w-flaeche" id="wFl"/><path class="w-rand" id="wRand"/></svg>
     <div class="wrap">
-      <div class="w-kopf"><h2>Berichte</h2><a class="w-alle" href="blog.html">Alle Berichte <svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a></div>
+      <div class="w-kopf"><a class="w-titel" href="blog.html"><h2>Berichte</h2><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a></div>
       <div class="be-liste" id="beListe"></div>
     </div>
     <svg class="w-kante unten" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0H1200V20H0Z" fill="#fff"/><path d="M0 20H1200" class="w-rand"/></svg>
@@ -1272,11 +1288,12 @@ function flimmern(root){
   const spans = [];
   root.querySelectorAll(".flimmer").forEach(p=>{
     const t = (p.dataset.t || "").trim(), L = Math.min(70, Math.max(12, Math.floor(t.length*0.45)));
-    p.textContent = t.slice(0, t.length - L); const ende = t.slice(t.length - L) + "\u0000".repeat(14);
+    const cut = Math.max(0, t.lastIndexOf(" ", t.length - L) + 1); p.textContent = t.slice(0, cut); const ende = t.slice(cut) + "\u0000".repeat(14); let wort = null;
     const mess = document.createElement("span"); mess.style.cssText = "position:absolute;visibility:hidden;white-space:pre"; p.appendChild(mess);
     const zeichen = [...ende].map(ch=>{
-      if(ch === " "){ p.appendChild(document.createTextNode(" ")); return null; }
-      const sp = document.createElement("span"); sp.className = "fz"; sp.dataset.o = ch === "\u0000" ? "" : ch; p.appendChild(sp); return sp;
+      if(ch === " "){ p.appendChild(document.createTextNode(" ")); wort = null; return null; }
+      if(!wort){ wort = document.createElement("span"); wort.style.whiteSpace = "nowrap"; p.appendChild(wort); }      /* Wörter nie mitten drin umbrechen */
+      const sp = document.createElement("span"); sp.className = "fz"; sp.dataset.o = ch === "\u0000" ? "" : ch; wort.appendChild(sp); return sp;
     }).filter(Boolean);
     const n = zeichen.length;
     zeichen.forEach((sp, k)=>{ const f = k/(n - 1); mess.textContent = sp.dataset.o || "M"; sp.style.width = Math.max(mess.getBoundingClientRect().width, 6).toFixed(1) + "px";
@@ -1297,8 +1314,8 @@ function flimmern(root){
     const p = Math.max(0, Math.min(1, (vh - r.top)/(vh*0.75)));
     const e = p < .5 ? 2*p*p : 1 - Math.pow(-2*p + 2, 2)/2;
     if(Math.abs(e - letzt) < 0.002) return; letzt = e;
-    const h = 170*e, y = BASIS - h;          /* ein einziger, sauberer Bogen */
-    const d = `M0 ${BASIS}L250 ${BASIS}C430 ${BASIS} 440 ${y.toFixed(1)} 600 ${y.toFixed(1)}C760 ${y.toFixed(1)} 770 ${BASIS} 950 ${BASIS}L1200 ${BASIS}`;
+    const h = 80*e, y = BASIS - h;          /* ein flacher, runder Bogen */
+    const d = `M0 ${BASIS}L120 ${BASIS}C380 ${BASIS} 330 ${y.toFixed(1)} 600 ${y.toFixed(1)}C870 ${y.toFixed(1)} 820 ${BASIS} 1080 ${BASIS}L1200 ${BASIS}`;
     rd.setAttribute("d", d); fl.setAttribute("d", d + "L1200 220L0 220Z");
   }
   let raf = 0; addEventListener("scroll", ()=>{ if(!raf) raf = requestAnimationFrame(()=>{ raf = 0; malen(); }); }, {passive:true});
@@ -1318,6 +1335,14 @@ function flimmern(root){
     box.innerHTML = L.map(b=>{ const bild = sicher(b.cover || b.bild);
       return `<a class="be-karte" href="blog.html#${encodeURIComponent(b.id)}"><div class="be-bild${bild ? "" : " leer"}"${bild ? ` style="background-image:url('${esc2(bild)}')"` : ""}>${bild ? "" : '<img src="bild/logo.svg" alt="">'}</div><h3>${esc2(b.titel)}</h3><p class="flimmer" data-t="${esc2(String(b.kurz || "").replace(/\{\/?(rot|blau|grau|gelb)\}/g, "").replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1"))}"></p></a>`; }).join("")
       + `<a class="be-karte be-alle" href="blog.html"><span>Alle Berichte</span><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a>`;
+    /* Punkte unter den Karten (wie bei Insta) */
+    const karten = [...box.children], pk = document.createElement("div"); pk.className = "be-punkte";
+    pk.innerHTML = karten.map((_, i)=>`<button aria-label="Bericht ${i+1}"${i ? "" : ' class="an"'}></button>`).join(""); box.after(pk);
+    const mitte = k=>k.offsetLeft + k.offsetWidth/2 - box.clientWidth/2;
+    pk.querySelectorAll("button").forEach((b, i)=>b.onclick = ()=>box.scrollTo({left: mitte(karten[i]), behavior:"smooth"}));
+    let tk = 0; box.addEventListener("scroll", ()=>{ if(tk) return; tk = requestAnimationFrame(()=>{ tk = 0;
+      let best = 0, bd = 1e9; karten.forEach((k, i)=>{ const d = Math.abs(mitte(k) - box.scrollLeft); if(d < bd){ bd = d; best = i; } });
+      pk.querySelectorAll("button").forEach((b, i)=>b.classList.toggle("an", i === best)); }); }, {passive:true});
     flimmern(box);
   }).catch(leer).finally(()=>{ box.querySelectorAll(".rv").forEach(n=>n.classList.add("in")); });
 })();
