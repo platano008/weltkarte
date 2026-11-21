@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611212124">
+<link rel="stylesheet" href="style.css?v=202611212129">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -853,10 +853,10 @@ html.lite .tick div{animation-duration:70s}
 .w-pfeil.los .w-jet svg{animation:wLoopFarbe var(--jd,4.2s) linear forwards!important}
 .w-pfeil.los .w-bahn path{animation:wLoopSpur var(--jd,4.2s) cubic-bezier(.35,.1,.45,1) forwards}
 @keyframes wLoop{0%{offset-distance:0%;opacity:1}85%{opacity:1}100%{offset-distance:100%;opacity:0}}
-@keyframes wLoopFarbe{0%,4%{fill:#8f8f8f}9%,57%{fill:#fff}64%,100%{fill:#6f6f6f}}
-@keyframes wLoopSpur{0%{stroke-dashoffset:.16;stroke:rgba(255,255,255,.75)}57%{stroke:rgba(255,255,255,.75)}64%{stroke:rgba(140,140,140,.6)}100%{stroke-dashoffset:-.84;stroke:rgba(140,140,140,0)}}
+@keyframes wLoopFarbe{0%,4%{fill:#8f8f8f}10%,35%{fill:#fff}40%,100%{fill:#6f6f6f}}
+@keyframes wLoopSpur{0%{stroke-dashoffset:.16;stroke:rgba(255,255,255,.75)}35%{stroke:rgba(255,255,255,.75)}40%{stroke:rgba(140,140,140,.6)}100%{stroke-dashoffset:-.84;stroke:rgba(140,140,140,0)}}
 </style>
-<script src="lang.js?v=202611212124" defer></script>
+<script src="lang.js?v=202611212129" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -912,7 +912,7 @@ html.lite .tick div{animation-duration:70s}
   </div>
   <section class="weiss" id="weiss">
     <svg class="w-kante" id="wKante" viewBox="0 0 1200 220" preserveAspectRatio="none" aria-hidden="true"><path class="w-flaeche" id="wFl"/><path class="w-rand" id="wRand"/></svg>
-    <div class="w-pfeil" id="wPfeil" aria-hidden="true"><svg class="w-bahn" viewBox="-200 -320 400 900"><path d="M0 0L0 -120A58 58 0 1 1 116 -120A58 58 0 1 1 0 -120A42 42 0 0 0 -84 -120C-84 60 -40 260 60 560" pathLength="1"/></svg><div class="w-jet" style="offset-path:path('M0 0L0 -120A58 58 0 1 1 116 -120A58 58 0 1 1 0 -120A42 42 0 0 0 -84 -120C-84 60 -40 260 60 560')"><svg viewBox="-30 -34 60 68"><path d="M0 -32L4 -20L5 -8L28 8L28 13L5 6L4 20L12 27L12 31L2 28L0 31L-2 28L-12 31L-12 27L-4 20L-5 6L-28 13L-28 8L-5 -8L-4 -20Z"/></svg></div></div>
+    <div class="w-pfeil" id="wPfeil" aria-hidden="true"><svg class="w-bahn" viewBox="-200 -320 400 900"><path d="M0 0L0 -110C0 -200 110 -210 120 -120C130 -20 40 200 0 520" pathLength="1"/></svg><div class="w-jet" style="offset-path:path('M0 0L0 -110C0 -200 110 -210 120 -120C130 -20 40 200 0 520')"><svg viewBox="-30 -34 60 68"><path d="M0 -32L4 -20L5 -8L28 8L28 13L5 6L4 20L12 27L12 31L2 28L0 31L-2 28L-12 31L-12 27L-4 20L-5 6L-28 13L-28 8L-5 -8L-4 -20Z"/></svg></div></div>
     <div class="wrap">
       <div class="w-kopf"><a class="w-titel" href="blog.html"><h2>Berichte</h2><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a></div>
       <div class="be-liste" id="beListe"></div>
@@ -1407,7 +1407,7 @@ function flimmern(root){
       /* Jet: steht in der Spitze; ist der Vorstoß ganz draußen, fliegt er hoch ins Schwarze und verschwindet */
       if(e > 0.72 && !pf.classList.contains("los")){             /* Schwung vom Runterscrollen: je schneller gescrollt, desto schneller der Start */
         const v = Math.abs(scrollY - (pf._sy || scrollY))/Math.max(16, performance.now() - (pf._st || 0));
-        pf.style.setProperty("--jd", Math.max(4, Math.min(5.4, 5.4 - v*0.9)).toFixed(2) + "s"); pf.classList.add("los"); }
+        pf.style.setProperty("--jd", Math.max(3, Math.min(4, 4 - v*0.8)).toFixed(2) + "s"); pf.classList.add("los"); }
       else if(e < 0.25) pf.classList.remove("los");
       pf._sy = scrollY; pf._st = performance.now(); }
   }
