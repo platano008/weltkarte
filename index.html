@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611212138">
+<link rel="stylesheet" href="style.css?v=202611220001">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -834,6 +834,11 @@ html.lite .tick div{animation-duration:70s}
 .weiss{padding-bottom:clamp(60px,8vw,90px)!important;margin-bottom:clamp(220px,22vw,280px)}
 .w-sozial.unten{position:absolute;left:50%;top:100%;z-index:3;margin:0;transform:translate(-50%,calc(clamp(220px,22vw,280px)*.36 - 50%));flex-direction:column;gap:12px}
 .w-sozial.unten .wb{box-shadow:0 10px 26px -8px rgba(0,0,0,.5)}
+/* Übergang ins Rote beginnt direkt unter den Punkten; Telegram/X nebeneinander und breiter */
+.weiss{padding-bottom:14px!important}
+.w-sozial.unten{flex-direction:row;gap:14px}
+.w-sozial.unten .wb{width:96px;height:52px;border-radius:999px!important}
+.w-sozial.unten .wb svg{width:24px;height:24px}
 /* Jet wird über dem Schwarz weiß */
 .w-pfeil.los .w-jet svg{animation:wJetFarbe 3.2s cubic-bezier(.5,0,.75,.4) .2s forwards}
 @keyframes wJetFarbe{0%,30%{fill:#8f8f8f}40%,100%{fill:#fff}}
@@ -855,7 +860,7 @@ html.lite .tick div{animation-duration:70s}
 @keyframes wLoopFarbe{0%,4%{fill:#8f8f8f}10%,35%{fill:#fff}40%,100%{fill:#6f6f6f}}
 @keyframes wLoopSpur{0%{stroke-dashoffset:.16;stroke:rgba(255,255,255,.75)}35%{stroke:rgba(255,255,255,.75)}40%{stroke:rgba(140,140,140,.6)}100%{stroke-dashoffset:-.84;stroke:rgba(140,140,140,0)}}
 </style>
-<script src="lang.js?v=202611212138" defer></script>
+<script src="lang.js?v=202611220001" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -917,7 +922,7 @@ html.lite .tick div{animation-duration:70s}
       <div class="be-liste" id="beListe"></div>
     </div>
     <svg class="w-kante unten" viewBox="0 0 1200 260" preserveAspectRatio="none" aria-hidden="true">
-      <defs><linearGradient id="wRot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".12" stop-color="#fbe3e6"/><stop offset=".42" stop-color="#e64a5c"/><stop offset=".7" stop-color="#c8102e"/><stop offset="1" stop-color="#a50e26"/></linearGradient>
+      <defs><linearGradient id="wRot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".06" stop-color="#fbe3e6"/><stop offset=".36" stop-color="#e64a5c"/><stop offset=".7" stop-color="#c8102e"/><stop offset="1" stop-color="#a50e26"/></linearGradient>
       <linearGradient id="wGlut" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c8102e" stop-opacity=".45"/><stop offset="1" stop-color="#c8102e" stop-opacity="0"/></linearGradient></defs>
       <path d="M0 0H1200V188.5C1175 188.5 1175 195.7 1150 195.7C1125 195.7 1125 202.3 1100 202.3C1075 202.3 1075 184.1 1050 184.1C1025 184.1 1025 189.9 1000 189.9C975 189.9 975 179.7 950 179.7C925 179.7 925 186.8 900 186.8C875 186.8 875 199.8 850 199.8C825 199.8 825 200.5 800 200.5C775 200.5 775 193.4 750 193.4C725 193.4 725 185.0 700 185.0C675 185.0 675 187.7 650 187.7C625 187.7 625 180.1 600 180.1C575 180.1 575 180.2 550 180.2C525 180.2 525 187.7 500 187.7C475 187.7 475 197.8 450 197.8C425 197.8 425 190.7 400 190.7C375 190.7 375 190.3 350 190.3C325 190.3 325 176.9 300 176.9C275 176.9 275 179.3 250 179.3C225 179.3 225 186.5 200 186.5C175 186.5 175 187.9 150 187.9C125 187.9 125 200.9 100 200.9C75 200.9 75 192.2 50 192.2C25 192.2 25 187.5 0 187.5Z" fill="url(#wRot)"/>
       <path d="M0 187.5C25 187.5 25 192.2 50 192.2C75 192.2 75 200.9 100 200.9C125 200.9 125 187.9 150 187.9C175 187.9 175 186.5 200 186.5C225 186.5 225 179.3 250 179.3C275 179.3 275 176.9 300 176.9C325 176.9 325 190.3 350 190.3C375 190.3 375 190.7 400 190.7C425 190.7 425 197.8 450 197.8C475 197.8 475 187.7 500 187.7C525 187.7 525 180.2 550 180.2C575 180.2 575 180.1 600 180.1C625 180.1 625 187.7 650 187.7C675 187.7 675 185.0 700 185.0C725 185.0 725 193.4 750 193.4C775 193.4 775 200.5 800 200.5C825 200.5 825 199.8 850 199.8C875 199.8 875 186.8 900 186.8C925 186.8 925 179.7 950 179.7C975 179.7 975 189.9 1000 189.9C1025 189.9 1025 184.1 1050 184.1C1075 184.1 1075 202.3 1100 202.3C1125 202.3 1125 195.7 1150 195.7C1175 195.7 1175 188.5 1200 188.5L1200 260L0 260Z" fill="url(#wGlut)"/>
