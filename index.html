@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611211322">
+<link rel="stylesheet" href="style.css?v=202611211324">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -797,8 +797,12 @@ html.lite .tick div{animation-duration:70s}
 .be-bildr::after{inset:0 0 -24px 0!important;border-bottom:0!important;border-radius:22px 22px 0 0!important}
 .be-bild{-webkit-mask:linear-gradient(90deg,transparent,#000 64px,#000 calc(100% - 64px),transparent)!important;mask:linear-gradient(90deg,transparent,#000 64px,#000 calc(100% - 64px),transparent)!important}
 .be-bild > i{-webkit-mask:linear-gradient(180deg,transparent,#000 64px,#000 calc(100% - 70px),transparent)!important;mask:linear-gradient(180deg,transparent,#000 64px,#000 calc(100% - 70px),transparent)!important}
+/* Bild im Rahmen ganz scharf, nur der Teil außerhalb blendet ins Weiße aus */
+.be-bild{inset:-40px!important;-webkit-mask:linear-gradient(90deg,transparent 0,rgba(0,0,0,.08) 12px,rgba(0,0,0,.3) 24px,rgba(0,0,0,.7) 34px,#000 40px,#000 calc(100% - 40px),rgba(0,0,0,.7) calc(100% - 34px),rgba(0,0,0,.3) calc(100% - 24px),rgba(0,0,0,.08) calc(100% - 12px),transparent 100%)!important;mask:linear-gradient(90deg,transparent 0,rgba(0,0,0,.08) 12px,rgba(0,0,0,.3) 24px,rgba(0,0,0,.7) 34px,#000 40px,#000 calc(100% - 40px),rgba(0,0,0,.7) calc(100% - 34px),rgba(0,0,0,.3) calc(100% - 24px),rgba(0,0,0,.08) calc(100% - 12px),transparent 100%)!important}
+.be-bild > i{-webkit-mask:linear-gradient(180deg,transparent 0,rgba(0,0,0,.08) 12px,rgba(0,0,0,.3) 24px,rgba(0,0,0,.7) 34px,#000 40px,#000 calc(100% - 40px),rgba(0,0,0,.7) calc(100% - 34px),rgba(0,0,0,.3) calc(100% - 24px),rgba(0,0,0,.08) calc(100% - 12px),transparent 100%)!important;mask:linear-gradient(180deg,transparent 0,rgba(0,0,0,.08) 12px,rgba(0,0,0,.3) 24px,rgba(0,0,0,.7) 34px,#000 40px,#000 calc(100% - 40px),rgba(0,0,0,.7) calc(100% - 34px),rgba(0,0,0,.3) calc(100% - 24px),rgba(0,0,0,.08) calc(100% - 12px),transparent 100%)!important}
+.be-karte{top:80px!important}
 </style>
-<script src="lang.js?v=202611211322" defer></script>
+<script src="lang.js?v=202611211324" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -1385,7 +1389,7 @@ function flimmern(root){
     box.addEventListener("pointerup", los); box.addEventListener("pointercancel", ()=>{ zug = null; geh(Math.round(pos)); });
     box.addEventListener("click", e=>e.preventDefault());
     box.addEventListener("wheel", e=>{ if(Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return; e.preventDefault(); clearTimeout(box._w); pos = ziel = pos + e.deltaX/abstand()*0.6; legen(); box._w = setTimeout(()=>geh(Math.round(pos)), 120); }, {passive:false});
-    const hoehe = ()=>{ box.style.height = (Math.max(...karten.map(k=>k.offsetHeight))*1.02 + 90) + "px"; };
+    const hoehe = ()=>{ box.style.height = (Math.max(...karten.map(k=>k.offsetHeight))*1.02 + 120) + "px"; };
     box._hoehe = hoehe;
     addEventListener("resize", ()=>{ hoehe(); legen(); }); hoehe(); legen(); if(document.fonts) document.fonts.ready.then(()=>{ hoehe(); legen(); });
     if(box._hoehe) box._hoehe();
