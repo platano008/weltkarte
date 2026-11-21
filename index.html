@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611211835">
+<link rel="stylesheet" href="style.css?v=202611211939">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -821,8 +821,14 @@ html.lite .tick div{animation-duration:70s}
 .wb.bald{cursor:default}
 .weiss{padding-bottom:clamp(90px,12vw,150px)!important}
 .w-pfeil{position:absolute;left:50%;top:-34px;width:30px;height:30px;fill:none;stroke:#8f8f8f;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;opacity:0}
+/* Ende der weißen Fläche: Front, dahinter rote Zone; Telegram/X untereinander auf der Front */
+.w-kante.unten{height:clamp(150px,16vw,200px)!important}
+.w-front{fill:none;stroke:#e3263c;stroke-width:3.5;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.weiss{padding-bottom:clamp(60px,8vw,90px)!important;margin-bottom:clamp(150px,16vw,200px)}
+.w-sozial.unten{position:absolute;left:50%;top:100%;z-index:3;margin:0;transform:translate(-50%,calc(clamp(150px,16vw,200px)*.12 - 50%));flex-direction:column;gap:12px}
+.w-sozial.unten .wb{box-shadow:0 0 0 4px #fff,0 10px 26px -8px rgba(0,0,0,.5)}
 </style>
-<script src="lang.js?v=202611211835" defer></script>
+<script src="lang.js?v=202611211939" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -882,12 +888,18 @@ html.lite .tick div{animation-duration:70s}
     <div class="wrap">
       <div class="w-kopf"><a class="w-titel" href="blog.html"><h2>Berichte</h2><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a></div>
       <div class="be-liste" id="beListe"></div>
-      <div class="w-sozial"><span>Updates</span>
+    </div>
+    <svg class="w-kante unten" viewBox="0 0 1200 200" preserveAspectRatio="none" aria-hidden="true">
+      <defs><linearGradient id="wRot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3263c" stop-opacity=".75"/><stop offset=".45" stop-color="#b3142a" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient></defs>
+      <path d="M0 37.5C25 37.5 25 42.2 50 42.2C75 42.2 75 50.9 100 50.9C125 50.9 125 37.9 150 37.9C175 37.9 175 36.5 200 36.5C225 36.5 225 29.3 250 29.3C275 29.3 275 26.9 300 26.9C325 26.9 325 40.3 350 40.3C375 40.3 375 40.7 400 40.7C425 40.7 425 47.8 450 47.8C475 47.8 475 34.8 500 34.8C525 34.8 525 20.7 550 20.7C575 20.7 575 16.1 600 16.1C625 16.1 625 28.2 650 28.2C675 28.2 675 32.1 700 32.1C725 32.1 725 43.4 750 43.4C775 43.4 775 50.5 800 50.5C825 50.5 825 49.8 850 49.8C875 49.8 875 36.8 900 36.8C925 36.8 925 29.7 950 29.7C975 29.7 975 39.9 1000 39.9C1025 39.9 1025 34.1 1050 34.1C1075 34.1 1075 52.3 1100 52.3C1125 52.3 1125 45.7 1150 45.7C1175 45.7 1175 38.5 1200 38.5L1200 200L0 200Z" fill="url(#wRot)"/>
+      <path d="M1200 38.5C1175 38.5 1175 45.7 1150 45.7C1125 45.7 1125 52.3 1100 52.3C1075 52.3 1075 34.1 1050 34.1C1025 34.1 1025 39.9 1000 39.9C975 39.9 975 29.7 950 29.7C925 29.7 925 36.8 900 36.8C875 36.8 875 49.8 850 49.8C825 49.8 825 50.5 800 50.5C775 50.5 775 43.4 750 43.4C725 43.4 725 32.1 700 32.1C675 32.1 675 28.2 650 28.2C625 28.2 625 16.1 600 16.1C575 16.1 575 20.7 550 20.7C525 20.7 525 34.8 500 34.8C475 34.8 475 47.8 450 47.8C425 47.8 425 40.7 400 40.7C375 40.7 375 40.3 350 40.3C325 40.3 325 26.9 300 26.9C275 26.9 275 29.3 250 29.3C225 29.3 225 36.5 200 36.5C175 36.5 175 37.9 150 37.9C125 37.9 125 50.9 100 50.9C75 50.9 75 42.2 50 42.2C25 42.2 25 37.5 0 37.5L0 0L1200 0Z" fill="#fff"/>
+      <path d="M0 37.5C25 37.5 25 42.2 50 42.2C75 42.2 75 50.9 100 50.9C125 50.9 125 37.9 150 37.9C175 37.9 175 36.5 200 36.5C225 36.5 225 29.3 250 29.3C275 29.3 275 26.9 300 26.9C325 26.9 325 40.3 350 40.3C375 40.3 375 40.7 400 40.7C425 40.7 425 47.8 450 47.8C475 47.8 475 34.8 500 34.8C525 34.8 525 20.7 550 20.7C575 20.7 575 16.1 600 16.1C625 16.1 625 28.2 650 28.2C675 28.2 675 32.1 700 32.1C725 32.1 725 43.4 750 43.4C775 43.4 775 50.5 800 50.5C825 50.5 825 49.8 850 49.8C875 49.8 875 36.8 900 36.8C925 36.8 925 29.7 950 29.7C975 29.7 975 39.9 1000 39.9C1025 39.9 1025 34.1 1050 34.1C1075 34.1 1075 52.3 1100 52.3C1125 52.3 1125 45.7 1150 45.7C1175 45.7 1175 38.5 1200 38.5" class="w-front"/>
+    </svg>
+      <div class="w-sozial unten">
         <a class="wb" data-sozial="telegram" href="#" target="_blank" rel="noopener" aria-label="Telegram"><svg viewBox="0 0 24 24"><path d="M21.5 4.2L2.9 11.4c-.9.4-.9 1.6.1 1.9l4.6 1.4 1.8 5.6c.3.8 1.3 1 1.9.4l2.6-2.5 4.7 3.5c.7.5 1.7.1 1.9-.7L23 5.4c.2-.9-.7-1.6-1.5-1.2zM9.8 14.6l-.4 3.6-1.3-4.3 9.6-6.3-7.9 7z"/></svg></a>
         <a class="wb" data-sozial="twitter" href="#" target="_blank" rel="noopener" aria-label="X / Twitter"><svg viewBox="0 0 24 24"><path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.9 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg></a>
       </div>
-    </div>
-    <svg class="w-kante unten" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0H1200V20H0Z" fill="#fff"/><path d="M0 20H1200" class="w-rand"/></svg>
+
   </section>
   <div class="wrap">
   <div class="stats" hidden>
