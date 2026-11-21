@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611212050">
+<link rel="stylesheet" href="style.css?v=202611212052">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -827,7 +827,7 @@ html.lite .tick div{animation-duration:70s}
 .w-pfeil.los .w-jet{animation:wJet 3.2s cubic-bezier(.5,0,.75,.4) .2s forwards}
 .w-pfeil.los .w-spur{animation:wSpur 3.2s cubic-bezier(.5,0,.75,.4) .2s forwards}
 @keyframes wJet{0%{transform:translateY(0) scale(1);opacity:1}12%{transform:translateY(6px) scale(1)}75%{opacity:1}100%{transform:translateY(-460px) scale(.5);opacity:0}}
-@keyframes wSpur{0%{height:0;opacity:0}20%{opacity:1}100%{height:260px;opacity:0}}
+@keyframes wSpur{0%{height:0;opacity:0}12%{opacity:1}75%{opacity:.9}100%{height:300px;opacity:0}}
 /* Ende der weißen Fläche: Front, dahinter rote Zone; Telegram/X untereinander auf der Front */
 .w-kante.unten{height:clamp(220px,22vw,280px)!important}
 .w-front{fill:none;stroke:#ff3550;stroke-width:3;vector-effect:non-scaling-stroke;stroke-linejoin:round}
@@ -845,7 +845,7 @@ html.lite .tick div{animation-duration:70s}
 @keyframes wJet2{0%{transform:translateY(0) scale(1);opacity:1}70%{opacity:1}100%{transform:translateY(-480px) scale(.5);opacity:0}}
 @keyframes wJetFarbe2{0%,8%{fill:#8f8f8f}16%,100%{fill:#fff}}
 </style>
-<script src="lang.js?v=202611212050" defer></script>
+<script src="lang.js?v=202611212052" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -1396,7 +1396,7 @@ function flimmern(root){
       /* Jet: steht in der Spitze; ist der Vorstoß ganz draußen, fliegt er hoch ins Schwarze und verschwindet */
       if(e > 0.97 && !pf.classList.contains("los")){             /* Schwung vom Runterscrollen: je schneller gescrollt, desto schneller der Start */
         const v = Math.abs(scrollY - (pf._sy || scrollY))/Math.max(16, performance.now() - (pf._st || 0));
-        pf.style.setProperty("--jd", Math.max(0.7, Math.min(1.5, 1.5 - v*0.6)).toFixed(2) + "s"); pf.classList.add("los"); }
+        pf.style.setProperty("--jd", Math.max(1.3, Math.min(2.4, 2.4 - v*0.7)).toFixed(2) + "s"); pf.classList.add("los"); }
       else if(e < 0.25) pf.classList.remove("los");
       pf._sy = scrollY; pf._st = performance.now(); }
   }
