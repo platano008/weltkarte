@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611212045">
+<link rel="stylesheet" href="style.css?v=202611212050">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -838,8 +838,14 @@ html.lite .tick div{animation-duration:70s}
 .w-pfeil.los .w-jet svg{animation:wJetFarbe 3.2s cubic-bezier(.5,0,.75,.4) .2s forwards}
 @keyframes wJetFarbe{0%,30%{fill:#8f8f8f}40%,100%{fill:#fff}}
 .w-spur{background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(255,255,255,0))!important}
+/* Jet startet sofort mit Schwung (schnell los, dann ausrollen) */
+.w-pfeil.los .w-jet{animation:wJet2 var(--jd,1.2s) cubic-bezier(.15,.55,.35,1) forwards!important}
+.w-pfeil.los .w-spur{animation:wSpur var(--jd,1.2s) cubic-bezier(.15,.55,.35,1) forwards!important}
+.w-pfeil.los .w-jet svg{animation:wJetFarbe2 var(--jd,1.2s) linear forwards!important}
+@keyframes wJet2{0%{transform:translateY(0) scale(1);opacity:1}70%{opacity:1}100%{transform:translateY(-480px) scale(.5);opacity:0}}
+@keyframes wJetFarbe2{0%,8%{fill:#8f8f8f}16%,100%{fill:#fff}}
 </style>
-<script src="lang.js?v=202611212045" defer></script>
+<script src="lang.js?v=202611212050" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -1388,8 +1394,11 @@ function flimmern(root){
     const pf = $("wPfeil"), kh = $("wKante").getBoundingClientRect().height;   /* kleiner Pfeil an der Spitze, zeigt die Richtung des Vorstoßes */
     if(pf){ pf.style.transform = `translate(-50%, ${((y - BASIS)/220*kh + 40).toFixed(1)}px)`; pf.style.opacity = Math.min(1, e*1.6).toFixed(2);
       /* Jet: steht in der Spitze; ist der Vorstoß ganz draußen, fliegt er hoch ins Schwarze und verschwindet */
-      if(e > 0.97 && !pf.classList.contains("los")) pf.classList.add("los");
-      else if(e < 0.25) pf.classList.remove("los"); }
+      if(e > 0.97 && !pf.classList.contains("los")){             /* Schwung vom Runterscrollen: je schneller gescrollt, desto schneller der Start */
+        const v = Math.abs(scrollY - (pf._sy || scrollY))/Math.max(16, performance.now() - (pf._st || 0));
+        pf.style.setProperty("--jd", Math.max(0.7, Math.min(1.5, 1.5 - v*0.6)).toFixed(2) + "s"); pf.classList.add("los"); }
+      else if(e < 0.25) pf.classList.remove("los");
+      pf._sy = scrollY; pf._st = performance.now(); }
   }
   let raf = 0; addEventListener("scroll", ()=>{ if(!raf) raf = requestAnimationFrame(()=>{ raf = 0; malen(); }); }, {passive:true});
   addEventListener("resize", malen); malen();
