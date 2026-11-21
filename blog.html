@@ -8,7 +8,7 @@
 <meta name="description" content="Berichte und Einordnungen zur Lage an der Front.">
 <link rel="icon" type="image/png" href="bild/favicon.png?v=2">
 <link rel="apple-touch-icon" href="bild/icon-180.png?v=2">
-<link rel="stylesheet" href="style.css?v=202611211045">
+<link rel="stylesheet" href="style.css?v=202611211230">
 <style>
 html,body{height:auto;overflow:auto;overflow-x:hidden;background:#000}
 .kopf{display:flex;justify-content:space-between;align-items:center;width:min(1100px,100%);margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 16px 0}
@@ -19,7 +19,10 @@ main{width:min(1100px,100%);margin:0 auto;padding:clamp(40px,8vw,90px) 16px 120p
 .gross{font-family:var(--korn);font-size:clamp(54px,12vw,150px);line-height:.9;margin:0 0 clamp(30px,6vw,70px)}
 .eyebrow{display:block;margin-bottom:12px}
 .posts{display:grid;gap:clamp(34px,6vw,70px)}
-.post{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:clamp(16px,3vw,40px);align-items:center;color:inherit;text-decoration:none}
+.post{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:clamp(16px,3vw,40px);align-items:center;color:inherit;text-decoration:none;padding:clamp(16px,2.4vw,28px);border:1px solid rgba(255,255,255,.16);border-radius:22px!important;background:linear-gradient(180deg,#0b0b0b,#050505);transition:border-color .35s,transform .35s cubic-bezier(.2,.7,.2,1)}
+.post:hover{border-color:rgba(255,255,255,.5);transform:translateY(-3px)}
+.post .b{border-radius:14px!important}
+.posts{gap:clamp(16px,2.4vw,26px)!important}
 .post.ohne{grid-template-columns:1fr}
 .post .b{aspect-ratio:16/10;background:#101010 center/cover no-repeat}
 .post h2{font-family:var(--korn);font-size:clamp(26px,4.2vw,52px);line-height:1;margin:0 0 14px}
@@ -72,8 +75,14 @@ article figcaption{margin:10px 16px 0;font-family:var(--mono);font-size:12px;col
 .sprachwahl button{border:0;background:none;color:#8d8d8d;font-family:var(--mono);font-size:12px;letter-spacing:.14em;padding:9px 14px;border-radius:999px!important;cursor:pointer;transition:background .3s,color .3s}
 .sprachwahl button.an{background:#fff;color:#000}
 .sprachwahl button:not(.an):hover{color:#fff}
+.f-rot{color:#ff3b55}.f-blau{color:#4aa3ff}.f-grau{color:#9a9a9a}.f-gelb{color:#ffd400}
+article p a,article h2 a{color:#fff;text-decoration:underline;text-decoration-color:#ff3b55;text-underline-offset:4px;text-decoration-thickness:2px}
+article p a:hover{color:#ff3b55}
+article figure.cover{margin:0 calc(50% - min(50vw,470px)) clamp(26px,5vw,50px)}
+article figure.cover img{border-radius:18px!important;aspect-ratio:16/9;object-fit:cover}
+.post p.flimmer{overflow-wrap:anywhere}
 </style>
-<script src="lang.js?v=202611211045" defer></script>
+<script src="lang.js?v=202611211230" defer></script>
 </head>
 <body>
 <script>(function(){ try{ const c = navigator.hardwareConcurrency || 8, m = navigator.deviceMemory || 8; if(c <= 4 || m <= 4 || matchMedia("(hover:none),(pointer:coarse)").matches) document.documentElement.classList.add("lite"); }catch(e){} })();</script>
@@ -139,13 +148,13 @@ function asciiStart(){
   const zufall = (a, b)=>a + Math.random()*(b - a);
   function neu(d, erst){
     const gr = Math.min(W, H*1.15)*0.8;
-    const groesse = {quad: 0.26, shahed: 0.24, aufkl: 0.34, lancet: 0.2}[d.typ]*gr*(W < 640 ? 1.25 : 1);
+    const groesse = {quad: 0.26, shahed: 0.24, aufkl: 0.34, lancet: 0.2, jet: 0.3}[d.typ]*gr*(W < 640 ? 1.25 : 1);
     const seite = Math.random() < 0.5 ? -1 : 1;
     d.s = groesse*zufall(0.85, 1.1);
     d.x = seite < 0 ? -d.s : W + d.s; d.y = zufall(H*0.18, H*0.7);
     if(erst){ d.x = zufall(W*0.15, W*0.85); }
     d.kurs = seite < 0 ? zufall(-0.25, 0.25) : Math.PI + zufall(-0.25, 0.25);
-    d.v = {quad: 38, shahed: 120, aufkl: 70, lancet: 95}[d.typ]*zufall(0.85, 1.15)*(W < 640 ? 0.7 : 1);
+    d.v = {quad: 38, shahed: 120, aufkl: 70, lancet: 95, jet: 165}[d.typ]*zufall(0.85, 1.15)*(W < 640 ? 0.7 : 1);
     d.ph = Math.random()*10; d.spur = []; d.weg = 0;
     if(!erst){                                                                 // neue Drohne: freie Höhe suchen, abwechselnd rot/blau
       d.team = d.team === "ru" ? "ua" : "ru";
@@ -155,7 +164,7 @@ function asciiStart(){
     }
   }
   function drohnenStart(){
-    ["shahed", "aufkl", "lancet", "shahed"].forEach((typ, k)=>{ const d = {typ, team: k % 2 ? "ua" : "ru"}; neu(d, true); if(k === 0){ d.y = H*0.62; } if(k === 1){ d.x = -d.s*2; d.kurs = 0.12; } if(k === 2){ d.x = W + d.s*3; d.kurs = Math.PI - 0.1; } if(k === 3){ d.x = -d.s*6; d.y = H*0.3; d.kurs = 0.05; } drohnen.push(d); });
+    ["shahed", "aufkl", "lancet", "jet"].forEach((typ, k)=>{ const d = {typ, team: k % 2 ? "ua" : "ru"}; neu(d, true); if(k === 0){ d.y = H*0.62; } if(k === 1){ d.x = -d.s*2; d.kurs = 0.12; } if(k === 2){ d.x = W + d.s*3; d.kurs = Math.PI - 0.1; } if(k === 3){ d.x = -d.s*6; d.y = H*0.3; d.kurs = 0.05; } drohnen.push(d); });
   }
   function bewegen(dt, t){
     for(const d of drohnen){
@@ -169,7 +178,7 @@ function asciiStart(){
       }
       d.kurs += dreh*dt;
       d.x += Math.cos(d.kurs)*d.v*dt; d.y += Math.sin(d.kurs)*d.v*dt;
-      d.spur.unshift([d.x, d.y]); if(d.spur.length > (d.typ === "shahed" ? 70 : 40)) d.spur.pop();
+      d.spur.unshift([d.x, d.y]); if(d.spur.length > (d.typ === "shahed" || d.typ === "jet" ? 70 : 40)) d.spur.pop();
       if(d.x < -d.s*3 || d.x > W + d.s*3 || d.y < -d.s*2 || d.y > H + d.s*2) neu(d, false);
     }
   }
@@ -199,6 +208,13 @@ function asciiStart(){
       c.fillRect(-s*0.42, -s*0.05, s*0.9, s*0.1);
       c.fillRect(-s*0.36, s*0.44, s*0.14, s*0.07); c.fillRect(-s*0.36, -s*0.51, s*0.14, s*0.07);
       if(!schatten){ const g = 0.6 + 0.4*Math.sin(t*30); c.fillStyle = R(g); c.beginPath(); c.arc(-s*0.47, 0, s*0.09, 0, 7); c.fill(); }
+    } else if(d.typ === "jet"){                                                      // Kampfjet von oben: spitze Nase, gepfeilte Flügel, Leitwerk, zwei Triebwerke
+      c.fillStyle = F(1); c.beginPath();
+      c.moveTo(s*0.6, 0); c.lineTo(s*0.3, -s*0.06); c.lineTo(s*0.05, -s*0.08); c.lineTo(-s*0.18, -s*0.48); c.lineTo(-s*0.28, -s*0.48); c.lineTo(-s*0.2, -s*0.1);
+      c.lineTo(-s*0.36, -s*0.1); c.lineTo(-s*0.46, -s*0.26); c.lineTo(-s*0.52, -s*0.26); c.lineTo(-s*0.48, -s*0.07);
+      c.lineTo(-s*0.48, s*0.07); c.lineTo(-s*0.52, s*0.26); c.lineTo(-s*0.46, s*0.26); c.lineTo(-s*0.36, s*0.1);
+      c.lineTo(-s*0.2, s*0.1); c.lineTo(-s*0.28, s*0.48); c.lineTo(-s*0.18, s*0.48); c.lineTo(s*0.05, s*0.08); c.lineTo(s*0.3, s*0.06); c.closePath(); c.fill();
+      if(!schatten){ const g = 0.7 + 0.3*Math.sin(t*40); c.fillStyle = R(g); c.beginPath(); c.arc(-s*0.54, -s*0.035, s*0.05, 0, 7); c.arc(-s*0.54, s*0.035, s*0.05, 0, 7); c.fill(); }
     } else if(d.typ === "lancet"){                                                   // Lancet-artig: schlanker Rumpf, zwei X-Flügelpaare
       c.fillStyle = F(1);
       c.beginPath(); c.roundRect(-s*0.55, -s*0.05, s*1.1, s*0.1, s*0.05); c.fill();
@@ -226,7 +242,7 @@ function asciiStart(){
     c.filter = "none";
     for(const d of drohnen){                                                         // Spuren
       if(d.weg || d.spur.length < 3 || d.typ === "quad") continue;
-      const rot = d.typ === "shahed";
+      const rot = d.typ === "shahed" || d.typ === "jet";
       for(let k = 2; k < d.spur.length; k += 1){
         const a = (1 - k/d.spur.length);
         const off = rot ? -d.s*0.47 : -d.s*0.5, p = d.spur[k];
@@ -236,13 +252,6 @@ function asciiStart(){
     }
     for(const d of drohnen) if(!d.weg) form(c, d, t, false);
     explosionen(c, t);
-    const z = drohnen.find(d=>d.typ === "shahed" && !d.weg);                                  // Zielmarkierung um die Shahed
-    if(z && z.x > 0 && z.x < W){
-      const r = z.s*0.85 + Math.sin(t*4)*z.s*0.05, l = z.s*0.28; c.strokeStyle = "rgba(0,255,0,1)"; c.lineWidth = Math.max(cw, ch)*0.9;
-      c.save(); c.translate(z.x, z.y);
-      for(const [x, y] of [[1,1],[1,-1],[-1,1],[-1,-1]]){ c.beginPath(); c.moveTo(x*r, y*(r - l)); c.lineTo(x*r, y*r); c.lineTo(x*(r - l), y*r); c.stroke(); }
-      c.restore();
-    }
     return c.getImageData(0, 0, cols, rows).data;
   }
   /* Explosionen: Blitz, Feuerring, Rauch, Splitter */
@@ -369,23 +378,58 @@ function asciiStart(){
   asciiStop = ()=>{ cancelAnimationFrame(raf); zeig.disconnect(); window.removeEventListener("resize", rs); };
 }
 
+
+/* Textformat aus dem Editor: {rot}…{/rot}, {blau}…{/blau}, {grau}…{/grau}, {gelb}…{/gelb} und [Linktext](https://…) */
+function fmt(t){
+  let h = esc(t);
+  h = h.replace(/\{(rot|blau|grau|gelb)\}([\s\S]*?)\{\/\1\}/g, '<span class="f-$1">$2</span>');
+  h = h.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, (m, txt, url)=>'<a href="' + url + '" target="_blank" rel="noopener">' + txt + '</a>');
+  return h;
+}
+function ohneMarkup(t){ return String(t).replace(/\{\/?(rot|blau|grau|gelb)\}/g, "").replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1"); }
+/* Vorschautext hört nicht hart auf: zum Ende hin flimmern die Buchstaben immer stärker, am Schluss nur noch Zeichensalat */
+let flimmerIv = 0;
+function flimmern(){
+  clearInterval(flimmerIv);
+  const ZS = "!?/\\|<>[]{}$&%#@*+=-_:;0123456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const zuf = ()=>ZS[Math.floor(Math.random()*ZS.length)];
+  const boxen = [...document.querySelectorAll(".flimmer")].map(p=>{
+    const t = (p.dataset.t || "").trim(), L = Math.min(70, Math.max(12, Math.floor(t.length*0.45))), kopf = t.slice(0, t.length - L), ende = t.slice(t.length - L);
+    p.textContent = kopf; const spans = [];
+    for(let k = 0; k < ende.length + 16; k++){
+      const sp = document.createElement("span"), f = k/(ende.length + 15);
+      sp.dataset.o = ende[k] || ""; sp.dataset.f = f; sp.textContent = ende[k] || zuf();
+      sp.style.opacity = (1 - f*0.85).toFixed(2); p.appendChild(sp); spans.push(sp);
+    }
+    return spans;
+  });
+  if(!boxen.length || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  flimmerIv = setInterval(()=>{
+    if(document.hidden) return;
+    for(const spans of boxen) for(const sp of spans){
+      const f = +sp.dataset.f, o = sp.dataset.o;
+      if(o === " ") continue;
+      sp.textContent = (!o || Math.random() < f*f*0.95) ? zuf() : o;
+    }
+  }, 90);
+}
 async function liste(){
   document.title = "Blog · Plyus";
   try{
     const d = await hole("blog/index.json"), L = d.beitraege || [];
-    main.innerHTML = '<div class="ascii" id="ascii"><div class="cv"><canvas></canvas></div><div class="ttl"><span class="eyebrow">Berichte</span><h1 class="gross">Blog</h1></div></div>' + (L.length ? '<div class="posts">' + L.map(b=>{ const bild = sicher(b.bild);
-      return '<a class="post' + (bild ? "" : " ohne") + '" href="#' + encodeURIComponent(b.id) + '">' + (bild ? '<div class="b" style="background-image:url(&quot;' + esc(bild) + '&quot;)"></div>' : "") + '<div><span class="eyebrow">' + esc(datum(b.datum)) + '</span><h2>' + esc(b.titel) + '</h2><p>' + esc(b.kurz || "") + '</p></div></a>'; }).join("") + '</div>' : '<p class="leer">Noch keine Beiträge.</p>');
+    main.innerHTML = '<div class="ascii" id="ascii"><div class="cv"><canvas></canvas></div><div class="ttl"><span class="eyebrow">Berichte</span><h1 class="gross">Blog</h1></div></div>' + (L.length ? '<div class="posts">' + L.map(b=>{ const bild = sicher(b.cover || b.bild);
+      return '<a class="post' + (bild ? "" : " ohne") + '" href="#' + encodeURIComponent(b.id) + '">' + (bild ? '<div class="b" style="background-image:url(&quot;' + esc(bild) + '&quot;)"></div>' : "") + '<div><span class="eyebrow">' + esc(datum(b.datum)) + '</span><h2>' + esc(b.titel) + '</h2><p class="flimmer" data-t="' + esc(ohneMarkup(b.kurz || "")) + '"></p></div></a>'; }).join("") + '</div>' : '<p class="leer">Noch keine Beiträge.</p>');
   }catch(e){ main.innerHTML = '<div class="ascii" id="ascii"><div class="cv"><canvas></canvas></div><div class="ttl"><h1 class="gross">Blog</h1></div></div><p class="leer">Die Beiträge konnten nicht geladen werden.</p>'; }
-  asciiStart();
+  asciiStart(); flimmern();
 }
 async function beitrag(id){
   if(!/^[\w-]+$/.test(id)) return liste();
   try{
     const b = await hole("blog/b/" + id + ".json"); if(b.status !== "veroeffentlicht") throw 0;
     document.title = b.titel + " · Plyus";
-    main.innerHTML = '<article><a class="zur" href="blog.html">← Alle Beiträge</a><span class="eyebrow">' + esc(datum(b.datum)) + '</span><h1>' + esc(b.titel) + '</h1>' + (b.bloecke || []).map(x=>{
-      if(x.t === "h") return "<h2>" + esc(x.x) + "</h2>";
-      if(x.t === "p") return String(x.x || "").split(/\n\s*\n/).map(a=>"<p>" + esc(a.trim()).replace(/\n/g, "<br>") + "</p>").join("");
+    main.innerHTML = '<article><a class="zur" href="blog.html">← Alle Beiträge</a><span class="eyebrow">' + esc(datum(b.datum)) + '</span><h1>' + esc(b.titel) + '</h1>' + (sicher(b.cover) ? '<figure class="cover"><img src="' + esc(sicher(b.cover)) + '" alt=""></figure>' : '') + (b.bloecke || []).map(x=>{
+      if(x.t === "h") return "<h2>" + fmt(x.x) + "</h2>";
+      if(x.t === "p") return String(x.x || "").split(/\n\s*\n/).map(a=>"<p>" + fmt(a.trim()).replace(/\n/g, "<br>") + "</p>").join("");
       const src = sicher(x.src), cap = x.cap ? "<figcaption>" + esc(x.cap) + "</figcaption>" : ""; if(!src) return "";
       if(x.t === "img") return '<figure><img src="' + esc(src) + '" alt="' + esc(x.cap || "") + '" loading="lazy">' + cap + "</figure>";
       if(x.t === "vid"){ const y = youtube(src); return "<figure>" + (y ? '<iframe src="https://www.youtube-nocookie.com/embed/' + esc(y) + '" allow="fullscreen; picture-in-picture" allowfullscreen loading="lazy" title="Video"></iframe>' : '<video src="' + esc(src) + '" controls playsinline preload="metadata"></video>') + cap + "</figure>"; }
@@ -393,7 +437,7 @@ async function beitrag(id){
     scrollTo(0, 0);
   }catch(e){ main.innerHTML = '<article><a class="zur" href="blog.html">← Alle Beiträge</a><p class="leer">Diesen Beitrag gibt es nicht (mehr).</p></article>'; }
 }
-function route(){ if(asciiStop){ asciiStop(); asciiStop = null; } const id = decodeURIComponent(location.hash.slice(1)); id ? beitrag(id) : liste(); }
+function route(){ clearInterval(flimmerIv); if(asciiStop){ asciiStop(); asciiStop = null; } const id = decodeURIComponent(location.hash.slice(1)); id ? beitrag(id) : liste(); }
 addEventListener("hashchange", route); route();
 /* Menü */
 (function(){ const m = document.getElementById("menu"), bt = document.getElementById("burger");
