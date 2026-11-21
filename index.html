@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611202214">
+<link rel="stylesheet" href="style.css?v=202611211045">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -641,7 +641,7 @@ a.gate:hover .gt b::after{transform:translateX(.25em)}
 .gate.breit .g3d.maus{animation:none}
 @keyframes schwingB{from{--rz:-6deg;--rx:39deg}to{--rz:-2deg;--rx:44deg}}
 .gate.breit .gnote{left:calc(5% + 22px)!important;right:auto!important;bottom:calc(12% + 14px)!important;transform:none!important;z-index:5}
-.gate.breit .gd-ru{stroke:none}
+
 .gd-nb{fill:none;stroke:rgba(255,255,255,.28);stroke-width:1.4;stroke-linejoin:round}
 a.gate.breit:hover .grahmen{border-color:rgba(255,255,255,.75);box-shadow:0 0 0 1px rgba(0,0,0,.35),0 0 50px -8px rgba(255,255,255,.4)}
 .gate.breit .gt{position:absolute;inset:12% 5%;z-index:5;display:grid;place-items:center;margin:0;padding:0;pointer-events:none}
@@ -705,8 +705,25 @@ html.lite .nb{display:none}
 html.lite .szug{filter:none}
 html.lite .scan,html.lite .radar{display:none}
 html.lite .tick div{animation-duration:70s}
+
+/* Kartenblöcke enger zusammen und weiter oben; kräftigere Farben in der Dronemap */
+.gates,.gates.gates{gap:clamp(8px,1.5vw,22px)!important;margin-top:clamp(20px,3vw,44px)!important}
+.gate.breit .gd-ua{fill:rgba(30,110,255,.16);stroke:#4aa3ff;stroke-width:2.4}
+.gate.breit .gd-ru{fill:rgba(230,20,50,.34);stroke:#ff3550;stroke-width:2.2}
+.gd-b{stroke-width:3.2}
+.gx-feuer{filter:saturate(1.4)}
+
+/* Kartenblöcke dicht untereinander: Rahmen gleich groß wie vorher, aber weniger Leerraum drumherum */
+.gate.breit,.gates .gate.breit{--rh:calc(clamp(340px,44vw,560px)*.76);height:calc(var(--rh) + 90px)}
+.gate.breit .grahmen,.gate.breit .gt{inset:45px 5%}
+.gate.breit .gnote{bottom:calc(45px + 14px)!important}
+.gate.breit .gv{inset:-30px -3%}
+.gate.breit::after{inset:-30px -3%;background:linear-gradient(180deg,#000 0,#000 30px,transparent 80px,transparent calc(100% - 80px),#000 calc(100% - 30px),#000),linear-gradient(90deg,#000,transparent 9%,transparent 91%,#000)}
+.gates,.gates.gates{gap:0!important}
+.gate.breit + .gate.breit .gv,.gate.breit + .gate.breit::after{top:0}
+@media (max-width:699px){.gate.breit,.gates .gate.breit{--rh:calc(clamp(320px,96vw,440px)*.76)}.gate.breit .grahmen,.gate.breit .gt{inset:45px 3%}}
 </style>
-<script src="lang.js?v=202611202214" defer></script>
+<script src="lang.js?v=202611211045" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -740,12 +757,9 @@ html.lite .tick div{animation-duration:70s}
     <h1 aria-label="Plyus"><svg class="szug" viewBox="0 0 558.8 100" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z" style="--i:0"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z" style="--i:1"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z" style="--i:2"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z" style="--i:3"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z" style="--i:4"/></g></svg></h1>
   </div>
   <div class="koepfe" id="koepfe" aria-hidden="true"></div>
-  <a class="runter" href="#intro" aria-label="Nach unten"><svg viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></svg></a>
+  <a class="runter" href="#g1" aria-label="Nach unten"><svg viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></svg></a>
 </section>
 <div class="wrap">
-  <section class="manifest" id="intro">
-    <h2 class="mf-satz"><span class="z"><span>The <em>unbiased</em> mapping.</span></span></h2>
-  </section>
   <div class="gates">
   <a class="gate breit rv" href="karte.html" id="g1">
     <div class="gv gv-unten"><div class="g3d" id="g3dF"><svg id="gFront" class="eb" style="--z:0px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gFrontK" class="eb" style="--z:7px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg><svg id="gFrontR" class="eb" style="--z:14px" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg></div></div>
@@ -1060,18 +1074,18 @@ function drawViz(imp, recent){
       tambow:[41.45,52.72], smolensk:[32.05,54.78], taganrog:[38.9,47.2], kasan:[49.1,55.8], millerowo:[40.4,48.9], primorsko:[38.17,46.05], schatalowo:[32.47,54.33], nawlja:[34.5,52.8],
       tschauda:[35.85,45.0], sudscha:[35.27,51.2], glusch:[34.38,51.36]};
     // [Start, Ziel, Richtung] – Kiew und Moskau sind häufiger Ziel; ein paar ukrainische Drohnen starten aus Russland (Raum Sudscha)
-    const B = [["kursk","kyiv","ru"], ["sumy","moskau","ua"], ["primorsko","odesa","ru"], ["poltawa","woronesch","ua"], ["millerowo","dnipro","ru"], ["sudscha","kursk","ua"],
-      ["brjansk","kyiv","ru"], ["tschernihiw","moskau","ua"], ["tschauda","saporischschja","ru"], ["charkiw","belgorod","ua"], ["nawlja","schytomyr","ru"], ["krementschuk","rostow","ua"],
-      ["orjol","kyiv","ru"], ["glusch","moskau","ua"], ["taganrog","mykolajiw","ru"], ["dnipro","noworossijsk","ua"], ["schatalowo","lwiw","ru"], ["poltawa","rjasan","ua"],
-      ["kursk","charkiw","ru"], ["sumy","tula","ua"], ["millerowo","krywyjrih","ru"], ["sudscha","lipezk","ua"], ["primorsko","winnyzja","ru"], ["krywyjrih","tuapse","ua"],
-      ["belgorod","kyiv","ru"], ["kyiv","moskau","ua"], ["tschauda","riwne","ru"], ["charkiw","saratow","ua"]];
+    const B = [["kursk","kyiv","ru"], ["sumy","moskau","ua"], ["primorsko","odesa","ru"], ["poltawa","woronesch","ua"], ["millerowo","dnipro","ru"], ["sumy","kursk","ua"],
+      ["brjansk","kyiv","ru"], ["tschernihiw","moskau","ua"], ["rostow","saporischschja","ru"], ["charkiw","belgorod","ua"], ["nawlja","schytomyr","ru"], ["krementschuk","rostow","ua"],
+      ["orjol","kyiv","ru"], ["charkiw","moskau","ua"], ["taganrog","mykolajiw","ru"], ["dnipro","noworossijsk","ua"], ["schatalowo","lwiw","ru"], ["poltawa","rjasan","ua"],
+      ["kursk","charkiw","ru"], ["sumy","tula","ua"], ["millerowo","krywyjrih","ru"], ["tschernihiw","lipezk","ua"], ["primorsko","winnyzja","ru"], ["krywyjrih","tuapse","ua"],
+      ["belgorod","kyiv","ru"], ["kyiv","moskau","ua"], ["kursk","riwne","ru"], ["charkiw","saratow","ua"]];
     if(document.documentElement.classList.contains("lite")) B.splice(10); else if(matchMedia("(hover:none),(pointer:coarse)").matches) B.splice(16);           // Tablet/Handy: weniger gleichzeitig
     const N = B.length, T = 15;
     B.forEach(([sa, sb, k], i)=>{
       const a = O[sa], b = O[sb];
       const x0 = X(a[0]), y0 = Y(a[1]), x1 = X(b[0]), y1 = Y(b[1]), bend = 30 + (i%4)*14 + Math.hypot(x1-x0, y1-y0)*0.08;
       const d = `M${x0.toFixed(0)} ${y0.toFixed(0)}Q${((x0+x1)/2).toFixed(0)} ${((y0+y1)/2 - bend).toFixed(0)} ${x1.toFixed(0)} ${y1.toFixed(0)}`;
-      const c = k === "ru" ? "#ff4d63" : "#8fd0ff", w = `--w:${(i*T/N).toFixed(2)}s`;
+      const c = k === "ru" ? "#ff1a3c" : "#2f95ff", w = `--w:${(i*T/N).toFixed(2)}s`;
       el("path", {class:"gd-s", d, pathLength:1, style:w}, boden);                                   // Schatten der Bahn auf dem Boden
       el("path", {class:"gd-b", d, pathLength:1, stroke:c, style:w}, gF);
       const kopf = el("g", {class:"gd-f", style:`offset-path:path("${d}");${w}`}, gF);
