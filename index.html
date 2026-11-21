@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611211340">
+<link rel="stylesheet" href="style.css?v=202611211344">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -804,8 +804,13 @@ html.lite .tick div{animation-duration:70s}
 /* schneller verblassen */
 .be-bild{inset:-26px!important;-webkit-mask:linear-gradient(90deg,transparent 0,rgba(0,0,0,.06) 9px,rgba(0,0,0,.35) 17px,rgba(0,0,0,.8) 23px,#000 26px,#000 calc(100% - 26px),rgba(0,0,0,.8) calc(100% - 23px),rgba(0,0,0,.35) calc(100% - 17px),rgba(0,0,0,.06) calc(100% - 9px),transparent 100%)!important;mask:linear-gradient(90deg,transparent 0,rgba(0,0,0,.06) 9px,rgba(0,0,0,.35) 17px,rgba(0,0,0,.8) 23px,#000 26px,#000 calc(100% - 26px),rgba(0,0,0,.8) calc(100% - 23px),rgba(0,0,0,.35) calc(100% - 17px),rgba(0,0,0,.06) calc(100% - 9px),transparent 100%)!important}
 .be-bild > i{-webkit-mask:linear-gradient(180deg,transparent 0,rgba(0,0,0,.06) 9px,rgba(0,0,0,.35) 17px,rgba(0,0,0,.8) 23px,#000 26px,#000 calc(100% - 26px),rgba(0,0,0,.8) calc(100% - 23px),rgba(0,0,0,.35) calc(100% - 17px),rgba(0,0,0,.06) calc(100% - 9px),transparent 100%)!important;mask:linear-gradient(180deg,transparent 0,rgba(0,0,0,.06) 9px,rgba(0,0,0,.35) 17px,rgba(0,0,0,.8) 23px,#000 26px,#000 calc(100% - 26px),rgba(0,0,0,.8) calc(100% - 23px),rgba(0,0,0,.35) calc(100% - 17px),rgba(0,0,0,.06) calc(100% - 9px),transparent 100%)!important}
+/* runde Ecken beim Verblassen: weißer Innenschatten statt zweier gerader Masken */
+.be-bild{-webkit-mask:none!important;mask:none!important;overflow:hidden;border-radius:46px!important}
+.be-bild > i{-webkit-mask:none!important;mask:none!important}
+.be-bild > i{inset:3px!important;border-radius:43px!important}
+.be-bild::after{content:"";position:absolute;inset:0;border:6px solid #fff;border-radius:inherit;box-shadow:inset 0 0 20px 11px #fff,inset 0 0 6px 4px #fff;pointer-events:none}
 </style>
-<script src="lang.js?v=202611211340" defer></script>
+<script src="lang.js?v=202611211344" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
