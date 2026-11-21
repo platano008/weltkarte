@@ -18,7 +18,7 @@
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611211346">
+<link rel="stylesheet" href="style.css?v=202611211835">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -820,8 +820,9 @@ html.lite .tick div{animation-duration:70s}
 .wb[data-sozial=telegram]:hover{background:#2a9df4}
 .wb.bald{cursor:default}
 .weiss{padding-bottom:clamp(90px,12vw,150px)!important}
+.w-pfeil{position:absolute;left:50%;top:-34px;width:30px;height:30px;fill:none;stroke:#8f8f8f;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;opacity:0}
 </style>
-<script src="lang.js?v=202611211346" defer></script>
+<script src="lang.js?v=202611211835" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -877,6 +878,7 @@ html.lite .tick div{animation-duration:70s}
   </div>
   <section class="weiss" id="weiss">
     <svg class="w-kante" id="wKante" viewBox="0 0 1200 220" preserveAspectRatio="none" aria-hidden="true"><path class="w-flaeche" id="wFl"/><path class="w-rand" id="wRand"/></svg>
+    <svg class="w-pfeil" id="wPfeil" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V5M6 11l6-6 6 6"/></svg>
     <div class="wrap">
       <div class="w-kopf"><a class="w-titel" href="blog.html"><h2>Berichte</h2><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a></div>
       <div class="be-liste" id="beListe"></div>
@@ -1359,6 +1361,8 @@ function flimmern(root){
     const h = 92*e, y = BASIS - h;          /* breiter Bogen, oben etwas spitzer */
     const d = `M0 ${BASIS}L120 ${BASIS}C390 ${BASIS} 470 ${y.toFixed(1)} 600 ${y.toFixed(1)}C730 ${y.toFixed(1)} 810 ${BASIS} 1080 ${BASIS}L1200 ${BASIS}`;
     rd.setAttribute("d", d); fl.setAttribute("d", d + "L1200 220L0 220Z");
+    const pf = $("wPfeil"), kh = $("wKante").getBoundingClientRect().height;   /* kleiner Pfeil an der Spitze, zeigt die Richtung des Vorstoßes */
+    if(pf){ pf.style.transform = `translate(-50%, ${((y - BASIS)/220*kh + 44).toFixed(1)}px)`; pf.style.opacity = Math.min(1, e*1.6).toFixed(2); }
   }
   let raf = 0; addEventListener("scroll", ()=>{ if(!raf) raf = requestAnimationFrame(()=>{ raf = 0; malen(); }); }, {passive:true});
   addEventListener("resize", malen); malen();
