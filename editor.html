@@ -12,10 +12,10 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=202611220001">
+<link rel="stylesheet" href="style.css?v=202611222032">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611220001"></script>
+<script src="karte.js?v=202611222032"></script>
 <style>
 .panel{width:360px;overflow-y:auto;overscroll-behavior:contain}
 .panel>*{flex:none}
@@ -116,6 +116,17 @@ details.gh[open] summary{color:var(--fg)}
 .hub-g button.aus b{color:#8a8a8a}
 .hub-z{margin-bottom:22px;color:var(--muted);font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
 .hub .hint{margin-top:18px}
+.hub-bild{position:fixed;top:16px;right:16px;z-index:2;width:40px;height:40px;display:grid;place-items:center;padding:0;border:1px solid var(--line-2);background:var(--surface);color:var(--fg);border-radius:10px!important}
+.hub-bild:hover{border-color:var(--fg)}
+.hub-bild svg{width:18px;height:18px}
+.lg-box{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.86);display:grid;place-items:center;padding:20px}
+.lg-box[hidden]{display:none}
+.lg-in{display:flex;flex-direction:column;align-items:center;gap:16px;max-width:100%}
+.lg-in img{width:min(320px,70vw);height:auto;display:block;border-radius:22%!important;box-shadow:0 30px 80px -20px rgba(255,53,80,.35)}
+.lg-k{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.lg-k button,.lg-k a{padding:11px 18px;border:1px solid var(--line-2);background:var(--surface);color:var(--fg);font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;cursor:pointer}
+.lg-k button:hover,.lg-k a:hover{border-color:var(--fg)}
+.lg-in p{margin:0;color:var(--muted);font-size:13px;min-height:1.2em}
 @media (max-width:640px){.hub-g,.hub-g.zwei{grid-template-columns:1fr}.hub-g button{min-height:104px}}
 /* ----- neue Aufteilung: Werkzeuge oben links (schmal), Speichern unten links, Zurück/Vor oben rechts ----- */
 .panel{width:300px;max-height:calc(100% - 250px)}
@@ -198,6 +209,8 @@ body.ed-liste .panel .mehr{display:block}
 </head>
 <body>
 <div class="hub" id="hub" hidden>
+  <button class="hub-bild" id="hubBild" title="Logo ansehen" aria-label="Logo ansehen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg></button>
+  <div class="lg-box" id="lgBox" hidden><div class="lg-in"><img src="bild/logo-p.png" alt="Plyus Logo"><div class="lg-k"><button id="lgKopie">Bild kopieren</button><a href="bild/logo-p.png" download="plyus-logo.png">Speichern</a><a href="bild/logo-p.svg" download="plyus-logo.svg">SVG</a><button id="lgZu">Schließen</button></div><p id="lgN"></p></div></div>
   <div class="hub-in">
     <img class="hub-logo" src="bild/logo.svg" alt="Plyus">
     <div id="hub1">
@@ -1044,6 +1057,12 @@ setTool("select"); renderGh(); load();
       b.onclick = fn || (()=>{ $("hubN").textContent = hinweis; $("hubN").hidden = false; }); g.appendChild(b); }); }
   $("hub1").querySelectorAll("[data-h]").forEach(b=>b.onclick = ()=>stufe2(b.dataset.h));
   $("hubZ").onclick = stufe1;
+  $("hubBild").onclick = ()=>{ $("lgN").textContent = ""; $("lgBox").hidden = false; };
+  $("lgZu").onclick = ()=>{ $("lgBox").hidden = true; };
+  $("lgBox").onclick = e=>{ if(e.target === $("lgBox")) $("lgBox").hidden = true; };
+  $("lgKopie").onclick = async ()=>{
+    try{ const blob = await (await fetch("bild/logo-p.png")).blob(); await navigator.clipboard.write([new ClipboardItem({"image/png": blob})]); $("lgN").textContent = "Kopiert ✓"; }
+    catch(e){ $("lgN").textContent = "Kopieren geht in diesem Browser nicht – lange auf das Bild drücken oder „Speichern“ nehmen."; } };
   $("zurHub").onclick = ()=>{ stufe1(); hub.hidden = false; history.replaceState(null, "", location.pathname); };
   if(location.hash === "#front") hub.hidden = true;
   else if(location.hash === "#visuals"){ hub.hidden = true; setTimeout(()=>setTool("bild"), 0); }
