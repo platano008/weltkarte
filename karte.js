@@ -125,43 +125,6 @@ function hellStyle(gelaende){
     ]};
 }
 
-/* Höhenfarben für „Schlicht“: tief = blau, hoch = rot.
-   Höhendaten (Terrain Tiles, AWS, frei) werden im Browser eingefärbt – eigenes Protokoll „hoehe://“. */
-const HOEHE_STOPS = [[-50,[29,79,184]],[0,[45,98,205]],[60,[80,135,225]],[130,[170,200,240]],[190,[244,241,238]],[260,[244,170,165]],[400,[229,72,77]],[800,[179,20,31]],[1600,[110,7,16]]];
-let hoeheLut = null, hoeheProto = false;
-function hoeheFarbe(m){
-  const S = HOEHE_STOPS; if(m <= S[0][0]) return S[0][1]; if(m >= S[S.length-1][0]) return S[S.length-1][1];
-  for(let i=1;i<S.length;i++) if(m <= S[i][0]){ const [a,ca] = S[i-1], [b,cb] = S[i], t = (m-a)/(b-a); return [0,1,2].map(k=>Math.round(ca[k] + (cb[k]-ca[k])*t)); }
-}
-function hoeheProtokoll(){
-  if(hoeheProto || !maplibregl.addProtocol) return; hoeheProto = true;
-  hoeheLut = new Uint8Array(2200*3); for(let m=0;m<2200;m++){ const c = hoeheFarbe(m-100); hoeheLut[m*3]=c[0]; hoeheLut[m*3+1]=c[1]; hoeheLut[m*3+2]=c[2]; }
-  maplibregl.addProtocol("hoehe", async (params, abort)=>{
-    const [z,x,y] = params.url.replace("hoehe://","").split("/");
-    const r = await fetch(`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${x}/${y}.png`, {signal: abort && abort.signal});
-    if(!r.ok) throw new Error("Höhenkachel " + r.status);
-    const bmp = await createImageBitmap(await r.blob());
-    const cv = typeof OffscreenCanvas !== "undefined" ? new OffscreenCanvas(bmp.width, bmp.height) : Object.assign(document.createElement("canvas"), {width:bmp.width, height:bmp.height});
-    const cx = cv.getContext("2d"); cx.drawImage(bmp, 0, 0);
-    const img = cx.getImageData(0, 0, bmp.width, bmp.height), d = img.data;
-    for(let i=0;i<d.length;i+=4){
-      let m = Math.round(d[i]*256 + d[i+1] + d[i+2]/256 - 32768) + 100; m = m < 0 ? 0 : m > 2199 ? 2199 : m;
-      d[i] = hoeheLut[m*3]; d[i+1] = hoeheLut[m*3+1]; d[i+2] = hoeheLut[m*3+2]; d[i+3] = 255;
-    }
-    cx.putImageData(img, 0, 0);
-    const blob = cv.convertToBlob ? await cv.convertToBlob({type:"image/png"}) : await new Promise(res=>cv.toBlob(res, "image/png"));
-    return {data: await blob.arrayBuffer()};
-  });
-}
-function addHoehe(map){
-  try{
-    hoeheProtokoll();
-    const vor = (map.getStyle().layers.find(l=>l.type==="symbol" || /road|transport|bridge|tunnel|boundary|admin/i.test(l.id))||{}).id;
-    map.addSource("hoehe", {type:"raster", tiles:["hoehe://{z}/{x}/{y}"], tileSize:256, maxzoom:12, attribution:'Höhen: <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank">Terrain Tiles (AWS)</a>'});
-    map.addLayer({id:"hoehe", type:"raster", source:"hoehe", paint:{"raster-opacity":0.55, "raster-fade-duration":150}}, vor);
-  }catch(e){ console.warn("Höhenfarben:", e); }
-}
-
 /* Esri World Imagery: schärfere Satellitenbilder, nur über der Ukraine und erst ab Zoom 7.
    Der Schlüssel ist auf platano008.github.io beschränkt. */
 const ESRI_KEY = "AAPTa9KuMZUnWQGzFYq1i52nlAw..h2fE1_muFqHQuDnyNWqSWZcjtPU2Jbxwcs-6KhCrxrHhceZLvPzRTuneYNUm3ay_PxyZIXScz5yX43P4sv2ZbP4uWqaJ-TnWNxnO7wJwTASkMrYh9NHEgP01OLyUqRmIeoObk4DICPw3hWf3uxCQ4MwjHtW5-O9V5dDL5vN5PGfV5pGbe5Pi2sWyMDmJppIIPsUKmZMA7-HVfam5Xy8aAc2i6eZGWGzMoRNOwBobJ2DasxpCX1kAMUP04UQ.AT1_p9XEFpe5";
@@ -730,7 +693,6 @@ function createMap(opts){
     const th = free ? "dark" : STYLES[current].theme;
     if(th){ try{ applyTheme(map, th); }catch(e){ console.warn("Farbschema:", e); } }
     if(!free && current==="sat") addEsri(map);
-    if(!free && current==="schlicht") addHoehe(map);
     if(importData){ try{ addImportLayers(map); }catch(e){ console.warn("Lagedaten:", e); } }
     if(opts.onStyle) opts.onStyle(map);
   });
