@@ -3,11 +3,13 @@
 "use strict";
 
 const MAPTILER_KEY = "4TDQhzPsZwABTFDNshhB";
+const MAPTILER_KEY2 = "H4qj8sTsBEDzkjdlj2cO";   /* zweiter Schlüssel, für den Stil „Schlicht“ (MapTiler Backdrop) */
 const MT = n => `https://api.maptiler.com/maps/${n}/style.json?key=${MAPTILER_KEY}`;
 const STYLES = {
   sat:  {name:"Satellit", url:MT("hybrid-v4"), theme:"sat"},
   karte:{name:"Karte",    url:()=>hellStyle(), theme:null, own:true},
-  topo: {name:"Gelände",  url:()=>hellStyle(true), theme:null, own:true}
+  topo: {name:"Gelände",  url:()=>hellStyle(true), theme:null, own:true},
+  schlicht:{name:"Schlicht", url:`https://api.maptiler.com/maps/backdrop-v4/style.json?key=${MAPTILER_KEY2}`, theme:null}
 };
 const STYLE_FREE = "https://tiles.openfreemap.org/styles/liberty";
 

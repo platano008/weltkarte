@@ -27,7 +27,7 @@
     "Noch keine Beiträge.":"No posts yet.", "Die Beiträge konnten nicht geladen werden.":"The posts could not be loaded.", "Zurück":"Back", "Alle Beiträge":"All posts",
     "Zurück zur Übersicht":"Back to overview", "Beitrag nicht gefunden.":"Post not found.",
     // Karte
-    "Karte lädt":"Loading map", "Lädt …":"Loading …", "Neu":"New", "Log":"Log", "Ohne Datum":"No date", "Karte wird geladen …":"Loading map …", "Satellit":"Satellite", "Gelände":"Terrain", "Globus":"Globe", "Flach":"Flat",
+    "Karte lädt":"Loading map", "Lädt …":"Loading …", "Neu":"New", "Log":"Log", "Ohne Datum":"No date", "Karte wird geladen …":"Loading map …", "Satellit":"Satellite", "Gelände":"Terrain", "Schlicht":"Minimal", "Globus":"Globe", "Flach":"Flat",
     "Symbole":"Symbols", "Linien":"Lines", "Linien & Pfeile":"Lines & arrows", "Flächen":"Areas", "Ukrainisches Gebiet":"Ukrainian territory", "Grauzone":"Grey zone",
     "Basen":"Bases", "Russisch kontrolliert":"Russian-controlled", "Großverbände":"Formations", "Verbände":"Units",
     "Freund":"Friendly", "Feind":"Hostile", "Unbekannt":"Unknown", "- - - vermutet":"- - - assumed",
