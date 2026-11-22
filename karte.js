@@ -6,7 +6,7 @@ const MAPTILER_KEY = "4TDQhzPsZwABTFDNshhB";
 const MT = n => `https://api.maptiler.com/maps/${n}/style.json?key=${MAPTILER_KEY}`;
 const STYLES = {
   sat:  {name:"Satellit", url:MT("hybrid-v4"), theme:"sat"},
-  karte:{name:"Karte",    url:()=>darkStyle(), theme:null, own:true},
+  karte:{name:"Karte",    url:()=>hellStyle(), theme:null, own:true},
   topo: {name:"Gelände",  url:MT("topo-v4"),   theme:"topo"}
 };
 const STYLE_FREE = "https://tiles.openfreemap.org/styles/liberty";
@@ -44,6 +44,45 @@ function darkStyle(){
       {id:"place-city", type:"symbol", source:S, "source-layer":"place", minzoom:4, filter:["==",["get","class"],"city"], layout:{"text-field":NAME,"text-font":BOLD,"text-size":Z(4,10,7,13,11,16),"symbol-sort-key":["get","rank"]}, paint:{"text-color":"#eceef1", ...halo}},
       {id:"place-state", type:"symbol", source:S, "source-layer":"place", minzoom:5.5, maxzoom:9, filter:["==",["get","class"],"state"], layout:{"text-field":NAME,"text-font":FONT,"text-size":11,"text-transform":"uppercase","text-letter-spacing":0.12}, paint:{"text-color":"#7d838c", ...halo}},
       {id:"place-country", type:"symbol", source:S, "source-layer":"place", maxzoom:9, filter:["==",["get","class"],"country"], layout:{"text-field":NAME,"text-font":BOLD,"text-size":Z(2,11,6,15),"text-transform":"uppercase","text-letter-spacing":0.15}, paint:{"text-color":"#c5c9cf", ...halo}}
+    ]};
+}
+
+/* Heller, klarer Kartenstil „Karte“ (OpenFreeMap / OpenMapTiles-Schema).
+   Wie eine gedruckte Lagekarte: helles Land, klares blaues Wasser, Wald leicht grün, Städte als Flächen,
+   nur große Straßen ohne Namen, deutliche Staatsgrenzen. Rote und blaue Lageflächen heben sich gut ab. */
+function hellStyle(){
+  const S = "omt", Z = (...a)=>["interpolate",["linear"],["zoom"],...a];
+  const NAME = ["coalesce",["get","name:de"],["get","name:latin"],["get","name"]];
+  const FONT = ["Noto Sans Regular"], BOLD = ["Noto Sans Bold"], ITAL = ["Noto Sans Italic"];
+  const halo = {"text-halo-color":"rgba(255,255,255,0.92)","text-halo-width":1.6,"text-halo-blur":0.3};
+  const notMar = ["!=",["get","maritime"],1];
+  return {version:8, name:"Plyus hell",
+    glyphs:"https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+    sources:{[S]:{type:"vector", url:"https://tiles.openfreemap.org/planet"}},
+    layers:[
+      {id:"land", type:"background", paint:{"background-color":"#f2efe8"}},
+      {id:"wood", type:"fill", source:S, "source-layer":"landcover", filter:["==",["get","class"],"wood"], paint:{"fill-color":"#d6e4c9","fill-opacity":Z(4,0.5,9,0.9)}},
+      {id:"grass", type:"fill", source:S, "source-layer":"landcover", filter:["in",["get","class"],["literal",["grass","wetland"]]], paint:{"fill-color":"#e4ecd6","fill-opacity":0.7}},
+      {id:"sand", type:"fill", source:S, "source-layer":"landcover", filter:["==",["get","class"],"sand"], paint:{"fill-color":"#efe6cf"}},
+      {id:"urban", type:"fill", source:S, "source-layer":"landuse", minzoom:5, filter:["in",["get","class"],["literal",["residential","suburb","neighbourhood","industrial","commercial","retail"]]], paint:{"fill-color":"#e2dcd2","fill-opacity":Z(5,0.6,10,1)}},
+      {id:"water", type:"fill", source:S, "source-layer":"water", paint:{"fill-color":"#4f9bd3"}},
+      {id:"water-edge", type:"line", source:S, "source-layer":"water", minzoom:6, paint:{"line-color":"#3f88c2","line-width":0.7}},
+      {id:"river", type:"line", source:S, "source-layer":"waterway", minzoom:4, filter:["in",["get","class"],["literal",["river","canal"]]], layout:{"line-cap":"round","line-join":"round"}, paint:{"line-color":"#4f9bd3","line-width":Z(4,0.6,8,1.4,12,3,15,6)}},
+      {id:"stream", type:"line", source:S, "source-layer":"waterway", minzoom:11, filter:["==",["get","class"],"stream"], paint:{"line-color":"#7db6e0","line-width":0.8}},
+      {id:"road-casing", type:"line", source:S, "source-layer":"transportation", minzoom:6, filter:["in",["get","class"],["literal",["motorway","trunk","primary"]]], layout:{"line-join":"round","line-cap":"round"}, paint:{"line-color":"#cdc5b8","line-width":Z(6,1.4,10,3.2,14,8),"line-opacity":Z(8,["case",["==",["get","class"],"primary"],0,1],9,1)}},
+      {id:"road", type:"line", source:S, "source-layer":"transportation", minzoom:6, filter:["in",["get","class"],["literal",["motorway","trunk","primary"]]], layout:{"line-join":"round","line-cap":"round"}, paint:{"line-color":"#ffffff","line-width":Z(6,0.6,10,1.8,14,6),"line-opacity":Z(8,["case",["==",["get","class"],"primary"],0,1],9,1)}},
+      {id:"road-minor", type:"line", source:S, "source-layer":"transportation", minzoom:12, filter:["in",["get","class"],["literal",["secondary","tertiary"]]], layout:{"line-join":"round","line-cap":"round"}, paint:{"line-color":"#ffffff","line-width":Z(12,1,15,4)}},
+      {id:"rail", type:"line", source:S, "source-layer":"transportation", minzoom:10, filter:["==",["get","class"],"rail"], paint:{"line-color":"#b9b2a6","line-width":1,"line-dasharray":[3,2]}},
+      {id:"border-state", type:"line", source:S, "source-layer":"boundary", minzoom:5, filter:["all",["==",["get","admin_level"],4],notMar], paint:{"line-color":"#a7a1ab","line-width":Z(5,0.6,10,1.2),"line-dasharray":[4,2]}},
+      {id:"border-country-glow", type:"line", source:S, "source-layer":"boundary", filter:["all",["==",["get","admin_level"],2],notMar], layout:{"line-join":"round"}, paint:{"line-color":"rgba(90,80,110,0.18)","line-width":Z(2,2,6,5,10,8)}},
+      {id:"border-country", type:"line", source:S, "source-layer":"boundary", filter:["all",["==",["get","admin_level"],2],notMar,["!=",["get","disputed"],1]], layout:{"line-join":"round"}, paint:{"line-color":"#5d5768","line-width":Z(2,0.8,6,1.4,10,2.2)}},
+      {id:"border-disputed", type:"line", source:S, "source-layer":"boundary", filter:["all",["==",["get","admin_level"],2],notMar,["==",["get","disputed"],1]], paint:{"line-color":"#5d5768","line-width":Z(2,0.8,10,1.8),"line-dasharray":[2,2]}},
+      {id:"water-name", type:"symbol", source:S, "source-layer":"water_name", layout:{"text-field":NAME,"text-font":ITAL,"text-size":Z(3,10,8,13),"text-letter-spacing":0.06}, paint:{"text-color":"#eaf4fc","text-halo-color":"rgba(40,110,170,0.8)","text-halo-width":1}},
+      {id:"place-village", type:"symbol", source:S, "source-layer":"place", minzoom:10, filter:["in",["get","class"],["literal",["village","suburb"]]], layout:{"text-field":NAME,"text-font":FONT,"text-size":Z(10,11,14,13)}, paint:{"text-color":"#5a5d63", ...halo}},
+      {id:"place-town", type:"symbol", source:S, "source-layer":"place", minzoom:7, filter:["==",["get","class"],"town"], layout:{"text-field":NAME,"text-font":FONT,"text-size":Z(7,11,12,14)}, paint:{"text-color":"#2f3237", ...halo}},
+      {id:"place-city", type:"symbol", source:S, "source-layer":"place", minzoom:4, filter:["==",["get","class"],"city"], layout:{"text-field":NAME,"text-font":BOLD,"text-size":Z(4,11,7,14,11,17),"symbol-sort-key":["get","rank"]}, paint:{"text-color":"#15171b", ...halo}},
+      {id:"place-state", type:"symbol", source:S, "source-layer":"place", minzoom:5.5, maxzoom:9, filter:["==",["get","class"],"state"], layout:{"text-field":NAME,"text-font":FONT,"text-size":11,"text-transform":"uppercase","text-letter-spacing":0.14}, paint:{"text-color":"#8f8a95", ...halo}},
+      {id:"place-country", type:"symbol", source:S, "source-layer":"place", maxzoom:9, filter:["==",["get","class"],"country"], layout:{"text-field":NAME,"text-font":BOLD,"text-size":Z(2,11,6,16),"text-transform":"uppercase","text-letter-spacing":0.2}, paint:{"text-color":"#4a4552", ...halo}}
     ]};
 }
 
@@ -864,7 +903,7 @@ async function exportWeekVideo(map, o){
         if(l.type==="raster"){ try{ m.setPaintProperty(l.id, "raster-fade-duration", 0); }catch(e){} }
         if(l.type==="symbol" && l.source!=="imp" && l.source!=="lage" && !/^(imp|lage)/.test(l.id)){ const s = (l["source-layer"]||"") + " " + l.id;
           if(!/place|country|state|city|town|water|capital|continent/i.test(s)){ try{ m.setLayoutProperty(l.id, "visibility", "none"); }catch(e){} } } }); }catch(e){} }});
-  const ins = offMap({w:Math.round(IW/2), h:Math.round(IH/2), map:{style:styleOf("karte"), bounds:[[22.1,44.3],[40.2,52.4]], fitBoundsOptions:{padding:6}},
+  const ins = offMap({w:Math.round(IW/2), h:Math.round(IH/2), map:{style:darkStyle(), bounds:[[22.1,44.3],[40.2,52.4]], fitBoundsOptions:{padding:6}},
     onLoad: m=>{
       if(!importData) return;
       const isRed = c=>{ const v = parseInt(String(c||"").slice(1),16); if(isNaN(v)) return false; return (v>>16&255) > (v&255) + 40; };
@@ -1202,7 +1241,7 @@ async function exportImage(map, o){
   const inUA = c.lng > ESRI_BOUNDS[0] && c.lng < ESRI_BOUNDS[2] && c.lat > ESRI_BOUNDS[1] && c.lat < ESRI_BOUNDS[3];
   const insetMap = inUA ? {bounds:[[22.1,44.3],[40.2,52.4]], fitBoundsOptions:{padding:6}} : {center:c, zoom:Math.max(1, zoom - 4.5)};
   const useDark = true;
-  const inset = o.overview===false ? null : offMap({w:iw, h:ih, map:Object.assign({style: useDark ? styleOf("karte") : map.getStyle()}, insetMap),
+  const inset = o.overview===false ? null : offMap({w:iw, h:ih, map:Object.assign({style: useDark ? darkStyle() : map.getStyle()}, insetMap),
     onLoad: m=>{
       if(!importData) return;
       const isRed = c=>{ const v = parseInt(String(c||"").slice(1),16); if(isNaN(v)) return false; const r=v>>16&255, b=v&255; return r > b + 40; };
