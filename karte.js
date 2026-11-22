@@ -61,20 +61,21 @@ function hellStyle(gelaende){
   /* Straßen: Klasse → [ab Zoom, Breite bei z6, z10, z14, z17, Farbe] */
   const STR = [
     /* Name,       ab Zoom, Breite z6, z10, z14, z17, Farbe, Rand, Klassen */
-    ["track",     13, 0,   0,   1,   3,  "#ffffff", "#b3a891", ["track","path"]],
-    ["service",   12.5, 0, 0,   1.6, 5,  "#ffffff", "#b3a891", ["service"]],
-    ["minor",     11, 0,   0.8, 3,   10, "#ffffff", "#a99d86", ["minor"]],
-    ["tertiary",  9,  0,   1.4, 4,   12, "#fff1c7", "#c2a46c", ["tertiary"]],
+    ["track",     13, 0.3, 0.4, 1,   3,  "#ffffff", "#b3a891", ["track","path"]],
+    ["service",   12.5, 0.3, 0.5, 1.6, 5,  "#ffffff", "#b3a891", ["service"]],
+    ["minor",     11, 0.3, 0.8, 3,   10, "#ffffff", "#a99d86", ["minor"]],
+    ["tertiary",  9,  0.4, 1.4, 4,   12, "#fff1c7", "#c2a46c", ["tertiary"]],
     ["secondary", 7,  0.5, 1.8, 5,   14, "#ffd88a", "#c9944a", ["secondary"]],
     ["primary",   6,  0.8, 2.4, 6,   16, "#ffb65c", "#c8742a", ["primary"]],
     ["trunk",     5,  1.1, 2.8, 7,   18, "#f58a3c", "#b0561c", ["trunk"]],
     ["motorway",  4,  1.3, 3.2, 8,   20, "#e8682e", "#9c3f14", ["motorway"]]
   ];
   const strassen = [];
-  for(const [n, mz, w6, w10, w14, w17, , rand, kl] of STR) strassen.push({id:"road-"+n+"-casing", type:"line", source:S, "source-layer":"transportation", minzoom:mz,
+  /* kein minzoom: jede Straße wird gezeigt, sobald die Kartenkacheln sie enthalten */
+  for(const [n, mz, w6, w10, w14, w17, , rand, kl] of STR) strassen.push({id:"road-"+n+"-casing", type:"line", source:S, "source-layer":"transportation",
     filter:ist(...kl), layout:{"line-join":"round","line-cap":"round"},
-    paint:{"line-color":rand, "line-width":E(6,w6+0.8,10,w10+1.4,14,w14+2,17,w17+3)}});
-  for(const [n, mz, w6, w10, w14, w17, col, , kl] of STR) strassen.push({id:"road-"+n, type:"line", source:S, "source-layer":"transportation", minzoom:mz,
+    paint:{"line-color":rand, "line-width":E(6,w6+0.6,10,w10+1.2,14,w14+2,17,w17+3)}});
+  for(const [n, mz, w6, w10, w14, w17, col, , kl] of STR) strassen.push({id:"road-"+n, type:"line", source:S, "source-layer":"transportation",
     filter:ist(...kl), layout:{"line-join":"round","line-cap":"round"},
     paint:{"line-color":col, "line-width":E(6,Math.max(w6,0.4),10,w10,14,w14,17,w17)}});
   const sources = {[S]:{type:"vector", url:"https://tiles.openfreemap.org/planet"}};
