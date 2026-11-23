@@ -58,9 +58,10 @@ const ICONS = {
   radius: '<circle cx="12" cy="12" r="9"/><path d="M12 12h9"/><circle cx="12" cy="12" r="1.4"/>',
   punkt: '<circle cx="12" cy="12" r="6"/><path d="M12 1v5M12 18v5M1 12h5M18 12h5"/>',
   weg: '<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/>',
-  sicht: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'
+  sicht: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  fahrzeug: '<path d="M3 15h18l-2 4H5z"/><path d="M6 15v-3h9l2 3"/><path d="M9 12V9h5v3"/><path d="M14 10.5h7"/>'
 };
-const NAMES = {lineal:"Lineal", flaeche:"Fläche", radius:"Radius", punkt:"Koordinate", sicht:"Sichtfeld"};
+const NAMES = {lineal:"Lineal", flaeche:"Fläche", radius:"Radius", punkt:"Koordinate", sicht:"Sichtfeld", fahrzeug:"Fahrzeug setzen"};
 const HINT = {
   lineal: "Auf die Karte tippen, um Punkte zu setzen. Doppelt tippen oder „Fertig“ beendet.",
   flaeche: "Eckpunkte der Fläche antippen. Doppelt tippen oder „Fertig“ schließt sie.",
@@ -74,11 +75,12 @@ const RANGES = [5, 10, 20, 40, 70, 150, 300];
 function init(map, opts){
   opts = opts || {};
   let tool = null, pts = [], hover = null, radiusKm = null, done = [], labels = [], live = null;
+  let fzAlle = null, fzWahl = null, fzQ = "", fzGesetzt = [], fzMarker = [], fzOffen = true;
   let sichtR = 1000, sichtH = 0, sichtRes = null, sichtLauf = 0, sichtInfo = null, sichtPunkt = null;
   const root = document.createElement("div");
   root.className = "wz";
   root.innerHTML = `<div class="wz-rail" role="toolbar" aria-label="Werkzeuge">
-      ${["lineal","flaeche","radius","punkt","sicht"].map(k=>`<button data-t="${k}" title="${NAMES[k]}" aria-label="${NAMES[k]}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg></button>`).join("")}
+      ${["lineal","flaeche","radius","punkt","sicht","fahrzeug"].map(k=>`<button data-t="${k}" title="${NAMES[k]}" aria-label="${NAMES[k]}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg></button>`).join("")}
       <button data-x="clear" title="Alle Messungen löschen" aria-label="Alle Messungen löschen" class="wz-clear"><svg viewBox="0 0 24 24">${ICONS.weg}</svg></button>
     </div>
     <div class="wz-box" hidden></div>`;
@@ -98,6 +100,12 @@ function init(map, opts){
       if(!m.getLayer("wz-prev")) m.addLayer({id:"wz-prev", type:"line", source:"wz", filter:["all",["==",["get","k"],"line"],["get","p"]], layout:{"line-join":"round"}, paint:{"line-color":"#ffffff","line-width":2.2,"line-dasharray":[1.5,1.5]}});
       if(!m.getLayer("wz-pt")) m.addLayer({id:"wz-pt", type:"circle", source:"wz", filter:["==",["get","k"],"pt"], paint:{"circle-radius":4.5,"circle-color":"#ffffff","circle-stroke-color":"#000000","circle-stroke-width":2}});
       ["wz-fill","wz-case","wz-line","wz-prev","wz-pt"].forEach(l=>{ try{ m.moveLayer(l); }catch(e){} });
+      if(!m.getSource("wz-fz")) m.addSource("wz-fz", {type:"geojson", data: empty});
+      const FZF = ["match",["get","s"],"ua","#4aa3ff","ru","#ff3550","#c08cff"];
+      if(!m.getLayer("wz-fz-fill")) m.addLayer({id:"wz-fz-fill", type:"fill", source:"wz-fz", filter:["==",["get","k"],"kreis"], paint:{"fill-color":FZF,"fill-opacity":0.13}});
+      if(!m.getLayer("wz-fz-line")) m.addLayer({id:"wz-fz-line", type:"line", source:"wz-fz", filter:["==",["get","k"],"rand"], paint:{"line-color":FZF,"line-width":2,"line-dasharray":[4,2]}});
+      if(!m.getLayer("wz-fz-pt")) m.addLayer({id:"wz-fz-pt", type:"circle", source:"wz-fz", filter:["==",["get","k"],"pt"], paint:{"circle-radius":6,"circle-color":FZF,"circle-stroke-color":"#fff","circle-stroke-width":2}});
+      fzZeichnen(m);
       if(sichtRes && window.Sicht && !m.getLayer("sicht-flaeche")) Sicht.zeigen(m, sichtRes);
       if(tool === "sicht") hausEbene(m);
       draw();
@@ -148,6 +156,43 @@ function init(map, opts){
     if(tool && tool!=="punkt") labels = labels.concat(shapeLabels(tool, pts, radiusKm)); }
 
   /* Anzeige */
+  /* ---------- Fahrzeug setzen: Fahrzeug wählen, auf die Karte tippen, Reichweite als Kreis ---------- */
+  const fzSeite = f=>f.seite.length > 1 ? "beide" : f.seite[0];
+  const fzEsc = t=>String(t).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  function fzLaden(){ if(fzAlle) return Promise.resolve(fzAlle);
+    return fetch("daten/fahrzeuge.json").then(r=>r.json()).then(d=>fzAlle = d.fahrzeuge).catch(()=>fzAlle = []); }
+  function fzTreffer(){ const q = fzQ.toLowerCase();
+    return (fzAlle||[]).filter(f=>!q || (f.n + " " + f.land + " " + f.typ).toLowerCase().includes(q)).sort((a,b)=>b.km - a.km).slice(0, 40); }
+  function fzListeHTML(){ const L = fzTreffer();
+    return L.length ? L.map(f=>`<button class="fz-w${fzWahl && fzWahl.n === f.n ? " on" : ""}" data-fz="${fzEsc(f.n)}"><i class="pk ${fzSeite(f)}"></i><span>${fzEsc(f.n)}</span><b>${nf1.format(f.km).replace(",0","")} km</b></button>`).join("") : '<div class="wz-hint">Nichts gefunden.</div>'; }
+  function fzBox(){
+    if(!fzAlle){ box.innerHTML = `<div class="wz-h"><span class="eyebrow">${NAMES.fahrzeug}</span><button class="wz-x" data-x="close" aria-label="Werkzeug schließen">✕</button></div><div class="wz-big">Lade …</div>`; fzLaden().then(()=>{ if(tool === "fahrzeug") fzBox(); }); return; }
+    if(box.querySelector(".fz-such")){ box.querySelector(".fz-wahl").innerHTML = fzListeHTML(); fzKopf(); fzAuf(); return; }
+    box.innerHTML = `<div class="wz-h"><span class="eyebrow">${NAMES.fahrzeug}</span><button class="wz-x" data-x="close" aria-label="Werkzeug schließen">✕</button></div>
+      <div class="fz-kopfz"></div>
+      <input class="fz-such" type="search" placeholder="Fahrzeug suchen …" value="${fzEsc(fzQ)}">
+      <div class="fz-wahl">${fzListeHTML()}</div>
+      <div class="wz-act">${fzGesetzt.length ? '<button data-x="fzundo">Letztes entfernen</button>' : ""}<a class="wz-link" href="fahrzeuge.html">Zur Fahrzeugliste →</a></div>`;
+    fzKopf(); fzAuf();
+    box.querySelector(".fz-such").addEventListener("input", e=>{ fzQ = e.target.value; box.querySelector(".fz-wahl").innerHTML = fzListeHTML(); });
+  }
+  /* nach der Auswahl klappt die Liste zu, damit man die Karte sieht */
+  function fzAuf(){ const zu = !!fzWahl && !fzOffen; ["fz-such","fz-wahl"].forEach(c=>{ const e = box.querySelector("." + c); if(e) e.hidden = zu; }); }
+  function fzKopf(){ const k = box.querySelector(".fz-kopfz"); if(!k) return;
+    k.innerHTML = fzWahl ? `<div class="wz-big">${fzEsc(fzWahl.n)}</div><div class="wz-sub">Reichweite bis ${nf1.format(fzWahl.km).replace(",0","")} km · ${fzEsc(fzWahl.reichweite)}</div><div class="wz-hint">Auf die Karte tippen, um es dort einzusetzen. Mehrmals tippen setzt mehrere.</div>`
+      : `<div class="wz-hint">Fahrzeug auswählen, dann auf die Karte tippen – der Kreis zeigt die Reichweite.</div>`;
+    const a = box.querySelector(".wz-act"); if(a) a.innerHTML = (fzWahl && !fzOffen ? '<button data-x="fzwechsel">Anderes Fahrzeug</button>' : "") + (fzGesetzt.length ? '<button data-x="fzundo">Letztes entfernen</button>' : "") + '<a class="wz-link" href="fahrzeuge.html">Zur Fahrzeugliste →</a>'; }
+  function fzZeichnen(m){
+    m = m || map; const src = m.getSource && m.getSource("wz-fz"); if(!src) return;
+    const F = [];
+    fzGesetzt.forEach(g=>{ const c = circle(g.ll, g.f.km, 128), s = fzSeite(g.f);
+      F.push({type:"Feature", properties:{k:"kreis", s}, geometry:{type:"Polygon", coordinates:[c]}});
+      F.push({type:"Feature", properties:{k:"rand", s}, geometry:{type:"LineString", coordinates:c}});
+      F.push({type:"Feature", properties:{k:"pt", s}, geometry:{type:"Point", coordinates:g.ll}}); });
+    src.setData({type:"FeatureCollection", features:F});
+    fzMarker.forEach(x=>x.remove()); fzMarker = fzGesetzt.map(g=>label(g.ll, `<b>${fzEsc(g.f.n)}</b> · ${nf1.format(g.f.km).replace(",0","")} km`, "fz " + fzSeite(g.f)));
+  }
+  function fzWaehlen(name){ return fzLaden().then(L=>{ const f = L.find(x=>x.n === name); if(f){ fzWahl = f; fzOffen = false; if(tool !== "fahrzeug") start("fahrzeug"); else readout(); } return !!f; }); }
   const pct = v=>nf0.format(Math.round(v*100)) + " %";
   function sichtBox(){
     const rk = `<div class="wz-ranges"><span class="wz-lab">Radius</span>${SICHT_R.map(r=>`<button data-sr="${r}" class="${sichtR===r?"on":""}">${r < 1000 ? r + " m" : r/1000 + " km"}</button>`).join("")}</div>
@@ -170,6 +215,7 @@ function init(map, opts){
     if(!tool){ box.hidden = true; return; }
     box.hidden = false;
     if(tool === "sicht"){ sichtBox(); return; }
+    if(tool === "fahrzeug"){ fzBox(); return; }
     const p = hover && tool!=="punkt" && tool!=="radius" ? pts.concat([hover]) : pts;
     let big = "–", sub = "", extra = "";
     if(tool==="lineal"){
@@ -240,7 +286,7 @@ function init(map, opts){
   root.querySelector(".wz-rail").addEventListener("click", e=>{
     const b = e.target.closest("button"); if(!b) return;
     if(b.dataset.t){ if(tool===b.dataset.t) finish(); else start(b.dataset.t); }
-    if(b.dataset.x==="clear"){ done = []; pts = []; radiusKm = null; sichtRes = null; sichtPunkt = null; sichtInfo = null; sichtLauf++; if(window.Sicht) Sicht.entfernen(map); refresh(true); }
+    if(b.dataset.x==="clear"){ done = []; pts = []; radiusKm = null; sichtRes = null; sichtPunkt = null; sichtInfo = null; sichtLauf++; if(window.Sicht) Sicht.entfernen(map); fzGesetzt = []; fzZeichnen(); refresh(true); }
   });
   box.addEventListener("click", e=>{
     const b = e.target.closest("button"); if(!b) return;
@@ -250,6 +296,9 @@ function init(map, opts){
     if(b.dataset.x==="undo"){ if(tool==="radius"){ pts = []; radiusKm = null; } else pts.pop(); refresh(true); }
     if(b.dataset.r) setRadius(+b.dataset.r);
     if(b.dataset.sr){ sichtR = +b.dataset.sr; if(sichtPunkt) sichtRechnen(sichtPunkt); else readout(); }
+    if(b.dataset.fz){ fzWahl = (fzAlle||[]).find(x=>x.n === b.dataset.fz) || null; fzOffen = false; box.querySelectorAll(".fz-w").forEach(x=>x.classList.toggle("on", x === b)); fzKopf(); fzAuf(); }
+    if(b.dataset.x==="fzwechsel"){ fzOffen = true; fzKopf(); fzAuf(); }
+    if(b.dataset.x==="fzundo"){ fzGesetzt.pop(); fzZeichnen(); fzKopf(); }
     if(b.dataset.sh != null){ sichtH = +b.dataset.sh; if(sichtPunkt) sichtRechnen(sichtPunkt); else readout(); }
     if(b.dataset.copy != null){ const v = b.dataset.copy;
       (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(()=>{ b.textContent = "Kopiert"; setTimeout(()=>b.textContent = "Kopieren", 1400); })
@@ -267,6 +316,7 @@ function init(map, opts){
     /* Doppelklick beendet nur mit Maus; am Handy tippt man oft schnell hintereinander, dort gibt es „Fertig“ */
     if(dbl && !coarse && (tool==="lineal" || tool==="flaeche")){ finish(true); return; }
     if(tool==="sicht"){ const h = hausAmPunkt(e.point, e.lngLat); sichtRechnen(h ? h.mitte : ll, h); return; }
+    if(tool==="fahrzeug"){ if(fzWahl){ fzGesetzt.push({ll, f:fzWahl}); fzZeichnen(); fzKopf(); } return; }
     if(tool==="punkt"){ pts = [ll]; refresh(true); return; }
     if(tool==="radius"){
       if(!pts.length || radiusKm != null){ pts = [ll]; radiusKm = null; }
@@ -328,7 +378,7 @@ function init(map, opts){
   }
   let raf = 0, mv = null;
   map.on("mousemove", e=>{
-    if(!tool || coarse || tool==='sicht') return;   /* am Handy erzeugt jedes Tippen auch ein mousemove – keine Vorschau dort */ mv = [e.lngLat.lng, e.lngLat.lat];
+    if(!tool || coarse || tool==='sicht' || tool==='fahrzeug') return;   /* am Handy erzeugt jedes Tippen auch ein mousemove – keine Vorschau dort */ mv = [e.lngLat.lng, e.lngLat.lat];
     if(!raf) raf = requestAnimationFrame(()=>{ raf = 0; hover = mv; if(tool==="radius" && radiusKm != null) hover = null; draw(); readout(); liveLabel(hover); });
   });
   map.getCanvas && map.getCanvas().addEventListener("mouseleave", ()=>{ if(!tool) return; hover = null; draw(); readout(); liveLabel(null); });
@@ -339,7 +389,7 @@ function init(map, opts){
     if(e.key==="Backspace"){ pts.pop(); refresh(true); e.preventDefault(); }
   });
 
-  return { ensure, active: ()=>!!tool, stop: ()=>finish() };
+  return { ensure, active: ()=>!!tool, stop: ()=>finish(), fahrzeug: fzWaehlen, oeffnen: start };
 }
 
 window.Werkzeuge = { init, mgrs, dist, areaKm2, bearing };
