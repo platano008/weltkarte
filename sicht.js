@@ -96,7 +96,10 @@ function gebaeudeAusKachel(buf, z, tx, ty){
   return out;
 }
 async function hausKacheln(lon0, lat0, R, mx, my){
-  if(!ofmVorlage){ const tj = await (await fetch("https://tiles.openfreemap.org/planet")).json(); ofmVorlage = tj.tiles[0]; }
+  /* gleiche Häuser wie auf der Karte: MapTiler-Daten; falls die nicht gehen, OpenFreeMap */
+  if(!ofmVorlage){
+    try{ if(typeof MAPTILER_KEY === "undefined") throw 0; const tj = await (await fetch(`https://api.maptiler.com/tiles/v3/tiles.json?key=${MAPTILER_KEY}`)).json(); ofmVorlage = tj.tiles[0]; }
+    catch(e){ const tj = await (await fetch("https://tiles.openfreemap.org/planet")).json(); ofmVorlage = tj.tiles[0]; } }
   const z = 14, [x1, y1] = kachel(lon0 - R/mx, lat0 + R/my, z), [x2, y2] = kachel(lon0 + R/mx, lat0 - R/my, z), jobs = [];
   for(let x=Math.floor(x1); x<=Math.floor(x2); x++) for(let y=Math.floor(y1); y<=Math.floor(y2); y++){
     const k = x+"/"+y;

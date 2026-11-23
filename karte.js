@@ -80,7 +80,8 @@ function hellStyle(gelaende){
   for(const [n, mz, w6, w10, w14, w17, col, , kl] of STR) strassen.push({id:"road-"+n, type:"line", source:S, "source-layer":"transportation",
     filter:ist(...kl), layout:{"line-join":"round","line-cap":"round"},
     paint:{"line-color":col, "line-width":E(6,Math.max(w6,0.4),10,w10,14,w14,17,w17)}});
-  const sources = {[S]:{type:"vector", url:"https://tiles.openfreemap.org/planet"}};
+  /* Häuser aus den MapTiler-Daten (enthalten mehr Gebäude) – gleiche Quelle wie die 3D-Häuser und das Sichtfeld */
+  const sources = {[S]:{type:"vector", url:"https://tiles.openfreemap.org/planet"}, mtb:{type:"vector", url:`https://api.maptiler.com/tiles/v3/tiles.json?key=${MAPTILER_KEY}`}};
   const relief = [];
   if(gelaende){
     sources.dem = {type:"raster-dem", tiles:["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"], encoding:"terrarium", tileSize:256, maxzoom:14,
@@ -107,7 +108,7 @@ function hellStyle(gelaende){
       {id:"water-edge", type:"line", source:S, "source-layer":"water", minzoom:6, paint:{"line-color":"#3f88c2","line-width":0.7}},
       {id:"river", type:"line", source:S, "source-layer":"waterway", minzoom:4, filter:ist("river","canal"), layout:{"line-cap":"round","line-join":"round"}, paint:{"line-color":"#4f9bd3","line-width":Z(4,0.6,8,1.4,12,3,15,6)}},
       {id:"stream", type:"line", source:S, "source-layer":"waterway", minzoom:10, filter:["==",K,"stream"], paint:{"line-color":"#7db6e0","line-width":Z(11,0.6,15,1.6)}},
-      {id:"building", type:"fill", source:S, "source-layer":"building", minzoom:13, paint:{"fill-color":"#e7b85a","fill-outline-color":"#c4923a"}},
+      {id:"building", type:"fill", source:"mtb", "source-layer":"building", minzoom:13, paint:{"fill-color":"#e7b85a","fill-outline-color":"#c4923a"}},
       {id:"rail", type:"line", source:S, "source-layer":"transportation", minzoom:7, filter:["==",K,"rail"], paint:{"line-color":"#8f877b","line-width":Z(8,0.6,14,1.6)}},
       {id:"rail-dash", type:"line", source:S, "source-layer":"transportation", minzoom:10, filter:["==",K,"rail"], paint:{"line-color":"#ffffff","line-width":Z(11,0.4,14,1),"line-dasharray":[3,3]}},
       ...strassen,
@@ -146,7 +147,8 @@ function an3D(map, globe, kamera){
   if(!src){ src = "mt3d"; if(!map.getSource(src)) map.addSource(src, {type:"vector", url:`https://api.maptiler.com/tiles/v3/tiles.json?key=${MAPTILER_KEY}`}); }
   const hell = document.body.classList.contains("hell");
   const vor = (st.layers.find(l=>l.type==="symbol" || /^imp-|^lage|^front/.test(l.id))||{}).id;
-  if(!map.getLayer("gebaeude-2d")) map.addLayer({id:"gebaeude-2d", type:"fill", source:src, "source-layer":"building", minzoom:13,
+  const hat2d = st.layers.some(l=>l["source-layer"]==="building" && l.type==="fill" && l.id !== "gebaeude-2d");
+  if(!hat2d && !map.getLayer("gebaeude-2d")) map.addLayer({id:"gebaeude-2d", type:"fill", source:src, "source-layer":"building", minzoom:13,
     paint:{"fill-color": hell ? "#e7b85a" : "#4a4f57", "fill-outline-color": hell ? "#c4923a" : "#6a707a"}}, vor);
   if(!map.getLayer("gebaeude-3d")) map.addLayer({id:"gebaeude-3d", type:"fill-extrusion", source:src, "source-layer":"building", minzoom:13,
     paint:{"fill-extrusion-color": hell ? ["interpolate",["linear"],["coalesce",["get","render_height"],8],0,"#f6f1e8",30,"#e9e2f2",80,"#c9c2e0"] : ["interpolate",["linear"],["coalesce",["get","render_height"],8],0,"#9aa1ab",40,"#c3c9d2"], "fill-extrusion-height":["*",1.3,["coalesce",["get","render_height"],8]], "fill-extrusion-base":["coalesce",["get","render_min_height"],0], "fill-extrusion-opacity":0.88, "fill-extrusion-vertical-gradient":true}}, vor);
