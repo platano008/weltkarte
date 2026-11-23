@@ -162,15 +162,25 @@ function aus3D(map){
    Straßen, Grenzen und Namen bleiben voll sichtbar, Flächen werden durchsichtig. */
 /* Mix: Satellitenbild, darüber ein gleichmäßiger grün-weißer Schleier (überall, ohne Lücken),
    darauf Städte, Häuser, Wasser, Flüsse, Straßen, Grenzen und Namen. Stufe „wenig“/„viel“ = wie stark der Schleier deckt. */
-const MIX_DECK = {
-  wenig:{mixgrund:0.35, urban:0.7, water:0.7, building:0.8, "urban-edge":0.9},
-  viel: {mixgrund:0.62, urban:0.85, water:0.9, building:0.95, "urban-edge":1}
+const MIX_DECK = {   /* dunkel */
+  wenig:{mixgrund:0.2, urban:0.75, water:0.75, building:0.85, "urban-edge":1},
+  viel: {mixgrund:0.45, urban:0.85, water:0.9, building:0.95, "urban-edge":1}
 };
-/* helle Variante: „wenig“ noch durchsichtiger, „viel“ = das bisherige „wenig“ */
 const MIX_DECK_HELL = {
-  wenig:{mixgrund:0.16, urban:0.55, water:0.55, building:0.7, "urban-edge":0.8},
-  viel: {mixgrund:0.35, urban:0.7, water:0.7, building:0.8, "urban-edge":0.9}
+  wenig:{mixgrund:0.06, urban:0.62, water:0.65, building:0.8, "urban-edge":1},
+  viel: {mixgrund:0.22, urban:0.72, water:0.75, building:0.88, "urban-edge":1}
 };
+/* helle Variante: knallige Farben, damit sie auf dem Satellitenbild auffallen */
+function mixTag(st){
+  const farbe = {urban:["fill-color","#ffc21a"], "urban-edge":["line-color","#e08a00"], building:["fill-color","#ffab00"],
+    water:["fill-color","#1689ff"], "water-edge":["line-color","#0a6ee0"], river:["line-color","#1a8cff"], stream:["line-color","#3aa0ff"],
+    "border-country":["line-color","#3b2f5c"], "border-state":["line-color","#6d5fa0"]};
+  for(const l of st.layers){
+    const f = farbe[l.id]; if(f) l.paint[f[0]] = f[1];
+    if(/^road-(motorway|trunk|primary|secondary|tertiary)$/.test(l.id)) l.paint["line-color"] = {"road-motorway":"#ff4d0d","road-trunk":"#ff6f1a","road-primary":"#ff9a2e","road-secondary":"#ffc640","road-tertiary":"#ffe680"}[l.id];
+  }
+  return st;
+}
 const mixDeck = ()=>(mixDunkel ? MIX_DECK : MIX_DECK_HELL)[mixStufe];
 let mixStufe = "wenig", mixDunkel = false;
 /* dunkle Variante: dunkler Schleier, helle Schrift mit dunklem Rand, gedämpfte Farben */
@@ -212,7 +222,7 @@ function mixStyle(){
     attribution:'Satellit: <a href="https://www.esri.com" target="_blank">Esri</a>, Maxar, Earthstar Geographics, GIS User Community'};
   st.layers.splice(1, 0, {id:"mixsat", type:"raster", source:"mixsat", paint:{"raster-fade-duration":200}},
     {id:"mixgrund", type:"background", paint:{"background-color":"#e8f0dc", "background-opacity":deck.mixgrund}});
-  if(mixDunkel) mixNacht(st);
+  if(mixDunkel) mixNacht(st); else mixTag(st);
   st.name = "Plyus Mix";
   return st;
 }
