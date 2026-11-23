@@ -160,21 +160,25 @@ function aus3D(map){
 
 /* „Mix“: die helle „Karte“ halb durchsichtig über den Satellitenbildern (Esri World Imagery, im freien Kontingent).
    Straßen, Grenzen und Namen bleiben voll sichtbar, Flächen werden durchsichtig. */
+/* Mix: Satellitenbild, darüber ein gleichmäßiger grün-weißer Schleier (überall, ohne Lücken),
+   darauf Städte, Häuser, Wasser, Flüsse, Straßen, Grenzen und Namen. Stufe „wenig“/„viel“ = wie stark der Schleier deckt. */
 const MIX_DECK = {
-  wenig:{wood:0.4, grass:0.3, farmland:0.25, sand:0.3, urban:0.5, water:0.6, "water-edge":1, building:0.65, "urban-edge":0.85},
-  viel: {wood:0.75, grass:0.65, farmland:0.55, sand:0.65, urban:0.82, water:0.85, "water-edge":1, building:0.9, "urban-edge":1}
+  wenig:{mixgrund:0.35, urban:0.7, water:0.7, building:0.8, "urban-edge":0.9},
+  viel: {mixgrund:0.62, urban:0.85, water:0.9, building:0.95, "urban-edge":1}
 };
 let mixStufe = "wenig";
 function mixDeckAnwenden(map, stufe){
   mixStufe = MIX_DECK[stufe] ? stufe : "wenig";
   if(!map || !map.getLayer || !map.getLayer("mixsat")) return;
   const deck = MIX_DECK[mixStufe];
-  for(const id in deck){ if(!map.getLayer(id)) continue;
-    try{ map.setPaintProperty(id, map.getLayer(id).type === "line" ? "line-opacity" : "fill-opacity", deck[id]); }catch(e){} }
+  for(const id in deck){ const l = map.getLayer(id); if(!l) continue;
+    try{ map.setPaintProperty(id, l.type === "line" ? "line-opacity" : l.type === "background" ? "background-opacity" : "fill-opacity", deck[id]); }catch(e){} }
 }
 function mixStyle(){
   const st = hellStyle(false);
   const deck = MIX_DECK[mixStufe];
+  /* fleckige Flächen (Wald, Wiese, Feld, Sand) raus – stattdessen der gleichmäßige Schleier */
+  st.layers = st.layers.filter(l=>!["wood","grass","farmland","sand"].includes(l.id));
   for(const l of st.layers){
     if(l.type === "fill" && deck[l.id] != null) l.paint["fill-opacity"] = deck[l.id];
     if(l.id === "urban-edge") l.paint["line-opacity"] = deck[l.id];
@@ -182,7 +186,8 @@ function mixStyle(){
   /* Esri World Imagery über die öffentliche Adresse: ohne Schlüssel, weltweit, alle Zoomstufen */
   st.sources.mixsat = {type:"raster", tiles:["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"], tileSize:256, maxzoom:19,
     attribution:'Satellit: <a href="https://www.esri.com" target="_blank">Esri</a>, Maxar, Earthstar Geographics, GIS User Community'};
-  st.layers.splice(1, 0, {id:"mixsat", type:"raster", source:"mixsat", paint:{"raster-fade-duration":200}});
+  st.layers.splice(1, 0, {id:"mixsat", type:"raster", source:"mixsat", paint:{"raster-fade-duration":200}},
+    {id:"mixgrund", type:"background", paint:{"background-color":"#e8f0dc", "background-opacity":deck.mixgrund}});
   st.name = "Plyus Mix";
   return st;
 }
