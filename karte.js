@@ -10,6 +10,9 @@ const STYLES = {
   karte:{name:"Karte",    url:()=>hellStyle(), theme:null, own:true},
   topo: {name:"Gelände",  url:()=>hellStyle(true), theme:null, own:true},
   hoehe:{name:"Topo", url:()=>topoStyle(), theme:null, own:true},
+  hell: {name:"Hell",    url:"https://tiles.openfreemap.org/styles/positron", theme:null, own:true},
+  dunkel:{name:"Dunkel", url:"https://tiles.openfreemap.org/styles/dark", theme:null, own:true},
+  d3:   {name:"3D",      url:"https://tiles.openfreemap.org/styles/liberty", theme:null, own:true},
   schlicht:{name:"Schlicht", url:`https://api.maptiler.com/maps/backdrop-v4/style.json?key=${MAPTILER_KEY2}`, theme:null}
 };
 const STYLE_FREE = "https://tiles.openfreemap.org/styles/liberty";
@@ -133,6 +136,20 @@ function topoStyle(){
     sources:{otm:{type:"raster", tiles:["a","b","c"].map(s=>`https://${s}.tile.opentopomap.org/{z}/{x}/{y}.png`), tileSize:256, maxzoom:17,
       attribution:'Karte: © <a href="https://opentopomap.org" target="_blank">OpenTopoMap</a> (CC-BY-SA), © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>-Mitwirkende, SRTM'}},
     layers:[{id:"land", type:"background", paint:{"background-color":"#f2efe8"}},{id:"otm", type:"raster", source:"otm", paint:{"raster-fade-duration":150}}]};
+}
+
+/* „3D“: OpenFreeMap Liberty mit hochgezogenen Gebäuden; Kamera wird schräg gestellt. */
+function add3D(map){
+  try{
+    const st = map.getStyle();
+    if(!st.layers.some(l=>l.type==="fill-extrusion")){
+      const src = Object.keys(st.sources).find(k=>st.sources[k].type==="vector");
+      const vor = (st.layers.find(l=>l.type==="symbol")||{}).id;
+      map.addLayer({id:"gebaeude-3d", type:"fill-extrusion", source:src, "source-layer":"building", minzoom:13,
+        paint:{"fill-extrusion-color":"#d9d0c3","fill-extrusion-height":["coalesce",["get","render_height"],8],"fill-extrusion-base":["coalesce",["get","render_min_height"],0],"fill-extrusion-opacity":0.9}}, vor);
+    }
+    if(map.getPitch() < 30) map.easeTo({pitch:55, duration:900});
+  }catch(e){ console.warn("3D:", e); }
 }
 
 /* Esri World Imagery: schärfere Satellitenbilder, nur über der Ukraine und erst ab Zoom 7.
@@ -703,6 +720,7 @@ function createMap(opts){
     const th = free ? "dark" : STYLES[current].theme;
     if(th){ try{ applyTheme(map, th); }catch(e){ console.warn("Farbschema:", e); } }
     if(!free && current==="sat") addEsri(map);
+    if(!free && current==="d3") add3D(map);
     if(importData){ try{ addImportLayers(map); }catch(e){ console.warn("Lagedaten:", e); } }
     if(opts.onStyle) opts.onStyle(map);
   });

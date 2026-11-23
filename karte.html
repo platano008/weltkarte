@@ -16,11 +16,11 @@
 <link rel="preconnect" href="https://api.maptiler.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=202611230807">
+<link rel="stylesheet" href="style.css?v=202611230849">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611230807"></script>
-<script src="werkzeuge.js?v=202611230807"></script>
+<script src="karte.js?v=202611230849"></script>
+<script src="werkzeuge.js?v=202611230849"></script>
 <style>
 .item.chg .ic{width:22px}
 .card{right:calc(max(16px,env(safe-area-inset-right)) + 56px)!important}
@@ -218,9 +218,10 @@ body.hell .dock,body.hell .maplibregl-ctrl-group,body.hell .wz-rail,body.hell .w
 body.hell .panel{background:rgba(10,10,10,.92)!important}
 body.hell .pille{background:rgba(10,10,10,.88)}
 body.hell .maplibregl-ctrl-attrib a,body.hell .maplibregl-ctrl-attrib{color:#cfcfcf!important}
-@media (max-width:520px){#base button{padding:9px 7px!important;font-size:12px!important;letter-spacing:0!important}#base{max-width:calc(100vw - 86px);overflow-x:auto;scrollbar-width:none}}
+#base{flex-wrap:wrap;justify-content:flex-end;max-width:min(560px,calc(100vw - 86px))}
+@media (max-width:520px){#base button{padding:9px 7px!important;font-size:12px!important;letter-spacing:0!important;flex:1 1 22%}#base{border-radius:18px!important}}
 </style>
-<script src="lang.js?v=202611230807" defer></script>
+<script src="lang.js?v=202611230849" defer></script>
 </head>
 <body>
 <div id="map"></div>
@@ -290,7 +291,7 @@ function setDock(name){
 $("dock").querySelectorAll("button").forEach(b=>b.onclick=()=>setDock(document.body.classList.contains("d-"+b.dataset.d) ? null : b.dataset.d));
 /* switches */
 $("base").innerHTML = Object.entries(K.STYLES).map(([k,s])=>`<button data-b="${k}" class="${k==="sat"?"on":""}">${s.name}</button>`).join("");
-$("base").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("base").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setBase(b.dataset.b); document.body.classList.toggle("hell", b.dataset.b !== "sat"); });
+$("base").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("base").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setBase(b.dataset.b); document.body.classList.toggle("hell", b.dataset.b !== "sat" && b.dataset.b !== "dunkel"); if(b.dataset.b !== "d3" && map.getPitch && map.getPitch() > 30) map.easeTo({pitch:0, duration:700}); });
 $("view").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("view").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setGlobe(b.dataset.v==="globe"); });
 $("legend").innerHTML = Object.values(K.SIDES).map(s=>`<span><i style="background:${s.color}"></i>${s.short}</span>`).join("") + `<span>- - - vermutet</span>`;
 
