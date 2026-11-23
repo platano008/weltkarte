@@ -126,3 +126,4 @@ a.kt.gross:hover .pf{background:#fff;color:#000}
 .rv.in{opacity:1;transform:none}
 .lite .sk-gitter{animation:none}.lite .sk-boden{animation:none}
 @media (prefers-reduced-motion:reduce){.sk-boden,.sk-gitter,.saeule,.ring,.scan,.schwarz i::after{animation:none!important}}
+.kt:not(.gross) b[data-nolang]{font-size:clamp(18px,2vw,23px);overflow-wrap:anywhere}

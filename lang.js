@@ -58,6 +58,8 @@
     "Beispiel: Symbol – Freund · Mechanisierte Infanterie · Brigade":"Example: symbol – friendly · mechanised infantry · brigade",
     "Feind · Infanterie · Bataillon":"Hostile · infantry · battalion",
     // Unterseiten: Mitwirkende, Kontakt, Impressum
+    "Für längere Hinweise, Quellen und Anfragen.":"For longer tips, sources and enquiries.",
+    "Mail schreiben →":"Send email →",
     "Mitwirkende · Plyus":"Contributors · Plyus",
     "Kontakt · Plyus":"Contact · Plyus",
     "Impressum · Plyus":"Legal notice · Plyus",

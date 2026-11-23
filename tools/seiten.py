@@ -99,7 +99,7 @@ seite("kontakt.html", "Kontakt", "So erreichst du Plyus.",
     block("01", "Kanäle", f'''<div class="karten">
   <a class="kt gross" href="https://x.com/plyusmap" target="_blank" rel="noopener"><span class="ic">{X}</span><span class="mitte"><span class="tag">X / Twitter</span><b data-nolang>@plyusmap</b><span class="t">Am schnellsten erreichst du uns per Nachricht auf X.</span></span><span class="pf">Schreiben →</span></a>
   <div class="kt leer"><span class="tag">Telegram</span><b>Folgt</b><span class="t">Der Kanal kommt bald.</span></div>
-  <div class="kt leer"><span class="tag">E-Mail</span><b>Folgt</b><span class="t">Eine Adresse kommt bald.</span></div>
+  <a class="kt weiss" href="mailto:plyusmapping@gmail.com"><span class="tag">E-Mail</span><b data-nolang>plyusmapping@gmail.com</b><span class="t">Für längere Hinweise, Quellen und Anfragen.</span><span class="pf">Mail schreiben →</span></a>
 </div>''') + "\n" +
     block("02", "Was uns hilft", '''<div class="sk-text"><p>Du hast eine Veränderung an der Front gesehen? Mit diesen Angaben können wir sie am schnellsten prüfen:</p></div>
 <ol class="liste">
@@ -119,7 +119,7 @@ seite("impressum.html", "Impressum", "Impressum und rechtliche Hinweise von Plyu
     block("01", "Angaben gemäß § 5 DDG", f'''<dl class="angaben">
   <dt>Betreiber</dt><dd>{SCHWARZ(220)}</dd>
   <dt>Anschrift</dt><dd>{SCHWARZ(280)}</dd>
-  <dt>E-Mail</dt><dd>{SCHWARZ(200)}</dd>
+  <dt>E-Mail</dt><dd><a href="mailto:plyusmapping@gmail.com" data-nolang>plyusmapping@gmail.com</a></dd>
   <dt>X / Twitter</dt><dd><a href="https://x.com/plyusmap" target="_blank" rel="noopener" data-nolang>@plyusmap</a></dd>
   <dt>Verantwortlich für den Inhalt</dt><dd>{SCHWARZ(220)}</dd>
 </dl>''') + "\n" +
