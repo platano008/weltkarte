@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Fahrzeug · Plyus</title>
+<meta name="description" content="Steckbrief eines Fahrzeugs im Russland-Ukraine-Krieg: Bewaffnung, Reichweiten, Fahrdaten, Schutz, Modelle, Herkunft und Geberländer.">
+<link rel="icon" type="image/png" href="bild/favicon.png?v=2">
+<link rel="apple-touch-icon" href="bild/icon-180.png?v=2">
+<link rel="stylesheet" href="style.css?v=202611232027">
+<link rel="stylesheet" href="seiten.css?v=202611232027">
+<script src="lang.js?v=202611232027" defer></script>
+<style>
+.fzs-zurueck{display:inline-flex;margin:0 0 22px;color:#cfcfcf;text-decoration:none;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.fzs-zurueck:hover{color:#fff}
+.fzs{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:start}
+.fzs-box{border:1px solid rgba(255,255,255,.13);border-radius:20px!important;background:linear-gradient(180deg,#0c0c0c,#050505);padding:20px;display:flex;flex-direction:column;gap:14px}
+.fzs-foto{margin:0;border-radius:14px!important;overflow:hidden;background:#0b0c0e;border:1px solid rgba(255,255,255,.08)}
+.fzs-foto img{display:block;width:100%;aspect-ratio:3/2;object-fit:cover}
+.fzs-foto figcaption{padding:10px 14px 12px;font-size:12.5px;line-height:1.5;color:#9a9a9a}
+.fzs-foto figcaption a{color:#cfe6ff}
+.fzs-foto .leer{aspect-ratio:3/2;display:grid;place-items:center;color:#777;font-size:13px;padding:20px;text-align:center}
+.fzs-bild{padding:10px 6px 0;border-radius:14px!important;background:radial-gradient(110% 90% at 50% 100%,rgba(255,255,255,.07),transparent 70%),#08090b}
+.fzs-bild svg{display:block;width:100%;height:auto}
+.pk{display:inline-block;width:9px;height:9px;border-radius:50%!important}
+.fz-seite{display:flex;gap:5px}
+.fz-seite span{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:3px 7px;border-radius:999px!important;border:1px solid}
+.fz-seite .ua{color:#8cc6ff;border-color:rgba(74,163,255,.5)}.fz-seite .ru{color:#ff8a99;border-color:rgba(255,53,80,.5)}
+.fz-mod{display:flex;gap:6px;flex-wrap:wrap}
+.fz-mod button{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 11px;border:1px solid rgba(255,255,255,.18);border-radius:999px!important;background:none;color:#b8b8b8;font:inherit;font-size:12px;cursor:pointer}
+.fz-mod button:hover{border-color:rgba(255,255,255,.5)}
+.fz-mod button.on{background:#fff;color:#000;border-color:#fff}
+.fz-modinfo{margin:0;font-size:13.5px;line-height:1.5;color:#a9a9a9}
+.fz-modinfo b{color:#fff;font-weight:600}
+.fzs-werte{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.09);border-radius:14px!important;overflow:hidden}
+.fzs-werte div{background:#0a0b0d;padding:12px 14px;display:flex;flex-direction:column;gap:3px}
+.fzs-werte span{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#7a7a7a}
+.fzs-werte b{font-size:16px;font-weight:600;color:#f0f0f0;overflow-wrap:anywhere}
+.fzs h2{margin:4px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500}
+.fzs-waffen{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.fzs-waffen li{display:flex;justify-content:space-between;gap:12px;padding:9px 12px;border-radius:10px!important;background:#0a0b0d;border:1px solid rgba(255,255,255,.07);font-size:14px}
+.fzs-waffen li b{font-weight:600;white-space:nowrap}
+.fzs-waffen li.haupt{border-color:rgba(255,255,255,.22)}
+.fzs dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:14px;line-height:1.5}
+.fzs dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7a7a7a;padding-top:3px}
+.fzs dd{margin:0;color:#dcdcdc}
+.fz-geber{display:flex;flex-wrap:wrap;gap:5px}
+.fz-geber span{font-size:12.5px;padding:2px 9px;border-radius:999px!important;background:rgba(74,163,255,.12);color:#b9dbff}
+.fzs-knoepfe{display:flex;flex-wrap:wrap;gap:8px}
+.fzs-knoepfe a{padding:11px 16px;border:1px solid rgba(255,255,255,.3);border-radius:999px!important;color:#fff;text-decoration:none;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase}
+.fzs-knoepfe a:first-child{background:#fff;color:#000;border-color:#fff}
+.fzs-knoepfe a:hover{border-color:#fff}
+.fzs-quellen{margin:0;padding-left:18px;font-size:13px;line-height:1.7;color:#9a9a9a}
+.fzs-quellen a{color:#cfe6ff}
+.fzs-leer{padding:60px 0;text-align:center;color:#8a8a8a}
+@media (max-width:860px){.fzs{grid-template-columns:1fr}}
+</style>
+</head>
+</head>
+<body>
+<script>(function(){ try{ const c = navigator.hardwareConcurrency || 8, m = navigator.deviceMemory || 8; if(c <= 4 || m <= 4 || matchMedia("(hover:none),(pointer:coarse)").matches) document.documentElement.classList.add("lite"); }catch(e){} })();</script>
+<header class="kopf"><a class="logo" href="./" aria-label="Plyus"><img src="bild/logo.svg" alt=""><svg class="szug-k" viewBox="0 0 558.8 100" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z"/></g></svg></a><button class="burger" id="burger" aria-label="Menü öffnen" aria-expanded="false"><i></i><i></i><i></i></button></header>
+<div class="menu" id="menu" hidden>
+  <div class="sprachwahl" role="group" aria-label="Sprache"><button data-sprache="de" data-nolang>DE</button><button data-sprache="en" data-nolang>EN</button></div>
+  <button class="menu-x" id="menuX" aria-label="Menü schließen"><svg viewBox="0 0 28 28"><path d="M2 2l24 24M26 2L2 26"/></svg></button>
+  <nav>
+    <a href="karte.html">Karte</a>
+    <span class="aus">Drohnenkarte<em>in Arbeit</em></span>
+    <a href="blog.html">Blog</a>
+    <span class="aus">Telegram<em>folgt</em></span>
+    <a href="https://x.com/plyusmap" target="_blank" rel="noopener">Twitter<em data-nolang>@plyusmap</em></a>
+    <a href="fahrzeuge.html">Fahrzeuge</a>
+    <a href="mitwirkende.html">Mitwirkende</a>
+    <a href="kontakt.html">Kontakt</a>
+    <a href="impressum.html">Impressum</a>
+  </nav>
+  <div class="menu-logo"><img src="bild/logo.svg" alt=""><svg class="szug-k" viewBox="0 0 558.8 100" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z"/></g></svg></div>
+</div>
+<section class="sk-held">
+  <div class="sk-szene" aria-hidden="true"><div class="sk-boden" style="--rz:-10deg"><div class="sk-gitter"></div><svg class="front" viewBox="0 0 1800 1800"><path class="zone-r" d="M1800 0V1800H1060L1010 1600L1070 1440L990 1300L1040 1150L960 1000L1010 860L930 720L980 560L900 400L950 230L880 0Z"/><path class="zone-b" d="M0 0H830L900 230L850 400L930 560L880 720L960 860L910 1000L990 1150L940 1300L1020 1440L960 1600L1010 1800H0Z"/><path d="M880 0L950 230L900 400L980 560L930 720L1010 860L960 1000L1040 1150L990 1300L1070 1440L1010 1600L1060 1800"/><path class="ua" d="M830 0L900 230L850 400L930 560L880 720L960 860L910 1000L990 1150L940 1300L1020 1440L960 1600L1010 1800"/></svg><div class="ding" style="--x:760px;--y:900px"><span class="saeule ua" style="--h:200px;--d:0.2s"></span></div><div class="ding" style="--x:1060px;--y:860px"><span class="saeule " style="--h:240px;--d:0.5s"></span></div><div class="ding" style="--x:900px;--y:1000px"><span class="saeule w" style="--h:160px;--d:0.8s"></span></div></div></div>
+  <span class="brk a" aria-hidden="true"></span><span class="brk b" aria-hidden="true"></span>
+  <div class="hud" aria-hidden="true">Stand <b>11/2026</b></div>
+  <div class="sk-titel"><span class="eyebrow"><i></i><span id="fzsTyp">Plyus · Arsenal</span></span><h1 id="fzsName" data-nolang>Fahrzeug</h1><p id="fzsInfo"></p></div>
+</section>
+<main class="sk-inhalt">
+  <a class="fzs-zurueck" href="fahrzeuge.html">← Alle Fahrzeuge</a>
+  <div id="fzs" class="fzs"><div class="fzs-leer">Lade …</div></div>
+</main>
+<footer class="sk-fuss"><a href="mitwirkende.html">Mitwirkende</a><a href="kontakt.html">Kontakt</a><a href="impressum.html">Impressum</a><a href="https://x.com/plyusmap" target="_blank" rel="noopener">X / Twitter</a><span class="r">© <span id="jahr">2026</span> Plyus</span></footer>
+
+<script src="fz-bild.js?v=202611232027"></script>
+<script>
+(function(){
+  const nf = new Intl.NumberFormat("de-DE", {maximumFractionDigits:1});
+  const esc = s=>String(s == null ? "" : s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const text = html=>{ const d = new DOMParser().parseFromString(String(html || ""), "text/html"); return (d.body.textContent || "").replace(/\s+/g, " ").trim(); };
+  const norm = s=>String(s).toLowerCase().replace(/[^0-9a-z]/g, "");
+  const name = decodeURIComponent((new URLSearchParams(location.search).get("n") || "").trim());
+  const box = document.getElementById("fzs");
+  const modName = m=>typeof m === "string" ? m : m.n;
+  const modInfo = m=>`<b data-nolang>${esc(modName(m))}</b>${m.i ? ` – ${esc(m.i)}` : ""}`;
+
+  // Titelbild des Wikipedia-Artikels (nur frei lizenzierte Bilder) samt Urheber und Lizenz von Wikimedia Commons
+  const API = "https://en.wikipedia.org/w/api.php?format=json&formatversion=2&origin=*&action=query";
+  const holen = q=>fetch(API + q).then(r=>r.ok ? r.json() : Promise.reject(r.status));
+  function kennungen(f){ return (f.n + " " + (f.wiki || "")).split(/[\s\/„“()]+/).map(norm).filter(t=>t.length >= 3 && /[0-9]/.test(t)); }
+  async function foto(f){
+    let datei = null, artikel = null;
+    if(f.wiki){ const r = await holen("&redirects=1&prop=pageimages&piprop=name&titles=" + encodeURIComponent(f.wiki));
+      const p = r.query && r.query.pages && r.query.pages[0];
+      if(p && !p.missing && p.pageimage){ datei = p.pageimage; artikel = p.title; } }
+    if(!datei){ const k = kennungen(f); if(!k.length) return null;
+      const r = await holen("&generator=search&gsrlimit=5&prop=pageimages&piprop=name&gsrsearch=" + encodeURIComponent(f.wiki || f.n));
+      const p = ((r.query && r.query.pages) || []).sort((a, b)=>a.index - b.index).find(p=>p.pageimage && k.some(t=>norm(p.title).includes(t) || t.includes(norm(p.title))));
+      if(!p) return null; datei = p.pageimage; artikel = p.title; }
+    const r = await holen("&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=1100&titles=" + encodeURIComponent("File:" + datei));
+    const ii = r.query.pages[0].imageinfo && r.query.pages[0].imageinfo[0]; if(!ii) return null;
+    const md = ii.extmetadata || {}, w = k=>md[k] ? text(md[k].value) : "";
+    return {src:ii.thumburl || ii.url, datei:ii.descriptionurl, autor:w("Artist") || "unbekannt", lizenz:w("LicenseShortName") || "freie Lizenz",
+      lizenzUrl:md.LicenseUrl ? md.LicenseUrl.value : "", beschr:w("ImageDescription").slice(0, 220), artikel};
+  }
+
+  function zeigen(D, f){
+    const seite = f.seite.length > 1 ? "beide" : f.seite[0], mod = f.mod || [], typ = D.typen[f.typ].l;
+    document.title = f.n + " · Plyus";
+    document.getElementById("fzsName").textContent = f.n;
+    document.getElementById("fzsTyp").textContent = typ;
+    document.getElementById("fzsInfo").textContent = f.info || "";
+    const bild = m=>window.FzBild(Object.assign({}, f.b, typeof m === "object" && m.b || {}), seite);
+    const waffen = (f.km ? [`<li class="haupt"><span>Hauptwaffe: ${esc(f.reichweite)}</span><b>bis ${nf.format(f.km)} km</b></li>`] : [`<li><span>${esc(f.reichweite)}</span><b>–</b></li>`])
+      .concat((f.w2l || []).map(w=>`<li><span>${esc(w.n)}</span><b>ca. ${nf.format(w.km)} km</b></li>`));
+    if(f.w2 && !f.w2l) waffen.push(`<li><span>${esc(f.w2)}</span><b>–</b></li>`);
+    const karte = f.km || f.fbkm ? `<a href="karte.html#fz=${encodeURIComponent(f.n)}">Auf der Karte einsetzen →</a>` : "";
+    const wiki = f.wiki ? `<a href="https://en.wikipedia.org/wiki/${encodeURIComponent(f.wiki.replace(/ /g, "_"))}" target="_blank" rel="noopener">Wikipedia-Artikel</a>` : "";
+    box.innerHTML = `<div class="fzs-box">
+        <figure class="fzs-foto" id="fzsFoto"><div class="leer">Foto wird geladen …</div></figure>
+        <div class="fzs-bild" id="fzsBild">${bild(mod[0])}</div>
+        ${mod.length > 1 ? `<h2>Modelle (${mod.length})</h2><div class="fz-mod" role="group" aria-label="Modell wählen">${mod.map((m, i)=>`<button data-m="${i}"${i ? "" : ' class="on"'} aria-pressed="${!i}" data-nolang>${esc(modName(m))}</button>`).join("")}</div>` : ""}
+        ${mod.length ? `<p class="fz-modinfo" id="fzsMod">${modInfo(mod[0])}</p>` : ""}
+      </div>
+      <div class="fzs-box">
+        <div class="fz-seite">${f.seite.includes("ua") ? '<span class="ua">Ukraine</span>' : ""}${f.seite.includes("ru") ? '<span class="ru">Russland</span>' : ""}</div>
+        <div class="fzs-werte"><div><span>Reichweite</span><b>${f.km ? "bis " + nf.format(f.km) + " km" : "–"}</b></div><div><span>Höchsttempo</span><b>${esc(f.d.v)}</b></div>
+          <div><span>Fahrbereich</span><b>${esc(f.d.fb)}</b></div><div><span>Gewicht</span><b>${esc(f.d.m)}</b></div><div><span>Besatzung</span><b>${esc(f.d.bes)}</b></div><div><span>Modelle</span><b>${Math.max(1, mod.length)}</b></div></div>
+        <h2>Bewaffnung</h2><ul class="fzs-waffen">${waffen.join("")}</ul>
+        <h2>Steckbrief</h2>
+        <dl><dt>Schutz</dt><dd>${esc(f.schutz)}</dd><dt>Kategorie</dt><dd>${esc(typ)}</dd><dt>Herkunft</dt><dd>${esc(f.land)}</dd><dt>Hersteller</dt><dd>${esc(f.hersteller)}</dd><dt>Nutzer</dt><dd>${esc(f.nutzer)}</dd>
+          ${f.geber ? `<dt>Geliefert von</dt><dd class="fz-geber">${f.geber.map(g=>`<span>${esc(g)}</span>`).join("")}</dd>` : ""}</dl>
+        <div class="fzs-knoepfe">${karte}${wiki}</div>
+        <h2>Quellen</h2>
+        <ol class="fzs-quellen" id="fzsQuellen">
+          <li><a href="${f.seite.includes("ru") ? "https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-equipment.html" : "https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-ukrainian.html"}" target="_blank" rel="noopener">Oryx – fotobelegte Verluste</a></li>
+          ${f.geber ? '<li><a href="https://www.oryxspioenkop.com/2022/04/answering-call-heavy-weaponry-supplied.html" target="_blank" rel="noopener">Oryx – Lieferungen an die Ukraine</a></li>' : ""}
+          ${f.wiki ? `<li><a href="https://en.wikipedia.org/wiki/${encodeURIComponent(f.wiki.replace(/ /g, "_"))}" target="_blank" rel="noopener">Wikipedia – ${esc(f.wiki)}</a></li>` : ""}
+        </ol>
+      </div>`;
+    const fig = document.getElementById("fzsFoto");
+    foto(f).then(x=>{
+      if(!x){ fig.innerHTML = '<div class="leer">Kein frei lizenziertes Foto gefunden – oben die gezeichnete Ansicht.</div>'; return; }
+      fig.innerHTML = `<img src="${esc(x.src)}" alt="${esc(x.beschr || f.n)}" loading="lazy" referrerpolicy="no-referrer"><figcaption>${x.beschr ? esc(x.beschr) + "<br>" : ""}Foto: ${esc(x.autor)} · <a href="${esc(x.lizenzUrl || x.datei)}" target="_blank" rel="noopener">${esc(x.lizenz)}</a> · <a href="${esc(x.datei)}" target="_blank" rel="noopener">Wikimedia Commons</a>${x.artikel ? ` · Titelbild des Wikipedia-Artikels „${esc(x.artikel)}“` : ""}</figcaption>`;
+      fig.querySelector("img").addEventListener("error", ()=>{ fig.innerHTML = '<div class="leer">Foto konnte nicht geladen werden.</div>'; });
+      document.getElementById("fzsQuellen").insertAdjacentHTML("beforeend", `<li><a href="${esc(x.datei)}" target="_blank" rel="noopener">Foto: Wikimedia Commons</a></li>`);
+    }).catch(()=>{ fig.innerHTML = '<div class="leer">Foto konnte nicht geladen werden.</div>'; });
+    box.addEventListener("click", e=>{ const b = e.target.closest(".fz-mod button"); if(!b) return;
+      const m = mod[+b.dataset.m];
+      box.querySelectorAll(".fz-mod button").forEach(x=>{ x.classList.toggle("on", x === b); x.setAttribute("aria-pressed", x === b); });
+      document.getElementById("fzsBild").innerHTML = bild(m); document.getElementById("fzsMod").innerHTML = modInfo(m); });
+  }
+  fetch("daten/fahrzeuge.json?v=202611232027").then(r=>r.json()).then(D=>{
+    const f = D.fahrzeuge.find(x=>x.n === name);
+    if(!f){ box.innerHTML = '<div class="fzs-leer">Fahrzeug nicht gefunden. <a href="fahrzeuge.html">Zur Liste →</a></div>'; return; }
+    zeigen(D, f);
+  }).catch(()=>{ box.innerHTML = '<div class="fzs-leer">Daten konnten nicht geladen werden.</div>'; });
+})();
+</script>
+<script src="seiten.js?v=202611232027"></script>
+</body>
+</html>

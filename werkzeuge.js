@@ -68,7 +68,7 @@ const RANGES = [5, 10, 20, 40, 70, 150, 300];
 function init(map, opts){
   opts = opts || {};
   let tool = null, pts = [], hover = null, radiusKm = null, done = [], labels = [], live = null;
-  let fzAlle = null, fzWahl = null, fzQ = "", fzGesetzt = [], fzMarker = [], fzOffen = true;
+  let fzAlle = null, fzWahl = null, fzQ = "", fzGesetzt = [], fzMarker = [], fzOffen = true, fzZw = -1, fzFahr = false;
   let sichtR = 1000, sichtH = 0, sichtRes = null, sichtLauf = 0, sichtInfo = null, sichtPunkt = null;
   const root = document.createElement("div");
   root.className = "wz";
@@ -97,6 +97,9 @@ function init(map, opts){
       const FZF = ["match",["get","s"],"ua","#4aa3ff","ru","#ff3550","#c08cff"];
       if(!m.getLayer("wz-fz-fill")) m.addLayer({id:"wz-fz-fill", type:"fill", source:"wz-fz", filter:["==",["get","k"],"kreis"], paint:{"fill-color":FZF,"fill-opacity":0.13}});
       if(!m.getLayer("wz-fz-line")) m.addLayer({id:"wz-fz-line", type:"line", source:"wz-fz", filter:["==",["get","k"],"rand"], paint:{"line-color":FZF,"line-width":2,"line-dasharray":[4,2]}});
+      if(!m.getLayer("wz-fz-fill2")) m.addLayer({id:"wz-fz-fill2", type:"fill", source:"wz-fz", filter:["==",["get","k"],"kreis2"], paint:{"fill-color":FZF,"fill-opacity":0.1}});
+      if(!m.getLayer("wz-fz-line2")) m.addLayer({id:"wz-fz-line2", type:"line", source:"wz-fz", filter:["==",["get","k"],"rand2"], layout:{"line-cap":"round"}, paint:{"line-color":FZF,"line-width":1.8,"line-dasharray":[0.5,2]}});
+      if(!m.getLayer("wz-fz-fahr")) m.addLayer({id:"wz-fz-fahr", type:"line", source:"wz-fz", filter:["==",["get","k"],"fahr"], paint:{"line-color":"#ffffff","line-opacity":0.75,"line-width":1.6,"line-dasharray":[6,4]}});
       if(!m.getLayer("wz-fz-pt")) m.addLayer({id:"wz-fz-pt", type:"circle", source:"wz-fz", filter:["==",["get","k"],"pt"], paint:{"circle-radius":6,"circle-color":FZF,"circle-stroke-color":"#fff","circle-stroke-width":2}});
       fzZeichnen(m);
       if(sichtRes && window.Sicht && !m.getLayer("sicht-flaeche")) Sicht.zeigen(m, sichtRes);
@@ -130,8 +133,9 @@ function init(map, opts){
   }
 
   /* Beschriftungen auf der Karte */
-  function label(ll, html, cls){ const el = document.createElement("div"); el.className = "wz-lbl " + (cls||""); el.innerHTML = html;
-    return new maplibregl.Marker({element:el, anchor:"bottom"}).setLngLat(ll).addTo(map); }
+  function label(ll, html, cls, anchor, km){ const el = document.createElement("div"); el.className = "wz-lbl " + (cls||"") + (anchor ? " a-" + anchor : ""); el.innerHTML = html;
+    const mk = new maplibregl.Marker({element:el, anchor:anchor || "bottom"}).setLngLat(ll).addTo(map);
+    if(km){ el.dataset.km = km; mk._ring = true; } return mk; }
   function shapeLabels(t, p, r){
     const out = [];
     if(t==="lineal" && p.length > 1){
@@ -154,12 +158,13 @@ function init(map, opts){
   const fzEsc = t=>String(t).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   function fzLaden(){ if(fzAlle) return Promise.resolve(fzAlle);
     return fetch("daten/fahrzeuge.json").then(r=>r.json())
-      .then(d=>fzAlle = d.fahrzeuge.filter(f=>f.km > 0).map(f=>Object.assign({such:[f.n, f.land, d.typen[f.typ].l, (f.mod || []).map(m=>m.n || m).join(" "), f.a || "", (f.geber || []).join(" ")].join(" ").toLowerCase()}, f)))
+      .then(d=>fzAlle = d.fahrzeuge.filter(f=>f.km > 0 || f.fbkm > 0).map(f=>Object.assign({such:[f.n, f.land, d.typen[f.typ].l, (f.mod || []).map(m=>m.n || m).join(" "), f.a || "", (f.geber || []).join(" ")].join(" ").toLowerCase()}, f)))
       .catch(()=>fzAlle = []); }
+  const fzKm = km=>nf1.format(km).replace(",0", "") + " km";
   function fzTreffer(){ const q = fzQ.toLowerCase();
-    return (fzAlle||[]).filter(f=>!q || f.such.includes(q)).sort((a,b)=>b.km - a.km).slice(0, 40); }
+    return (fzAlle||[]).filter(f=>!q || f.such.includes(q)).sort((a,b)=>b.km - a.km || a.n.localeCompare(b.n, "de")).slice(0, 40); }
   function fzListeHTML(){ const L = fzTreffer();
-    return L.length ? L.map(f=>`<button class="fz-w${fzWahl && fzWahl.n === f.n ? " on" : ""}" data-fz="${fzEsc(f.n)}"><i class="pk ${fzSeite(f)}"></i><span>${fzEsc(f.n)}</span><b>${nf1.format(f.km).replace(",0","")} km</b></button>`).join("") : '<div class="wz-sub">Nichts gefunden.</div>'; }
+    return L.length ? L.map(f=>`<button class="fz-w${fzWahl && fzWahl.n === f.n ? " on" : ""}" data-fz="${fzEsc(f.n)}"><i class="pk ${fzSeite(f)}"></i><span>${fzEsc(f.n)}</span><b>${f.km ? fzKm(f.km) : "–"}</b></button>`).join("") : '<div class="wz-sub">Nichts gefunden.</div>'; }
   function fzBox(){
     if(!fzAlle){ box.innerHTML = `<div class="wz-h"><span class="eyebrow">${NAMES.fahrzeug}</span><button class="wz-x" data-x="close" aria-label="Werkzeug schließen">✕</button></div><div class="wz-big">Lade …</div>`; fzLaden().then(()=>{ if(tool === "fahrzeug") fzBox(); }); return; }
     if(box.querySelector(".fz-such")){ box.querySelector(".fz-wahl").innerHTML = fzListeHTML(); fzKopf(); fzAuf(); return; }
@@ -167,27 +172,53 @@ function init(map, opts){
       <div class="fz-kopfz"></div>
       <input class="fz-such" type="search" placeholder="Fahrzeug suchen …" value="${fzEsc(fzQ)}">
       <div class="fz-wahl">${fzListeHTML()}</div>
-      <div class="wz-act">${fzGesetzt.length ? '<button data-x="fzundo">Letztes entfernen</button>' : ""}<a class="wz-link" href="fahrzeuge.html">Zur Fahrzeugliste →</a></div>`;
+      <div class="wz-act"></div>`;
     fzKopf(); fzAuf();
     box.querySelector(".fz-such").addEventListener("input", e=>{ fzQ = e.target.value; box.querySelector(".fz-wahl").innerHTML = fzListeHTML(); });
   }
   /* nach der Auswahl klappt die Liste zu, damit man die Karte sieht */
   function fzAuf(){ const zu = !!fzWahl && !fzOffen; ["fz-such","fz-wahl"].forEach(c=>{ const e = box.querySelector("." + c); if(e) e.hidden = zu; }); }
+  /* Auswahl: Hauptwaffe immer, dazu eine Zweitwaffe und auf Wunsch der Fahrbereich */
   function fzKopf(){ const k = box.querySelector(".fz-kopfz"); if(!k) return;
-    k.innerHTML = fzWahl ? `<div class="wz-big">${fzEsc(fzWahl.n)}</div><div class="wz-sub">bis ${nf1.format(fzWahl.km).replace(",0","")} km · ${fzEsc(fzWahl.reichweite)}</div>`
+    const f = fzWahl, w2 = f && f.w2l || [];
+    k.innerHTML = f ? `<div class="wz-big">${fzEsc(f.n)}</div><div class="wz-sub">${f.km ? "Hauptwaffe bis " + fzKm(f.km) + " · " + fzEsc(f.reichweite) : fzEsc(f.reichweite)}</div>
+        ${w2.length ? `<div class="wz-ranges fz-opt"><span class="wz-lab">Zweitwaffe</span><button data-fzz="-1" class="${fzZw < 0 ? "on" : ""}">keine</button>${w2.map((w, i)=>`<button data-fzz="${i}" class="${fzZw === i ? "on" : ""}">${fzEsc(w.n.replace(/ \(.*\)$/, ""))} · ${fzKm(w.km)}</button>`).join("")}</div>` : ""}
+        ${f.fbkm ? `<div class="wz-ranges fz-opt"><span class="wz-lab">Fahrbereich</span><button data-fzf="1" class="${fzFahr ? "on" : ""}" aria-pressed="${fzFahr}">${fzKm(f.fbkm)} zeigen</button></div>` : ""}
+        <div class="wz-leg">${f.km ? '<span><i class="fz-l1"></i>Hauptwaffe</span>' : ""}${w2.length ? '<span><i class="fz-l2"></i>Zweitwaffe</span>' : ""}${f.fbkm ? '<span><i class="fz-l3"></i>Fahrbereich</span>' : ""}</div>`
       : `<div class="wz-big">Fahrzeug wählen</div>`;
-    const a = box.querySelector(".wz-act"); if(a) a.innerHTML = (fzWahl && !fzOffen ? '<button data-x="fzwechsel">Anderes Fahrzeug</button>' : "") + (fzGesetzt.length ? '<button data-x="fzundo">Letztes entfernen</button>' : "") + '<a class="wz-link" href="fahrzeuge.html">Zur Fahrzeugliste →</a>'; }
+    const a = box.querySelector(".wz-act"); if(a) a.innerHTML = (fzWahl && !fzOffen ? '<button data-x="fzwechsel">Anderes Fahrzeug</button>' : "") + (fzGesetzt.length ? '<button data-x="fzundo">Letztes entfernen</button>' : "") +
+      (fzWahl ? `<a class="wz-link" href="fahrzeug.html?n=${encodeURIComponent(fzWahl.n)}">Steckbrief →</a>` : '<a class="wz-link" href="fahrzeuge.html">Zur Fahrzeugliste →</a>'); }
+  /* gilt die Auswahl auch für das zuletzt gesetzte Fahrzeug desselben Typs */
+  function fzWahlAnwenden(){ const g = fzGesetzt[fzGesetzt.length - 1];
+    if(g && g.f === fzWahl){ g.z = (fzWahl.w2l || [])[fzZw] || null; g.fahr = fzFahr; fzZeichnen(); } fzKopf(); }
   function fzZeichnen(m){
     m = m || map; const src = m.getSource && m.getSource("wz-fz"); if(!src) return;
-    const F = [];
-    fzGesetzt.forEach(g=>{ const c = circle(g.ll, g.f.km, 128), s = fzSeite(g.f);
-      F.push({type:"Feature", properties:{k:"kreis", s}, geometry:{type:"Polygon", coordinates:[c]}});
-      F.push({type:"Feature", properties:{k:"rand", s}, geometry:{type:"LineString", coordinates:c}});
+    const F = [], ring = (g, km, k, s)=>{ const c = circle(g.ll, km, 128);
+      if(k !== "fahr") F.push({type:"Feature", properties:{k:k === "rand" ? "kreis" : "kreis2", s}, geometry:{type:"Polygon", coordinates:[c]}});
+      F.push({type:"Feature", properties:{k, s}, geometry:{type:"LineString", coordinates:c}}); };
+    fzGesetzt.forEach(g=>{ const s = fzSeite(g.f);
+      if(g.fahr && g.f.fbkm) ring(g, g.f.fbkm, "fahr", s);
+      if(g.f.km) ring(g, g.f.km, "rand", s);
+      if(g.z) ring(g, g.z.km, "rand2", s);
       F.push({type:"Feature", properties:{k:"pt", s}, geometry:{type:"Point", coordinates:g.ll}}); });
     src.setData({type:"FeatureCollection", features:F});
-    fzMarker.forEach(x=>x.remove()); fzMarker = fzGesetzt.map(g=>label(g.ll, `<b>${fzEsc(g.f.n)}</b> · ${nf1.format(g.f.km).replace(",0","")} km`, "fz " + fzSeite(g.f)));
+    fzMarker.forEach(x=>x.remove()); fzMarker = [];
+    fzGesetzt.forEach(g=>{ const s = fzSeite(g.f);
+      fzMarker.push(label(g.ll, `<b>${fzEsc(g.f.n)}</b>`, "fz " + s));
+      if(g.f.km) fzMarker.push(label(dest(g.ll, g.f.km, 0), `Hauptwaffe · <b>${fzKm(g.f.km)}</b>`, "fz ring " + s, null, g.f.km));
+      if(g.z) fzMarker.push(label(dest(g.ll, g.z.km, 180), `${fzEsc(g.z.n.replace(/ \(.*\)$/, ""))} · <b>${fzKm(g.z.km)}</b>`, "fz ring zw " + s, "top", g.z.km));
+      if(g.fahr && g.f.fbkm) fzMarker.push(label(dest(g.ll, g.f.fbkm, 90), `Fahrbereich · <b>${fzKm(g.f.fbkm)}</b>`, "fz ring fahr", "left", g.f.fbkm)); });
+    fzRingSicht();
   }
-  function fzWaehlen(name){ return fzLaden().then(L=>{ const f = L.find(x=>x.n === name); if(f){ fzWahl = f; fzOffen = false; if(tool !== "fahrzeug") start("fahrzeug"); else readout(); } return !!f; }); }
+  /* Ring-Beschriftungen ausblenden, solange der Kreis zu klein ist und sie die Mitte verdecken würden */
+  function fzRingSicht(){ const z = map.getZoom();
+    fzMarker.forEach(mk=>{ if(!mk._ring) return; const ll = mk.getLngLat(), el = mk.getElement();
+      const mpp = 78271.517*Math.cos(rad(ll.lat))/Math.pow(2, z), km = parseFloat(el.dataset.km);
+      el.style.display = km*1000/mpp < 36 ? "none" : ""; }); }
+  map.on("zoom", fzRingSicht);
+  /* voreingestellt ist die Zweitwaffe mit der größten Reichweite */
+  const fzStandardZw = f=>f && f.w2l ? f.w2l.reduce((m, w, i)=>w.km > f.w2l[m].km ? i : m, 0) : -1;
+  function fzWaehlen(name){ return fzLaden().then(L=>{ const f = L.find(x=>x.n === name); if(f){ fzWahl = f; fzOffen = false; fzZw = fzStandardZw(f); if(tool !== "fahrzeug") start("fahrzeug"); else readout(); } return !!f; }); }
   const pct = v=>nf0.format(Math.round(v*100)) + " %";
   function sichtBox(){
     const rk = `<div class="wz-ranges"><span class="wz-lab">Radius</span>${SICHT_R.map(r=>`<button data-sr="${r}" class="${sichtR===r?"on":""}">${r < 1000 ? r + " m" : r/1000 + " km"}</button>`).join("")}</div>
@@ -288,7 +319,9 @@ function init(map, opts){
     if(b.dataset.x==="undo"){ if(tool==="radius"){ pts = []; radiusKm = null; } else pts.pop(); refresh(true); }
     if(b.dataset.r) setRadius(+b.dataset.r);
     if(b.dataset.sr){ sichtR = +b.dataset.sr; if(sichtPunkt) sichtRechnen(sichtPunkt); else readout(); }
-    if(b.dataset.fz){ fzWahl = (fzAlle||[]).find(x=>x.n === b.dataset.fz) || null; fzOffen = false; box.querySelectorAll(".fz-w").forEach(x=>x.classList.toggle("on", x === b)); fzKopf(); fzAuf(); }
+    if(b.dataset.fzz != null){ fzZw = +b.dataset.fzz; fzWahlAnwenden(); return; }
+    if(b.dataset.fzf != null){ fzFahr = !fzFahr; fzWahlAnwenden(); return; }
+    if(b.dataset.fz){ fzWahl = (fzAlle||[]).find(x=>x.n === b.dataset.fz) || null; fzOffen = false; fzZw = fzStandardZw(fzWahl); box.querySelectorAll(".fz-w").forEach(x=>x.classList.toggle("on", x === b)); fzKopf(); fzAuf(); }
     if(b.dataset.x==="fzwechsel"){ fzOffen = true; fzKopf(); fzAuf(); }
     if(b.dataset.x==="fzundo"){ fzGesetzt.pop(); fzZeichnen(); fzKopf(); }
     if(b.dataset.sh != null){ sichtH = +b.dataset.sh; if(sichtPunkt) sichtRechnen(sichtPunkt); else readout(); }
@@ -308,7 +341,7 @@ function init(map, opts){
     /* Doppelklick beendet nur mit Maus; am Handy tippt man oft schnell hintereinander, dort gibt es „Fertig“ */
     if(dbl && !coarse && (tool==="lineal" || tool==="flaeche")){ finish(true); return; }
     if(tool==="sicht"){ const h = hausAmPunkt(e.point, e.lngLat); sichtRechnen(h ? h.mitte : ll, h); return; }
-    if(tool==="fahrzeug"){ if(fzWahl){ fzGesetzt.push({ll, f:fzWahl}); fzZeichnen(); fzKopf(); } return; }
+    if(tool==="fahrzeug"){ if(fzWahl){ fzGesetzt.push({ll, f:fzWahl, z:(fzWahl.w2l || [])[fzZw] || null, fahr:fzFahr}); fzZeichnen(); fzKopf(); } return; }
     if(tool==="punkt"){ pts = [ll]; refresh(true); return; }
     if(tool==="radius"){
       if(!pts.length || radiusKm != null){ pts = [ll]; radiusKm = null; }

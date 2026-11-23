@@ -16,12 +16,12 @@
 <link rel="preconnect" href="https://api.maptiler.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=202611232003">
+<link rel="stylesheet" href="style.css?v=202611232027">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611232003"></script>
-<script src="sicht.js?v=202611232003"></script>
-<script src="werkzeuge.js?v=202611232003"></script>
+<script src="karte.js?v=202611232027"></script>
+<script src="sicht.js?v=202611232027"></script>
+<script src="werkzeuge.js?v=202611232027"></script>
 <style>
 .item.chg .ic{width:22px}
 .card{right:calc(max(16px,env(safe-area-inset-right)) + 56px)!important}
@@ -224,8 +224,17 @@ body.k-auf .tl{opacity:0;pointer-events:none}
 @media (max-width:520px){.wz-box .wz-ranges{flex-wrap:nowrap;gap:4px}.wz-box .wz-ranges button{padding:6px 6px!important;font-size:10.5px!important;letter-spacing:0!important}.wz-leg{gap:4px 10px!important;font-size:11px!important}}
 .wz-leg{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:10px;font-size:12px;color:var(--muted)}
 .wz-leg i{display:inline-block;width:11px;height:11px;margin-right:5px;vertical-align:-1px;border:1px solid rgba(255,255,255,.35)}
+.wz-box .wz-ranges.fz-opt{flex-wrap:wrap;gap:4px;margin-top:8px}
+.wz-box .wz-ranges.fz-opt button{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wz-leg i.fz-l1{border:2px dashed #fff;border-radius:50%!important;background:rgba(255,255,255,.15)}
+.wz-leg i.fz-l2{border:2px dotted #fff;border-radius:50%!important;background:rgba(255,255,255,.08)}
+.wz-leg i.fz-l3{border:1px dashed rgba(255,255,255,.8);border-radius:50%!important;background:none}
+.wz-lbl.a-top{margin:8px 0 0}.wz-lbl.a-left{margin:0 0 0 8px}
+.wz-lbl.ring{font-size:10px;padding:2px 6px;background:rgba(0,0,0,.78)}
+.wz-lbl.ring b{font-size:11px}
+.wz-lbl.ring.fahr{border-style:dashed}
 </style>
-<script src="lang.js?v=202611232003" defer></script>
+<script src="lang.js?v=202611232027" defer></script>
 </head>
 <body>
 <div id="map"></div>

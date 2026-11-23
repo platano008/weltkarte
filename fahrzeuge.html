@@ -8,9 +8,9 @@
 <meta name="description" content="Alle Bodenfahrzeuge im Russland-Ukraine-Krieg: Kategorien, Reichweite, Herkunft, Varianten und Geberländer der Ukraine.">
 <link rel="icon" type="image/png" href="bild/favicon.png?v=2">
 <link rel="apple-touch-icon" href="bild/icon-180.png?v=2">
-<link rel="stylesheet" href="style.css?v=202611232003">
-<link rel="stylesheet" href="seiten.css?v=202611232003">
-<script src="lang.js?v=202611232003" defer></script>
+<link rel="stylesheet" href="style.css?v=202611232027">
+<link rel="stylesheet" href="seiten.css?v=202611232027">
+<script src="lang.js?v=202611232027" defer></script>
 <style>
 .fz-leiste{position:sticky;top:0;z-index:5;display:flex;flex-direction:column;gap:12px;padding:14px 0 16px;margin-bottom:18px;background:linear-gradient(#000 80%,rgba(0,0,0,0))}
 #fzSuche{width:100%;padding:14px 18px;border:1px solid rgba(255,255,255,.18);border-radius:999px!important;background:#0b0b0b;color:#fff;font:inherit;font-size:16px;outline:none}
@@ -47,6 +47,8 @@
 .fz-k.ua{--g:rgba(74,163,255,.24)}.fz-k.ru{--g:rgba(255,53,80,.24)}.fz-k.beide{--g:rgba(190,120,255,.2)}
 .fz-kopf{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
 .fz-k h3{margin:0;font-family:var(--korn);font-size:clamp(21px,2.2vw,26px);line-height:1.08}
+.fz-k h3 a{color:inherit;text-decoration:none}
+.fz-k{cursor:pointer;transition:border-color .2s}.fz-k:hover{border-color:rgba(255,255,255,.32)}
 .fz-typ{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a8a8a;margin-top:5px}
 .fz-seite{display:flex;gap:5px;flex:none;padding-top:4px}
 .fz-seite span{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:3px 7px;border-radius:999px!important;border:1px solid}
@@ -60,7 +62,9 @@
 .fz-k dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13.5px;line-height:1.5}
 .fz-k dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7a7a7a;padding-top:3px}
 .fz-k dd{margin:0;color:#dcdcdc}
-.fz-karte{margin-top:auto;align-self:flex-start;padding:10px 16px;border:1px solid rgba(255,255,255,.3);border-radius:999px!important;color:#fff;text-decoration:none;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase}
+.fz-knoepfe{margin-top:auto;display:flex;flex-wrap:wrap;gap:8px}
+.fz-karte.an{background:#fff;color:#000;border-color:#fff}
+.fz-karte{padding:10px 16px;border:1px solid rgba(255,255,255,.3);border-radius:999px!important;color:#fff;text-decoration:none;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase}
 .fz-karte:hover{background:#fff;color:#000}
 .fz-info{color:#9a9a9a;font-size:13.5px;line-height:1.5;margin:0}
 .fz-leer{grid-column:1/-1;padding:40px 0;text-align:center;color:#8a8a8a}
@@ -110,7 +114,7 @@
 </main>
 <footer class="sk-fuss"><a href="mitwirkende.html">Mitwirkende</a><a href="kontakt.html">Kontakt</a><a href="impressum.html">Impressum</a><a href="https://x.com/plyusmap" target="_blank" rel="noopener">X / Twitter</a><span class="r">© <span id="jahr">2026</span> Plyus</span></footer>
 
-<script src="fz-bild.js?v=202611232003"></script>
+<script src="fz-bild.js?v=202611232027"></script>
 <script>
 (function(){
   const nf = new Intl.NumberFormat("de-DE", {maximumFractionDigits:1});
@@ -121,7 +125,8 @@
   const label = f=>D.typen[f.typ].l;
   const modName = m=>typeof m === "string" ? m : m.n;
   const modInfo = m=>`<b data-nolang>${esc(modName(m))}</b>${m.i ? ` – ${esc(m.i)}` : ""}`;
-  const modBild = (f, m)=>window.FzBild(Object.assign({}, f.b, typeof m === "object" && m.b || {}));
+  const modBild = (f, m)=>window.FzBild(Object.assign({}, f.b, typeof m === "object" && m.b || {}), f.seite.length > 1 ? "beide" : f.seite[0]);
+  const seiteUrl = f=>"fahrzeug.html?n=" + encodeURIComponent(f.n);
   const passt = f=>(!gruppe || D.typen[f.typ].g === gruppe) && (!typ || f.typ === typ) && (!seite || f.seite.includes(seite)) &&
     (!geber || (f.geber || []).some(g=>land(g) === geber)) &&
     (!q || [f.n, f.hersteller, f.land, f.nutzer, label(f), (f.mod || []).map(modName).join(" "), f.a || "", (f.geber || []).join(" ")].join(" ").toLowerCase().includes(q));
@@ -142,7 +147,7 @@
       const s = f.seite.length > 1 ? "beide" : f.seite[0], mod = f.mod || [];
       return `<article class="fz-k ${s}" data-i="${ALLE.indexOf(f)}">
         <div class="fz-bild">${modBild(f, mod[0])}</div>
-        <div class="fz-kopf"><div><h3 data-nolang>${esc(f.n)}</h3><div class="fz-typ">${esc(label(f))}</div></div>
+        <div class="fz-kopf"><div><h3 data-nolang><a href="${seiteUrl(f)}">${esc(f.n)}</a></h3><div class="fz-typ">${esc(label(f))}</div></div>
           <div class="fz-seite">${f.seite.includes("ua") ? '<span class="ua">UA</span>' : ""}${f.seite.includes("ru") ? '<span class="ru">RU</span>' : ""}</div></div>
         ${mod.length > 1 ? `<div class="fz-mod" role="group" aria-label="Modell wählen">${mod.map((m, i)=>`<button data-m="${i}"${i ? "" : ' class="on"'} aria-pressed="${!i}" title="${esc(modName(m))}" data-nolang>${esc(modName(m))}</button>`).join("")}</div>` : ""}
         ${mod.length ? `<p class="fz-modinfo">${modInfo(mod[0])}</p>` : ""}
@@ -152,11 +157,12 @@
           ${f.geber ? `<dt>Geliefert von</dt><dd class="fz-geber">${f.geber.map(g=>`<span>${esc(g)}</span>`).join("")}</dd>` : ""}
 </dl>
         ${f.info ? `<p class="fz-info">${esc(f.info)}</p>` : ""}
-        ${f.km ? `<a class="fz-karte" href="karte.html#fz=${encodeURIComponent(f.n)}">Auf der Karte einsetzen →</a>` : ""}
+        <div class="fz-knoepfe"><a class="fz-karte an" href="${seiteUrl(f)}">Steckbrief →</a>${f.km || f.fbkm ? `<a class="fz-karte" href="karte.html#fz=${encodeURIComponent(f.n)}">Auf der Karte →</a>` : ""}</div>
       </article>`; }).join("") : '<div class="fz-leer">Nichts gefunden.</div>';
     document.getElementById("fzAnzahl").textContent = L.length + " / " + ALLE.length;
   }
-  document.getElementById("fzListe").addEventListener("click", e=>{ const b = e.target.closest(".fz-mod button"); if(!b) return;
+  document.getElementById("fzListe").addEventListener("click", e=>{ const b = e.target.closest(".fz-mod button");
+    if(!b){ const k = e.target.closest(".fz-k"); if(k && !e.target.closest("a,button") && !getSelection().toString()) location.href = seiteUrl(ALLE[+k.dataset.i]); return; }
     const k = b.closest(".fz-k"), f = ALLE[+k.dataset.i], m = f.mod[+b.dataset.m];
     k.querySelectorAll(".fz-mod button").forEach(x=>{ x.classList.toggle("on", x === b); x.setAttribute("aria-pressed", x === b); });
     k.querySelector(".fz-bild").innerHTML = modBild(f, m); k.querySelector(".fz-modinfo").innerHTML = modInfo(m); });
@@ -171,7 +177,7 @@
   const sel = document.getElementById("fzGeber");
   sel.addEventListener("change", ()=>{ geber = sel.value; sel.classList.toggle("on", !!geber); zeichnen(); });
   document.getElementById("fzSuche").addEventListener("input", e=>{ q = e.target.value.trim().toLowerCase(); zeichnen(); });
-  fetch("daten/fahrzeuge.json?v=202611232003").then(r=>r.json()).then(d=>{ D = d; ALLE = d.fahrzeuge;
+  fetch("daten/fahrzeuge.json?v=202611232027").then(r=>r.json()).then(d=>{ D = d; ALLE = d.fahrzeuge;
     const z = {}; ALLE.forEach(f=>new Set((f.geber || []).map(land)).forEach(g=>z[g] = (z[g] || 0) + 1));
     sel.insertAdjacentHTML("beforeend", Object.keys(z).sort((a,b)=>a.localeCompare(b, "de")).map(g=>`<option value="${esc(g)}">${esc(g)} (${z[g]})</option>`).join(""));
     document.getElementById("fzVar").textContent = nf.format(ALLE.reduce((n, f)=>n + Math.max(1, (f.mod || []).length), 0));
@@ -179,6 +185,6 @@
     .catch(()=>{ document.getElementById("fzListe").innerHTML = '<div class="fz-leer">Liste konnte nicht geladen werden.</div>'; });
 })();
 </script>
-<script src="seiten.js?v=202611232003"></script>
+<script src="seiten.js?v=202611232027"></script>
 </body>
 </html>

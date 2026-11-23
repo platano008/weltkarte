@@ -3,7 +3,7 @@
 # der Wikipedia-Liste der Militärhilfe und der Lieferliste der Bundesregierung; ergänzt um Ausrüstungslisten (Wikipedia).
 import json, pathlib, re, sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from fahrzeuge_daten import D as DATEN, MOD
+from fahrzeuge_daten import D as DATEN, MOD, WIKI
 
 GRUPPEN = {
   "panzer": "Panzer",
@@ -1082,6 +1082,24 @@ for e in L:
     assert not hinw, (e["n"], hinw)
     e["mod"] = mods
 assert not MOD, MOD
+
+# Reichweite der Zweitwaffen (für die Kreise auf der Karte) und Fahrbereich als Zahl
+WAFFE_KM = [(r"2 × 30 mm 2A38", 4), (r"Spike", 4), (r"14,5", 2), (r"12,7|NSWT|Kord|DSchK|M2\b|WKM", 1.8),
+            (r"AGS-17|AG-17|AG-30|Granatwerfer 30", 1.7), (r"Granatwerfer 40|Mk 19", 1.5), (r"30 mm|2A72", 2), (r"7,62", 1)]
+def zweitwaffen(text):
+  aus = []
+  for teil in zerlegen(text):
+    km = next((k for muster, k in WAFFE_KM if re.search(muster, teil)), 0)
+    if km and not re.search(r"Je nach|an Bord|Handwaffen|Sprengladung", teil): aus.append({"n": teil, "km": km})
+  return aus
+for e in L:
+  if "w2" in e:
+    w = zweitwaffen(e["w2"])
+    if w: e["w2l"] = w
+  zahlen = [float(z.replace(".", "").replace(",", ".")) for z in re.findall(r"[0-9][0-9.]*(?:,[0-9]+)?", e["d"]["fb"])] if "km" in e["d"]["fb"] else []
+  if zahlen: e["fbkm"] = max(zahlen)
+  if e["n"] in WIKI: e["wiki"] = WIKI.pop(e["n"])
+assert not WIKI, WIKI
 
 # Englische Schreibweisen, damit die Suche auch sie findet (Feld „a“, wird nicht angezeigt)
 ALIAS = {

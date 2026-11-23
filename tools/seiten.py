@@ -136,7 +136,7 @@ seite("impressum.html", "Impressum", "Impressum und rechtliche Hinweise von Plyu
     block("03", "Quellen", '''<div class="sk-text"><p>Lagedaten: ukv3 · Karten: © <a href="https://www.maptiler.com/copyright/" target="_blank" rel="noopener">MapTiler</a>, © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap-Mitwirkende</a> · Bilddaten: Esri · Topografische Karte: © <a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a> (CC-BY-SA) · NATO-Symbole: milsymbol</p></div>''') + "\n" +
     block("04", "Datenschutz in Kürze", '''<div class="sk-text recht">
 <p>Diese Website wird über GitHub Pages bereitgestellt. Beim Aufruf verarbeitet der Anbieter technisch notwendige Daten wie deine IP-Adresse.</p>
-<p>Für Karten und Programmbibliotheken werden Inhalte von MapTiler, Esri, OpenFreeMap, OpenTopoMap, Amazon Web Services (Höhendaten) und jsDelivr geladen. Dabei wird deine IP-Adresse an diese Anbieter übertragen.</p>
+<p>Für Karten und Programmbibliotheken werden Inhalte von MapTiler, Esri, OpenFreeMap, OpenTopoMap, Amazon Web Services (Höhendaten) und jsDelivr geladen; die Fahrzeug-Steckbriefe laden Fotos und Lizenzangaben von Wikipedia und Wikimedia Commons (Wikimedia Foundation). Dabei wird deine IP-Adresse an diese Anbieter übertragen.</p>
 <p>Wir setzen keine Cookies und keine Tracking-Werkzeuge ein. Deine Sprachwahl wird nur lokal in deinem Browser gespeichert.</p>
 <p>Eine ausführliche Datenschutzerklärung folgt.</p>
 </div>'''),
