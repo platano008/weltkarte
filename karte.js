@@ -12,7 +12,6 @@ const STYLES = {
   hoehe:{name:"Topo", url:()=>topoStyle(), theme:null, own:true},
   hell: {name:"Hell",    url:"https://tiles.openfreemap.org/styles/positron", theme:null, own:true},
   dunkel:{name:"Dunkel", url:"https://tiles.openfreemap.org/styles/dark", theme:null, own:true},
-  d3:   {name:"3D",      url:"https://tiles.openfreemap.org/styles/liberty", theme:null, own:true},
   schlicht:{name:"Schlicht", url:`https://api.maptiler.com/maps/backdrop-v4/style.json?key=${MAPTILER_KEY2}`, theme:null}
 };
 const STYLE_FREE = "https://tiles.openfreemap.org/styles/liberty";
@@ -138,18 +137,31 @@ function topoStyle(){
     layers:[{id:"land", type:"background", paint:{"background-color":"#f2efe8"}},{id:"otm", type:"raster", source:"otm", paint:{"raster-fade-duration":150}}]};
 }
 
-/* „3D“: OpenFreeMap Liberty mit hochgezogenen Gebäuden; Kamera wird schräg gestellt. */
-function add3D(map){
-  try{
-    const st = map.getStyle();
-    if(!st.layers.some(l=>l.type==="fill-extrusion")){
-      const src = Object.keys(st.sources).find(k=>st.sources[k].type==="vector");
-      const vor = (st.layers.find(l=>l.type==="symbol")||{}).id;
+/* 3D-Schalter: funktioniert mit jeder Ansicht.
+   Gelände wird echt hochgezogen (Höhendaten AWS Terrain Tiles, frei), Gebäude stehen als Klötze (aus den Kartendaten), Kamera kippt. */
+function an3D(map, globe, kamera){
+  if(!map.getSource("dem3d")) map.addSource("dem3d", {type:"raster-dem", tiles:["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"], encoding:"terrarium", tileSize:256, maxzoom:14,
+    attribution:'Höhen: <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank">Terrain Tiles (AWS)</a>'});
+  if(!globe) map.setTerrain({source:"dem3d", exaggeration:1.5});
+  const st = map.getStyle();
+  if(!st.layers.some(l=>l.type==="fill-extrusion")){
+    const flach = st.layers.filter(l=>l["source-layer"]==="building" && l.type==="fill");
+    let src = flach.length ? flach[0].source : Object.keys(st.sources).find(k=>st.sources[k].type==="vector" && /openfreemap|maptiler/.test(st.sources[k].url || ""));
+    if(src){
+      flach.forEach(l=>{ try{ map.setLayoutProperty(l.id, "visibility", "none"); }catch(e){} });
+      const hell = document.body.classList.contains("hell");
+      const vor = (st.layers.find(l=>l.type==="symbol" || /^imp-|^lage|^front/.test(l.id))||{}).id;
       map.addLayer({id:"gebaeude-3d", type:"fill-extrusion", source:src, "source-layer":"building", minzoom:13,
-        paint:{"fill-extrusion-color":"#d9d0c3","fill-extrusion-height":["coalesce",["get","render_height"],8],"fill-extrusion-base":["coalesce",["get","render_min_height"],0],"fill-extrusion-opacity":0.9}}, vor);
+        paint:{"fill-extrusion-color": hell ? "#e3b45c" : "#5b616b", "fill-extrusion-height":["coalesce",["get","render_height"],8], "fill-extrusion-base":["coalesce",["get","render_min_height"],0], "fill-extrusion-opacity":0.92}}, vor);
     }
-    if(map.getPitch() < 30) map.easeTo({pitch:55, duration:900});
-  }catch(e){ console.warn("3D:", e); }
+  }
+  if(kamera && map.getPitch() < 30) map.easeTo({pitch:55, duration:900});
+}
+function aus3D(map){
+  try{ map.setTerrain(null); }catch(e){}
+  if(map.getLayer("gebaeude-3d")) map.removeLayer("gebaeude-3d");
+  map.getStyle().layers.filter(l=>l["source-layer"]==="building" && l.type==="fill").forEach(l=>{ try{ map.setLayoutProperty(l.id, "visibility", "visible"); }catch(e){} });
+  if(map.getPitch() > 5) map.easeTo({pitch:0, duration:700});
 }
 
 /* Esri World Imagery: schärfere Satellitenbilder, nur über der Ukraine und erst ab Zoom 7.
@@ -712,7 +724,7 @@ function createMap(opts){
       if(opts.onNotice) opts.onNotice(st===429 ? "MapTiler-Kontingent aufgebraucht – Ersatzkarte aktiv" : "MapTiler-Schlüssel abgelehnt – Ersatzkarte aktiv");
     }
   });
-  let styleReady = false;
+  let styleReady = false, drei = false;
   map.on("style.load", ()=>{
     styleReady = true;
     try{ map.setProjection({type: globe ? "globe" : "mercator"}); }catch(e){}
@@ -720,12 +732,13 @@ function createMap(opts){
     const th = free ? "dark" : STYLES[current].theme;
     if(th){ try{ applyTheme(map, th); }catch(e){ console.warn("Farbschema:", e); } }
     if(!free && current==="sat") addEsri(map);
-    if(!free && current==="d3") add3D(map);
+    if(drei){ try{ an3D(map, globe); }catch(e){ console.warn("3D:", e); } }
     if(importData){ try{ addImportLayers(map); }catch(e){ console.warn("Lagedaten:", e); } }
     if(opts.onStyle) opts.onStyle(map);
   });
   map.setBase = k=>{ if(free || !STYLES[k] || k===current) return; current = k; errs = 0; styleReady = false; map.setStyle(styleOf(k), {diff:false}); };
-  map.setGlobe = g=>{ globe = g; try{ map.setProjection({type: g ? "globe" : "mercator"}); }catch(e){} };
+  map.setGlobe = g=>{ globe = g; try{ map.setProjection({type: g ? "globe" : "mercator"}); }catch(e){} if(drei && styleReady){ try{ map.setTerrain(g ? null : {source:"dem3d", exaggeration:1.5}); }catch(e){} } };
+  map.set3D = on=>{ drei = on; if(!styleReady) return; try{ on ? an3D(map, globe, true) : aus3D(map); }catch(e){ console.warn("3D:", e); } };
   map.currentBase = ()=>current;
   map.isFree = ()=>free;
   map.isReady = ()=>styleReady;
