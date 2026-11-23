@@ -49,92 +49,136 @@ function drin(px, py, ring){ let c = false; for(let i=0, j=ring.length-1; i<ring
 
 async function berechne(map, ll, opt){
   opt = opt || {};
-  const R = opt.radius || 1000, zelle = R <= 600 ? 3 : R <= 1200 ? 4 : 6, N = Math.round(2*R/zelle);
+  const R = opt.radius || 1000, zelle = Math.max(2.5, R/250), N = Math.round(2*R/zelle);
   const lon0 = ll[0], lat0 = ll[1], my = 110540, mx = 111320*Math.cos(lat0*Math.PI/180);
-  const toXY = (lon, lat)=>[(lon - lon0)*mx, (lat - lat0)*my];
+  const toXY = (lon, lat)=>[(lon - lon0)*mx, (lat - lat0)*my], geo = (x, y)=>[lon0 + x/mx, lat0 + y/my];
 
-  /* Gebäude aus den geladenen Kacheln */
+  /* 1. Häuser: Grundriss in Metern, Höhe, Winkelbereich vom Beobachter aus */
   const src = opt.quelle || gebaeudeQuelle(map);
   const feats = src ? map.querySourceFeatures(src, {sourceLayer:"building"}) : [];
-  const hg = new Float32Array(N*N), bid = new Int32Array(N*N).fill(-1), haeuser = [], seen = new Set();
-  let beob = -1;
+  const haeuser = [], seen = new Set(), BINS = 1440, bins = Array.from({length:BINS}, ()=>[]);
+  let beob = -1, beobD = Infinity;
   for(const f of feats){
-    const h = +(f.properties.render_height || f.properties.height || 0) || STD_HOEHE;
+    const p = f.properties || {};
+    const h = +(p.render_height || p.height || 0) || (p["building:levels"] ? +p["building:levels"]*3 + 2 : STD_HOEHE);
+    const hb = +(p.render_min_height || 0) || 0;
     for(const poly of polygone(f)){
-      const ring = poly[0].map(p=>toXY(p[0], p[1]));
-      let x1 = Infinity, x2 = -Infinity, y1 = Infinity, y2 = -Infinity; for(const p of ring){ x1 = Math.min(x1,p[0]); x2 = Math.max(x2,p[0]); y1 = Math.min(y1,p[1]); y2 = Math.max(y2,p[1]); }
+      const ring = poly[0].map(q=>toXY(q[0], q[1]));
+      let x1 = Infinity, x2 = -Infinity, y1 = Infinity, y2 = -Infinity; for(const q of ring){ x1 = Math.min(x1,q[0]); x2 = Math.max(x2,q[0]); y1 = Math.min(y1,q[1]); y2 = Math.max(y2,q[1]); }
       if(x2 < -R || x1 > R || y2 < -R || y1 > R) continue;
-      const key = Math.round(x1*2)+","+Math.round(y1*2)+","+Math.round(x2*2); if(seen.has(key)) continue; seen.add(key);   /* gleiche Häuser aus Nachbarkacheln nur einmal */
-      const idx = haeuser.length; haeuser.push({poly, h});
-      if(drin(0, 0, ring)) beob = idx;
-      const i1 = Math.max(0, Math.floor((x1 + R)/zelle)), i2 = Math.min(N-1, Math.floor((x2 + R)/zelle));
-      const j1 = Math.max(0, Math.floor((R - y2)/zelle)), j2 = Math.min(N-1, Math.floor((R - y1)/zelle));
-      for(let j=j1;j<=j2;j++){ const cy = R - (j + 0.5)*zelle;
-        for(let i=i1;i<=i2;i++){ const cxp = -R + (i + 0.5)*zelle;
-          if(drin(cxp, cy, ring)){ const k = j*N+i; if(h > hg[k]){ hg[k] = h; bid[k] = idx; } } } }
+      const key = Math.round(x1*2)+","+Math.round(y1*2)+","+Math.round(x2*2)+","+Math.round(y2*2); if(seen.has(key)) continue; seen.add(key);
+      const idx = haeuser.length, H = {poly, ring, h, hb, sicht:false, block:false};
+      haeuser.push(H);
+      if(drin(0, 0, ring)){ beob = idx; beobD = 0; continue; }
+      /* angeklickt knapp daneben: nächstes Haus innerhalb 4 m zählt als Standort */
+      const dmin = Math.min(...ring.map(q=>Math.hypot(q[0], q[1]))); if(dmin < 4 && dmin < beobD && beobD > 0){ beob = idx; beobD = dmin; }
+      /* Winkelbereich */
+      const a0 = Math.atan2(ring[0][1], ring[0][0]); let lo = 0, hi = 0;
+      for(const q of ring){ let d = Math.atan2(q[1], q[0]) - a0; while(d > Math.PI) d -= 2*Math.PI; while(d < -Math.PI) d += 2*Math.PI; lo = Math.min(lo, d); hi = Math.max(hi, d); }
+      if(hi - lo > Math.PI) continue;
+      const b1 = Math.floor((a0 + lo + 2*Math.PI)/(2*Math.PI)*BINS), b2 = Math.floor((a0 + hi + 2*Math.PI)/(2*Math.PI)*BINS);
+      for(let b=b1; b<=b2; b++) bins[((b % BINS) + BINS) % BINS].push(idx);
     }
   }
-  if(beob < 0 && opt.haus){ /* angeklicktes Haus: Höhe vom Kartenobjekt */ }
+  /* 2. Höhenmodell als feines Gitter */
   const dem = await hoehenGitter(lon0, lat0, R, zelle, N, mx, my);
-  const c0 = (Math.floor(N/2))*N + Math.floor(N/2);
+  const gelaende = (x, y)=>{ const fi = (x + R)/zelle - 0.5, fj = (R - y)/zelle - 0.5;
+    const i = Math.max(0, Math.min(N-2, Math.floor(fi))), j = Math.max(0, Math.min(N-2, Math.floor(fj))), u = Math.min(1, Math.max(0, fi - i)), v = Math.min(1, Math.max(0, fj - j));
+    return (dem[j*N+i]*(1-u) + dem[j*N+i+1]*u)*(1-v) + (dem[(j+1)*N+i]*(1-u) + dem[(j+1)*N+i+1]*u)*v; };
   const hausH = beob >= 0 ? haeuser[beob].h : (opt.hoehe || 0);
-  const z0 = dem[c0] + hausH + AUGE;
+  const z0 = gelaende(0, 0) + hausH + AUGE;
 
-  /* Sichtstrahlen */
-  const sicht = new Uint8Array(N*N), block = new Set(), strahlen = Math.ceil(2*Math.PI*R/zelle*1.6), schritt = zelle*0.6;
-  for(let s=0;s<strahlen;s++){
-    const w = s/strahlen*2*Math.PI, dx = Math.cos(w), dy = Math.sin(w);
-    let maxS = -Infinity, blocker = -1;
-    for(let d=schritt; d<R; d+=schritt){
-      const x = dx*d, y = dy*d, i = Math.floor((x + R)/zelle), j = Math.floor((R - y)/zelle);
-      if(i < 0 || j < 0 || i >= N || j >= N) break;
-      const k = j*N+i, eigen = bid[k] === beob && beob >= 0;
-      const oben = dem[k] + (eigen ? 0 : hg[k]);
-      const zielS = (oben + (hg[k] > 0 ? 0 : ZIEL) - z0)/d;
-      if(zielS >= maxS) sicht[k] = 1;
-      else if(blocker >= 0) block.add(blocker);
-      const oS = (oben - z0)/d;
-      if(oS > maxS){ maxS = oS; blocker = (hg[k] > 0 && !eigen) ? bid[k] : -1; }
+  /* 3. Sichtstrahlen: exakte Schnittpunkte mit den Hauswänden + Gelände alle paar Meter */
+  const STR = R <= 600 ? 2880 : 3600, schritt = Math.max(1.5, R/450), dw = 2*Math.PI/STR;
+  const verdeckt = [];   /* je Strahl: Liste [von, bis] */
+  let versteckt = 0;
+  for(let s=0; s<STR; s++){
+    const w = (s + 0.5)*dw, cx = Math.cos(w), cy = Math.sin(w);
+    const bin = Math.floor(((w + 2*Math.PI) % (2*Math.PI))/(2*Math.PI)*BINS) % BINS;
+    const iv = [];
+    for(const idx of bins[bin]){ if(idx === beob) continue; const ring = haeuser[idx].ring, ts = [];
+      for(let k=0, m=ring.length-1; k<ring.length; m=k++){ const px = ring[m][0], py = ring[m][1], ex = ring[k][0] - px, ey = ring[k][1] - py;
+        const den = cx*ey - cy*ex; if(Math.abs(den) < 1e-12) continue;
+        const t = (px*ey - py*ex)/den, u = (px*cy - py*cx)/den; if(u >= 0 && u < 1 && t > 0) ts.push(t); }
+      ts.sort((a,b)=>a-b); for(let k=0; k+1<ts.length; k+=2) if(ts[k] < R) iv.push([ts[k], Math.min(R, ts[k+1]), idx]); }
+    iv.sort((a,b)=>a[0]-b[0]);
+    const proben = []; for(let d=schritt; d<R; d+=schritt) proben.push(d);
+    for(const q of iv){ proben.push(q[0] + 0.05, (q[0] + q[1])/2, Math.max(q[0] + 0.05, q[1] - 0.05)); }
+    proben.sort((a,b)=>a-b);
+    let maxS = -Infinity, blocker = -1, start = -1, ivk = 0; const H = [];
+    for(const d of proben){
+      while(ivk < iv.length && iv[ivk][1] < d) ivk++;
+      let bh = 0, bi = -1; for(let k=ivk; k<iv.length && iv[k][0] <= d; k++) if(d <= iv[k][1] && haeuser[iv[k][2]].h > bh){ bh = haeuser[iv[k][2]].h; bi = iv[k][2]; }
+      const g = gelaende(cx*d, cy*d), oben = g + bh;
+      const ziel = (bi >= 0 ? oben : g + ZIEL), vis = (ziel - z0)/d >= maxS;
+      if(bi >= 0 && vis) haeuser[bi].sicht = true;
+      if(!vis){ if(start < 0) start = d; if(blocker >= 0) haeuser[blocker].block = true; }
+      else if(start >= 0){ H.push([start, d]); start = -1; }
+      const sl = (oben - z0)/d; if(sl > maxS){ maxS = sl; blocker = bi; }
     }
+    if(start >= 0) H.push([start, R]);
+    for(const [a,b] of H) versteckt += (b*b - a*a)*dw/2;
+    verdeckt.push(H);
   }
 
-  /* Bild malen */
-  const cv = document.createElement("canvas"); cv.width = cv.height = N;
-  const cx = cv.getContext("2d"), img = cx.createImageData(N, N), d = img.data;
-  let an = 0, alle = 0;
-  for(let j=0;j<N;j++) for(let i=0;i<N;i++){
-    const x = -R + (i + 0.5)*zelle, y = R - (j + 0.5)*zelle; if(x*x + y*y > R*R) continue;
-    const k = j*N+i, o = k*4; alle++;
-    if(sicht[k]){ an++; d[o] = 40; d[o+1] = 235; d[o+2] = 120; d[o+3] = 115; }
-    else { d[o] = 15; d[o+1] = 10; d[o+2] = 30; d[o+3] = 140; }
+  /* 4. Verdeckte Bereiche zu glatten Flächen zusammenfassen (benachbarte Strahlen mit ähnlichem Abschnitt = eine Fläche) */
+  const flaechen = [], tol = Math.max(5*schritt, 12);
+  let offen = [];
+  const pkt = (w, d)=>geo(Math.cos(w)*d, Math.sin(w)*d);
+  const schliessen = o=>{ const innen = o.a.map(([w,d])=>[Math.cos(w)*d, Math.sin(w)*d]), aussen = o.b.map(([w,d])=>[Math.cos(w)*d, Math.sin(w)*d]).reverse(); flaechen.push(innen.concat(aussen)); };
+  for(let s=0; s<=STR; s++){
+    const H = s < STR ? verdeckt[s] : [], w1 = s*dw, w2 = (s + 1)*dw, neu = [];
+    for(const [a,b] of H){
+      const o = offen.find(o=>!o.genutzt && Math.abs(o.la - a) < tol && Math.abs(o.lb - b) < tol*2);
+      if(o){ o.genutzt = true; o.a.push([w1,a],[w2,a]); o.b.push([w1,b],[w2,b]); o.la = a; o.lb = b; neu.push(o); }
+      else neu.push({a:[[w1,a],[w2,a]], b:[[w1,b],[w2,b]], la:a, lb:b, genutzt:true});
+    }
+    offen.forEach(o=>{ if(!o.genutzt) schliessen(o); });
+    offen = neu; offen.forEach(o=>o.genutzt = false);
   }
-  cx.putImageData(img, 0, 0);
-  const geo = (x, y)=>[lon0 + x/mx, lat0 + y/my];
-  const ecken = [geo(-R, R), geo(R, R), geo(R, -R), geo(-R, -R)];
-  const kreis = []; for(let i=0;i<=120;i++){ const a = i/120*2*Math.PI; kreis.push(geo(Math.cos(a)*R, Math.sin(a)*R)); }
-  const F = [{type:"Feature", properties:{k:"kreis"}, geometry:{type:"LineString", coordinates:kreis}},
-             {type:"Feature", properties:{k:"auge"}, geometry:{type:"Point", coordinates:[lon0, lat0]}}];
-  block.forEach(b=>F.push({type:"Feature", properties:{k:"block"}, geometry:{type:"Polygon", coordinates:haeuser[b].poly}}));
+  offen.forEach(schliessen);
+
+  /* 5. Ergebnis */
+  const kreis = []; for(let i=0;i<=180;i++){ const a = i/180*2*Math.PI; kreis.push(geo(Math.cos(a)*R, Math.sin(a)*R)); }
+  /* Sicht und Schatten als ein Bild in hoher Auflösung: ein einziger Pfad, dadurch keine Nähte, gerade Kanten */
+  const S = 2048, sk = S/(2*R), cv = document.createElement("canvas"); cv.width = cv.height = S;
+  const c = cv.getContext("2d"), X = x=>(x + R)*sk, Y = y=>(R - y)*sk;
+  c.fillStyle = "rgba(40,235,120,0.34)"; c.beginPath(); c.arc(S/2, S/2, S/2, 0, 2*Math.PI); c.fill();
+  c.save(); c.beginPath(); c.arc(S/2, S/2, S/2, 0, 2*Math.PI); c.clip();
+  c.beginPath();
+  for(const r of flaechen){ c.moveTo(X(r[0][0]), Y(r[0][1])); for(let i=1;i<r.length;i++) c.lineTo(X(r[i][0]), Y(r[i][1])); c.closePath(); }
+  c.globalCompositeOperation = "source-over"; c.fillStyle = "rgba(12,7,24,0.66)";
+  /* zuerst ausstanzen, dann dunkel füllen – damit der grüne Ton unter den Schatten nicht durchscheint */
+  c.save(); c.globalCompositeOperation = "destination-out"; c.fillStyle = "#000"; c.fill("nonzero"); c.restore(); c.fill("nonzero"); c.restore();
+  const F = [{type:"Feature", properties:{k:"kreis"}, geometry:{type:"LineString", coordinates:kreis}}];
+  let nBlock = 0;
+  haeuser.forEach((H, i)=>{ if(i === beob) return; const r0 = H.ring; if(!r0.some(q=>q[0]*q[0] + q[1]*q[1] < R*R)) return;
+    const k = H.block ? "block" : H.sicht ? "hsicht" : "hweg"; if(H.block) nBlock++;
+    F.push({type:"Feature", properties:{k}, geometry:{type:"Polygon", coordinates:H.poly}}); });
+  F.push({type:"Feature", properties:{k:"auge"}, geometry:{type:"Point", coordinates:[lon0, lat0]}});
   if(beob >= 0) F.push({type:"Feature", properties:{k:"haus"}, geometry:{type:"Polygon", coordinates:haeuser[beob].poly}});
-  return {bild: cv.toDataURL("image/png"), ecken, geojson:{type:"FeatureCollection", features:F},
-    anteil: alle ? an/alle : 0, blockierer: block.size, hoehe: hausH, gebaeude: haeuser.length, haus: beob >= 0, radius: R};
+  return {bild: cv.toDataURL("image/png"), ecken:[geo(-R, R), geo(R, R), geo(R, -R), geo(-R, -R)], geojson:{type:"FeatureCollection", features:F}, anteil: Math.max(0, 1 - versteckt/(Math.PI*R*R)), blockierer: nBlock,
+    hoehe: hausH, gebaeude: haeuser.length, haus: beob >= 0, radius: R};
 }
 
 /* --- Auf die Karte legen --- */
 function zeigen(map, r){
   entfernen(map);
   const vor = (map.getStyle().layers.find(l=>l.type==="symbol")||{}).id;
-  map.addSource("sicht-bild", {type:"image", url:r.bild, coordinates:r.ecken});
-  map.addLayer({id:"sicht-bild", type:"raster", source:"sicht-bild", paint:{"raster-opacity":0.9, "raster-fade-duration":0, "raster-resampling":"nearest"}}, vor);
   map.addSource("sicht", {type:"geojson", data:r.geojson});
-  map.addLayer({id:"sicht-block", type:"fill", source:"sicht", filter:["==",["get","k"],"block"], paint:{"fill-color":"#ff2d4f","fill-opacity":0.75}});
-  map.addLayer({id:"sicht-block-l", type:"line", source:"sicht", filter:["==",["get","k"],"block"], paint:{"line-color":"#ffffff","line-width":1.2}});
-  map.addLayer({id:"sicht-haus", type:"fill", source:"sicht", filter:["==",["get","k"],"haus"], paint:{"fill-color":"#18e0ff","fill-opacity":0.9}});
-  map.addLayer({id:"sicht-kreis", type:"line", source:"sicht", filter:["==",["get","k"],"kreis"], paint:{"line-color":"#ffffff","line-width":2,"line-dasharray":[3,2]}});
-  map.addLayer({id:"sicht-auge", type:"circle", source:"sicht", filter:["==",["get","k"],"auge"], paint:{"circle-radius":6,"circle-color":"#18e0ff","circle-stroke-color":"#000","circle-stroke-width":2}});
+  const K = k=>["==",["get","k"],k];
+  map.addSource("sicht-bild", {type:"image", url:r.bild, coordinates:r.ecken});
+  map.addLayer({id:"sicht-flaeche", type:"raster", source:"sicht-bild", paint:{"raster-opacity":1, "raster-fade-duration":0, "raster-resampling":"linear"}}, vor);
+  map.addLayer({id:"sicht-hweg", type:"fill", source:"sicht", filter:K("hweg"), paint:{"fill-color":"#3a3448","fill-opacity":0.85}}, vor);
+  map.addLayer({id:"sicht-hsicht", type:"fill", source:"sicht", filter:K("hsicht"), paint:{"fill-color":"#2ee87f","fill-opacity":0.85}}, vor);
+  map.addLayer({id:"sicht-block", type:"fill", source:"sicht", filter:K("block"), paint:{"fill-color":"#ff2d4f","fill-opacity":0.9}}, vor);
+  map.addLayer({id:"sicht-block-l", type:"line", source:"sicht", filter:["in",["get","k"],["literal",["block","hsicht"]]], paint:{"line-color":"#ffffff","line-width":0.8}}, vor);
+  map.addLayer({id:"sicht-haus", type:"fill", source:"sicht", filter:K("haus"), paint:{"fill-color":"#18e0ff","fill-opacity":0.95}}, vor);
+  map.addLayer({id:"sicht-kreis", type:"line", source:"sicht", filter:K("kreis"), paint:{"line-color":"#ffffff","line-width":2,"line-dasharray":[3,2]}});
+  map.addLayer({id:"sicht-auge", type:"circle", source:"sicht", filter:K("auge"), paint:{"circle-radius":6,"circle-color":"#18e0ff","circle-stroke-color":"#000","circle-stroke-width":2}});
 }
 function entfernen(map){
-  ["sicht-auge","sicht-kreis","sicht-haus","sicht-block-l","sicht-block","sicht-bild"].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
+  ["sicht-auge","sicht-kreis","sicht-haus","sicht-block-l","sicht-block","sicht-hsicht","sicht-hweg","sicht-naht","sicht-schatten","sicht-flaeche","sicht-bild"].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
   ["sicht","sicht-bild"].forEach(id=>{ try{ if(map.getSource(id)) map.removeSource(id); }catch(e){} });
 }
 

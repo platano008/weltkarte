@@ -98,7 +98,7 @@ function init(map, opts){
       if(!m.getLayer("wz-prev")) m.addLayer({id:"wz-prev", type:"line", source:"wz", filter:["all",["==",["get","k"],"line"],["get","p"]], layout:{"line-join":"round"}, paint:{"line-color":"#ffffff","line-width":2.2,"line-dasharray":[1.5,1.5]}});
       if(!m.getLayer("wz-pt")) m.addLayer({id:"wz-pt", type:"circle", source:"wz", filter:["==",["get","k"],"pt"], paint:{"circle-radius":4.5,"circle-color":"#ffffff","circle-stroke-color":"#000000","circle-stroke-width":2}});
       ["wz-fill","wz-case","wz-line","wz-prev","wz-pt"].forEach(l=>{ try{ m.moveLayer(l); }catch(e){} });
-      if(sichtRes && window.Sicht && !m.getLayer("sicht-bild")) Sicht.zeigen(m, sichtRes);
+      if(sichtRes && window.Sicht && !m.getLayer("sicht-flaeche")) Sicht.zeigen(m, sichtRes);
       draw();
     }catch(e){}
   }
@@ -160,7 +160,7 @@ function init(map, opts){
     }
     box.innerHTML = `<div class="wz-h"><span class="eyebrow">${NAMES.sicht}</span><button class="wz-x" data-x="close" aria-label="Werkzeug schließen">✕</button></div>
       <div class="wz-big">${big}</div>${sub ? `<div class="wz-sub">${sub}</div>` : ""}${rk}
-      <div class="wz-leg"><span><i style="background:#28eb78"></i>sichtbar</span><span><i style="background:#1a1426"></i>verdeckt</span><span><i style="background:#ff2d4f"></i>blockiert</span><span><i style="background:#18e0ff"></i>Standort</span></div>
+      <div class="wz-leg"><span><i style="background:#28eb78"></i>sichtbar</span><span><i style="background:#1a1426"></i>verdeckt</span><span><i style="background:#2ee87f"></i>Haus sichtbar</span><span><i style="background:#3a3448"></i>Haus verdeckt</span><span><i style="background:#ff2d4f"></i>blockiert die Sicht</span><span><i style="background:#18e0ff"></i>Standort</span></div>
       ${hint ? `<div class="wz-hint">${hint}</div>` : ""}
       ${sichtRes ? "" : `<div class="wz-hint">Häuser ohne Höhenangabe in den Kartendaten werden mit ${STD_H} m gerechnet. Bäume werden nicht berücksichtigt.</div>`}`;
   }
