@@ -125,9 +125,12 @@ async function berechne(map, ll, opt){
   const toXY = (lon, lat)=>[(lon - lon0)*mx, (lat - lat0)*my], geo = (x, y)=>[lon0 + x/mx, lat0 + y/my];
 
   /* 1. Häuser: Grundriss in Metern, Höhe, Winkelbereich vom Beobachter aus */
+  /* alle Häuser, die die Karte gerade zeigt (2D und 3D, aus jeder Quelle) – plus die Kacheln für den ganzen Kreis */
   let feats = [];
-  try{ feats = await hausKacheln(lon0, lat0, R, mx, my); }catch(e){ console.warn("Sichtfeld: Gebäudekacheln", e); }
-  if(!feats.length){ const src = opt.quelle || gebaeudeQuelle(map); feats = src ? map.querySourceFeatures(src, {sourceLayer:"building"}) : []; }
+  const quellen = new Set(map.getStyle().layers.filter(l=>l["source-layer"] === "building").map(l=>l.source));
+  if(opt.quelle) quellen.add(opt.quelle);
+  quellen.forEach(q=>{ try{ feats = feats.concat(map.querySourceFeatures(q, {sourceLayer:"building"})); }catch(e){} });
+  try{ feats = feats.concat(await hausKacheln(lon0, lat0, R, mx, my)); }catch(e){ console.warn("Sichtfeld: Gebäudekacheln", e); }
   const haeuser = [], seen = new Set(), BINS = 1440, bins = Array.from({length:BINS}, ()=>[]);
   let beob = -1, beobD = Infinity;
   for(const f of feats){
