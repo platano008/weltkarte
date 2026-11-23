@@ -148,19 +148,20 @@ function an3D(map, globe, kamera){
     const flach = st.layers.filter(l=>l["source-layer"]==="building" && l.type==="fill");
     let src = flach.length ? flach[0].source : Object.keys(st.sources).find(k=>st.sources[k].type==="vector" && /openfreemap|maptiler/.test(st.sources[k].url || ""));
     if(src){
-      flach.forEach(l=>{ try{ map.setLayoutProperty(l.id, "visibility", "none"); }catch(e){} });
       const hell = document.body.classList.contains("hell");
       const vor = (st.layers.find(l=>l.type==="symbol" || /^imp-|^lage|^front/.test(l.id))||{}).id;
+      /* flache Grundrisse bleiben sichtbar; gibt es keine, kommen eigene dazu */
+      if(!flach.length) map.addLayer({id:"gebaeude-2d", type:"fill", source:src, "source-layer":"building", minzoom:13,
+        paint:{"fill-color": hell ? "#e7b85a" : "#4a4f57", "fill-outline-color": hell ? "#c4923a" : "#6a707a"}}, vor);
       map.addLayer({id:"gebaeude-3d", type:"fill-extrusion", source:src, "source-layer":"building", minzoom:13,
-        paint:{"fill-extrusion-color": hell ? "#e3b45c" : "#5b616b", "fill-extrusion-height":["coalesce",["get","render_height"],8], "fill-extrusion-base":["coalesce",["get","render_min_height"],0], "fill-extrusion-opacity":0.92}}, vor);
+        paint:{"fill-extrusion-color": hell ? "#e3b45c" : "#5b616b", "fill-extrusion-height":["coalesce",["get","render_height"],8], "fill-extrusion-base":["coalesce",["get","render_min_height"],0], "fill-extrusion-opacity":0.8}}, vor);
     }
   }
   if(kamera && map.getPitch() < 30) map.easeTo({pitch:55, duration:900});
 }
 function aus3D(map){
   try{ map.setTerrain(null); }catch(e){}
-  if(map.getLayer("gebaeude-3d")) map.removeLayer("gebaeude-3d");
-  map.getStyle().layers.filter(l=>l["source-layer"]==="building" && l.type==="fill").forEach(l=>{ try{ map.setLayoutProperty(l.id, "visibility", "visible"); }catch(e){} });
+  ["gebaeude-3d","gebaeude-2d"].forEach(id=>{ if(map.getLayer(id)) map.removeLayer(id); });
   if(map.getPitch() > 5) map.easeTo({pitch:0, duration:700});
 }
 
