@@ -108,7 +108,9 @@ function hellStyle(gelaende){
       {id:"water-edge", type:"line", source:S, "source-layer":"water", minzoom:6, paint:{"line-color":"#3f88c2","line-width":0.7}},
       {id:"river", type:"line", source:S, "source-layer":"waterway", minzoom:4, filter:ist("river","canal"), layout:{"line-cap":"round","line-join":"round"}, paint:{"line-color":"#4f9bd3","line-width":Z(4,0.6,8,1.4,12,3,15,6)}},
       {id:"stream", type:"line", source:S, "source-layer":"waterway", minzoom:10, filter:["==",K,"stream"], paint:{"line-color":"#7db6e0","line-width":Z(11,0.6,15,1.6)}},
-      {id:"building", type:"fill", source:"mtb", "source-layer":"building", minzoom:13, paint:{"fill-color":"#e7b85a","fill-outline-color":"#c4923a"}},
+      {id:"building", type:"fill", source:S, "source-layer":"building", minzoom:13, paint:{"fill-color":"#e7b85a","fill-outline-color":"#c4923a"}},
+      /* zusätzlich die MapTiler-Häuser: beide Quellen zusammen ergeben die vollständigste Abdeckung */
+      {id:"building-mt", type:"fill", source:"mtb", "source-layer":"building", minzoom:13, paint:{"fill-color":"#e7b85a","fill-outline-color":"#c4923a"}},
       {id:"rail", type:"line", source:S, "source-layer":"transportation", minzoom:7, filter:["==",K,"rail"], paint:{"line-color":"#8f877b","line-width":Z(8,0.6,14,1.6)}},
       {id:"rail-dash", type:"line", source:S, "source-layer":"transportation", minzoom:10, filter:["==",K,"rail"], paint:{"line-color":"#ffffff","line-width":Z(11,0.4,14,1),"line-dasharray":[3,3]}},
       ...strassen,
@@ -165,16 +167,16 @@ function aus3D(map){
 /* Mix: Satellitenbild, darüber ein gleichmäßiger grün-weißer Schleier (überall, ohne Lücken),
    darauf Städte, Häuser, Wasser, Flüsse, Straßen, Grenzen und Namen. Stufe „wenig“/„viel“ = wie stark der Schleier deckt. */
 const MIX_DECK = {   /* dunkel */
-  wenig:{mixgrund:0.2, urban:0.75, water:0.75, building:0.85, "urban-edge":1},
-  viel: {mixgrund:0.45, urban:0.85, water:0.9, building:0.95, "urban-edge":1}
+  wenig:{mixgrund:0.2, urban:0.75, water:0.75, building:0.85, "building-mt":0.85, "urban-edge":1},
+  viel: {mixgrund:0.45, urban:0.85, water:0.9, building:0.95, "building-mt":0.95, "urban-edge":1}
 };
 const MIX_DECK_HELL = {
-  wenig:{mixgrund:0.06, urban:0.62, water:0.65, building:0.8, "urban-edge":1},
-  viel: {mixgrund:0.22, urban:0.72, water:0.75, building:0.88, "urban-edge":1}
+  wenig:{mixgrund:0.06, urban:0.62, water:0.65, building:0.8, "building-mt":0.8, "urban-edge":1},
+  viel: {mixgrund:0.22, urban:0.72, water:0.75, building:0.88, "building-mt":0.88, "urban-edge":1}
 };
 /* helle Variante: knallige Farben, damit sie auf dem Satellitenbild auffallen */
 function mixTag(st){
-  const farbe = {urban:["fill-color","#ffc21a"], "urban-edge":["line-color","#e08a00"], building:["fill-color","#ffab00"],
+  const farbe = {urban:["fill-color","#ffc21a"], "urban-edge":["line-color","#e08a00"], building:["fill-color","#ffab00"], "building-mt":["fill-color","#ffab00"],
     water:["fill-color","#1689ff"], "water-edge":["line-color","#0a6ee0"], river:["line-color","#1a8cff"], stream:["line-color","#3aa0ff"],
     "border-country":["line-color","#3b2f5c"], "border-state":["line-color","#6d5fa0"]};
   for(const l of st.layers){
@@ -187,7 +189,7 @@ const mixDeck = ()=>(mixDunkel ? MIX_DECK : MIX_DECK_HELL)[mixStufe];
 let mixStufe = "wenig", mixDunkel = false;
 /* dunkle Variante: dunkler Schleier, helle Schrift mit dunklem Rand, gedämpfte Farben */
 function mixNacht(st){
-  const farbe = {mixgrund:["background-color","#0d1014"], urban:["fill-color","#d39b12"], "urban-edge":["line-color","#ffc933"], building:["fill-color","#f0b62a"],
+  const farbe = {mixgrund:["background-color","#0d1014"], urban:["fill-color","#d39b12"], "urban-edge":["line-color","#ffc933"], building:["fill-color","#f0b62a"], "building-mt":["fill-color","#f0b62a"],
     water:["fill-color","#1c6fc4"], "water-edge":["line-color","#45a3ff"], river:["line-color","#3fa0ff"], stream:["line-color","#3b8fe6"],
     "border-state":["line-color","#c3bbd6"], "border-country":["line-color","#ffffff"], "border-disputed":["line-color","#ffffff"], "border-country-glow":["line-color","rgba(0,0,0,0.55)"],
     rail:["line-color","#a8a29a"], "rail-dash":["line-color","#2a2a2a"]};

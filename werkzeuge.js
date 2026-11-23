@@ -158,7 +158,7 @@ function init(map, opts){
     else if(sichtRes){ const r = sichtRes;
       big = pct(r.anteil) + " sichtbar"; hint = "";
       sub = `${r.haus ? "Vom Dach aus, Augenhöhe " + nf0.format(r.hoehe + 1.6 + r.extra) + " m über Grund" : "Kein Haus getroffen – Sicht vom Boden aus, Augenhöhe " + nf0.format(1.6 + r.extra) + " m"} · Radius ${fmtKm(r.radius/1000)} · ${r.blockierer} ${r.blockierer === 1 ? "Haus verdeckt" : "Häuser verdecken"} die Sicht`;
-      if(!r.gebaeude) sub += " · Keine Häuser in den Kartendaten gefunden";
+      sub += r.gebaeude ? ` · ${nf0.format(r.gebaeude)} Häuser im Umkreis berücksichtigt` : " · Keine Häuser in den Kartendaten gefunden";
     }
     box.innerHTML = `<div class="wz-h"><span class="eyebrow">${NAMES.sicht}</span><button class="wz-x" data-x="close" aria-label="Werkzeug schließen">✕</button></div>
       <div class="wz-big">${big}</div>${sub ? `<div class="wz-sub">${sub}</div>` : ""}${rk}
@@ -282,8 +282,7 @@ function init(map, opts){
       const st = m.getStyle(); if(!st) return;
       const da = st.layers.some(l=>l["source-layer"] === "building" && (l.type === "fill" || l.type === "fill-extrusion") && l.id !== "sicht-geb2d" && (!l.layout || l.layout.visibility !== "none"));
       if(da || m.getLayer("sicht-geb2d")) return;
-      const mt = typeof MAPTILER_KEY !== "undefined";
-      if(!m.getSource("sicht-ofm")) m.addSource("sicht-ofm", {type:"vector", url: mt ? `https://api.maptiler.com/tiles/v3/tiles.json?key=${MAPTILER_KEY}` : "https://tiles.openfreemap.org/planet"});
+      if(!m.getSource("sicht-ofm")) m.addSource("sicht-ofm", {type:"vector", url:"https://tiles.openfreemap.org/planet"});
       const vor = (st.layers.find(l=>l.type === "symbol")||{}).id;
       m.addLayer({id:"sicht-geb2d", type:"fill", source:"sicht-ofm", "source-layer":"building", minzoom:13, paint:{"fill-color":"#f3c35a","fill-opacity":0.8,"fill-outline-color":"#b8862a"}}, vor);
     }catch(e){}

@@ -49,7 +49,7 @@ function drin(px, py, ring){ let c = false; for(let i=0, j=ring.length-1; i<ring
 
 
 /* --- Gebäude direkt aus den OpenFreeMap-Vektorkacheln (Zoom 14 = alle Häuser, unabhängig von der Ansicht, kostenlos) --- */
-let ofmVorlage = null; const mvtCache = new Map();
+const vorlagen = {}; const mvtCache = new Map();
 function pbfLeser(buf){
   let p = 0;
   const v = ()=>{ let r = 0, s = 1, b; do { b = buf[p++]; r += (b & 0x7f)*s; s *= 128; } while(b & 0x80); return r; };
@@ -95,18 +95,25 @@ function gebaeudeAusKachel(buf, z, tx, ty){
   }
   return out;
 }
+async function vorlage(name){
+  if(vorlagen[name] === undefined){
+    const url = name === "mt" ? (typeof MAPTILER_KEY !== "undefined" ? `https://api.maptiler.com/tiles/v3/tiles.json?key=${MAPTILER_KEY}` : null) : "https://tiles.openfreemap.org/planet";
+    vorlagen[name] = url ? fetch(url).then(r=>r.json()).then(tj=>tj.tiles[0]).catch(()=>null) : Promise.resolve(null);
+  }
+  return vorlagen[name];
+}
+/* Häuser aus beiden Quellen (OpenFreeMap + MapTiler) zusammen – fehlt eine Quelle, reicht die andere */
 async function hausKacheln(lon0, lat0, R, mx, my){
-  /* gleiche Häuser wie auf der Karte: MapTiler-Daten; falls die nicht gehen, OpenFreeMap */
-  if(!ofmVorlage){
-    try{ if(typeof MAPTILER_KEY === "undefined") throw 0; const tj = await (await fetch(`https://api.maptiler.com/tiles/v3/tiles.json?key=${MAPTILER_KEY}`)).json(); ofmVorlage = tj.tiles[0]; }
-    catch(e){ const tj = await (await fetch("https://tiles.openfreemap.org/planet")).json(); ofmVorlage = tj.tiles[0]; } }
   const z = 14, [x1, y1] = kachel(lon0 - R/mx, lat0 + R/my, z), [x2, y2] = kachel(lon0 + R/mx, lat0 - R/my, z), jobs = [];
-  for(let x=Math.floor(x1); x<=Math.floor(x2); x++) for(let y=Math.floor(y1); y<=Math.floor(y2); y++){
-    const k = x+"/"+y;
-    if(!mvtCache.has(k)) mvtCache.set(k, fetch(ofmVorlage.replace("{z}", z).replace("{x}", x).replace("{y}", y))
-      .then(r=>{ if(!r.ok) throw new Error("Kachel " + r.status); return r.arrayBuffer(); }).then(b=>gebaeudeAusKachel(new Uint8Array(b), z, x, y))
-      .catch(e=>{ mvtCache.delete(k); throw e; }));
-    jobs.push(mvtCache.get(k));
+  for(const name of ["ofm", "mt"]){
+    const tpl = await vorlage(name); if(!tpl) continue;
+    for(let x=Math.floor(x1); x<=Math.floor(x2); x++) for(let y=Math.floor(y1); y<=Math.floor(y2); y++){
+      const k = name+"/"+x+"/"+y;
+      if(!mvtCache.has(k)) mvtCache.set(k, fetch(tpl.replace("{z}", z).replace("{x}", x).replace("{y}", y))
+        .then(r=>{ if(!r.ok) throw new Error("Kachel " + r.status); return r.arrayBuffer(); }).then(b=>gebaeudeAusKachel(new Uint8Array(b), z, x, y))
+        .catch(e=>{ mvtCache.delete(k); console.warn("Sichtfeld:", name, e); return []; }));
+      jobs.push(mvtCache.get(k));
+    }
   }
   return (await Promise.all(jobs)).flat();
 }
@@ -131,7 +138,7 @@ async function berechne(map, ll, opt){
       const ring = poly[0].map(q=>toXY(q[0], q[1]));
       let x1 = Infinity, x2 = -Infinity, y1 = Infinity, y2 = -Infinity; for(const q of ring){ x1 = Math.min(x1,q[0]); x2 = Math.max(x2,q[0]); y1 = Math.min(y1,q[1]); y2 = Math.max(y2,q[1]); }
       if(x2 < -R || x1 > R || y2 < -R || y1 > R) continue;
-      const key = Math.round(x1*2)+","+Math.round(y1*2)+","+Math.round(x2*2)+","+Math.round(y2*2); if(seen.has(key)) continue; seen.add(key);
+      const key = Math.round(x1/2)+","+Math.round(y1/2)+","+Math.round(x2/2)+","+Math.round(y2/2); if(seen.has(key)) continue; seen.add(key);
       const idx = haeuser.length, H = {poly, ring, h, hb, sicht:false, block:false};
       haeuser.push(H);
       if(drin(0, 0, ring)){ beob = idx; beobD = 0; continue; }
