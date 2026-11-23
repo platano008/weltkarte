@@ -166,20 +166,27 @@ const MIX_DECK = {
   wenig:{mixgrund:0.35, urban:0.7, water:0.7, building:0.8, "urban-edge":0.9},
   viel: {mixgrund:0.62, urban:0.85, water:0.9, building:0.95, "urban-edge":1}
 };
+/* helle Variante: „wenig“ noch durchsichtiger, „viel“ = das bisherige „wenig“ */
+const MIX_DECK_HELL = {
+  wenig:{mixgrund:0.16, urban:0.55, water:0.55, building:0.7, "urban-edge":0.8},
+  viel: {mixgrund:0.35, urban:0.7, water:0.7, building:0.8, "urban-edge":0.9}
+};
+const mixDeck = ()=>(mixDunkel ? MIX_DECK : MIX_DECK_HELL)[mixStufe];
 let mixStufe = "wenig", mixDunkel = false;
 /* dunkle Variante: dunkler Schleier, helle Schrift mit dunklem Rand, gedämpfte Farben */
 function mixNacht(st){
-  const farbe = {mixgrund:["background-color","#0d1014"], urban:["fill-color","#6b5524"], "urban-edge":["line-color","#9a7a32"], building:["fill-color","#8c6c2e"],
-    water:["fill-color","#173c5e"], "water-edge":["line-color","#2c5f8c"], river:["line-color","#2f6a9e"], stream:["line-color","#2a5a85"],
-    "border-state":["line-color","#7d7788"], "border-country":["line-color","#d9d3e3"], "border-disputed":["line-color","#d9d3e3"], "border-country-glow":["line-color","rgba(0,0,0,0.5)"],
-    rail:["line-color","#6d6a66"], "rail-dash":["line-color","#2a2a2a"]};
+  const farbe = {mixgrund:["background-color","#0d1014"], urban:["fill-color","#d39b12"], "urban-edge":["line-color","#ffc933"], building:["fill-color","#f0b62a"],
+    water:["fill-color","#1c6fc4"], "water-edge":["line-color","#45a3ff"], river:["line-color","#3fa0ff"], stream:["line-color","#3b8fe6"],
+    "border-state":["line-color","#c3bbd6"], "border-country":["line-color","#ffffff"], "border-disputed":["line-color","#ffffff"], "border-country-glow":["line-color","rgba(0,0,0,0.55)"],
+    rail:["line-color","#a8a29a"], "rail-dash":["line-color","#2a2a2a"]};
   for(const l of st.layers){
     const f = farbe[l.id]; if(f) l.paint[f[0]] = f[1];
     if(l.type === "symbol" && l.paint){
-      const hell = {"place-city":"#ffffff","place-town":"#e6e6e6","place-village":"#c4c4c4","place-state":"#9a95a3","place-country":"#d8d2e2","water-name":"#9cc6ea"}[l.id];
+      const hell = {"place-city":"#ffffff","place-town":"#f2f2f2","place-village":"#dcdcdc","place-state":"#c9c2d8","place-country":"#ffffff","water-name":"#8fd0ff"}[l.id];
       if(hell){ l.paint["text-color"] = hell; l.paint["text-halo-color"] = "rgba(8,9,12,0.9)"; l.paint["text-halo-width"] = 1.5; }
     }
-    if(/^road-(minor|service|track)$/.test(l.id)) l.paint["line-color"] = "#bdb7ad";
+    if(/^road-(minor|service|track)$/.test(l.id)) l.paint["line-color"] = "#f2ede4";
+    if(/^road-(motorway|trunk|primary|secondary|tertiary)$/.test(l.id)) l.paint["line-color"] = {"road-motorway":"#ff5a1a","road-trunk":"#ff7a26","road-primary":"#ffa43a","road-secondary":"#ffcc55","road-tertiary":"#ffe9a8"}[l.id];
     if(/^road-(minor|service|track)-casing$/.test(l.id)) l.paint["line-color"] = "#3a3631";
   }
   return st;
@@ -187,13 +194,13 @@ function mixNacht(st){
 function mixDeckAnwenden(map, stufe){
   mixStufe = MIX_DECK[stufe] ? stufe : "wenig";
   if(!map || !map.getLayer || !map.getLayer("mixsat")) return;
-  const deck = MIX_DECK[mixStufe];
+  const deck = mixDeck();
   for(const id in deck){ const l = map.getLayer(id); if(!l) continue;
     try{ map.setPaintProperty(id, l.type === "line" ? "line-opacity" : l.type === "background" ? "background-opacity" : "fill-opacity", deck[id]); }catch(e){} }
 }
 function mixStyle(){
   const st = hellStyle(false);
-  const deck = MIX_DECK[mixStufe];
+  const deck = mixDeck();
   /* fleckige Flächen (Wald, Wiese, Feld, Sand) raus – stattdessen der gleichmäßige Schleier */
   st.layers = st.layers.filter(l=>!["wood","grass","farmland","sand"].includes(l.id));
   for(const l of st.layers){
