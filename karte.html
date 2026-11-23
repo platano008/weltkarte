@@ -16,12 +16,12 @@
 <link rel="preconnect" href="https://api.maptiler.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=202611231244">
+<link rel="stylesheet" href="style.css?v=202611231301">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611231244"></script>
-<script src="sicht.js?v=202611231244"></script>
-<script src="werkzeuge.js?v=202611231244"></script>
+<script src="karte.js?v=202611231301"></script>
+<script src="sicht.js?v=202611231301"></script>
+<script src="werkzeuge.js?v=202611231301"></script>
 <style>
 .item.chg .ic{width:22px}
 .card{right:calc(max(16px,env(safe-area-inset-right)) + 56px)!important}
@@ -226,7 +226,7 @@ body.hell .maplibregl-ctrl-attrib a,body.hell .maplibregl-ctrl-attrib{color:#cfc
 .wz-leg{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:10px;font-size:12px;color:var(--muted)}
 .wz-leg i{display:inline-block;width:11px;height:11px;margin-right:5px;vertical-align:-1px;border:1px solid rgba(255,255,255,.35)}
 </style>
-<script src="lang.js?v=202611231244" defer></script>
+<script src="lang.js?v=202611231301" defer></script>
 </head>
 <body>
 <div id="map"></div>
@@ -238,6 +238,7 @@ body.hell .maplibregl-ctrl-attrib a,body.hell .maplibregl-ctrl-attrib{color:#cfc
 <div class="dock" id="dock" role="toolbar" aria-label="Kartenmenüs">
   <button data-d="ansicht" title="Ansicht: Satellit, Karte, Gelände" aria-label="Ansicht"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg></button>
   <button data-d="wz" title="Werkzeuge: Lineal, Fläche, Radius, Koordinate" aria-label="Werkzeuge"><svg viewBox="0 0 24 24"><path d="M2.5 15.5L15.5 2.5l6 6-13 13z"/><path d="M6.5 11.5l2 2M9.5 8.5l2 2M12.5 5.5l2 2"/></svg></button>
+  <button data-link="fahrzeuge.html" title="Fahrzeuge: Panzer, Artillerie, Flugabwehr" aria-label="Fahrzeuge"><svg viewBox="0 0 24 24"><path d="M3 15h18l-2 4H5z"/><path d="M6 15v-3h9l2 3"/><path d="M9 12V9h5v3"/><path d="M14 10.5h7"/></svg></button>
   <button data-d="tl" title="Verlauf: zwischen Updates spulen" aria-label="Verlauf" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg><i class="dot"></i></button>
 </div>
 <div class="switches">
@@ -296,7 +297,7 @@ function setDock(name){
   if(name !== "wz" && window.WZ && WZ.active()) WZ.stop();
   if(name) select(null);
 }
-$("dock").querySelectorAll("button").forEach(b=>b.onclick=()=>setDock(document.body.classList.contains("d-"+b.dataset.d) ? null : b.dataset.d));
+$("dock").querySelectorAll("button").forEach(b=>b.onclick=()=>b.dataset.link ? (location.href = b.dataset.link) : setDock(document.body.classList.contains("d-"+b.dataset.d) ? null : b.dataset.d));
 /* switches */
 $("base").innerHTML = Object.entries(K.STYLES).map(([k,s])=>`<button data-b="${k}" class="${k==="sat"?"on":""}">${s.name}</button>`).join("");
 $("base").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("base").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setBase(b.dataset.b); document.body.classList.toggle("hell", b.dataset.b !== "sat"); $("deck").hidden = $("mixfarbe").hidden = b.dataset.b !== "mix"; if(b.dataset.b === "mix") document.body.classList.toggle("hell", !$("mixfarbe").querySelector("[data-f=dunkel]").classList.contains("on")); });

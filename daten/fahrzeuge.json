@@ -1,0 +1,928 @@
+{
+"stand": "2026-11",
+"quellen": [
+"https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-equipment.html",
+"https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-ukrainian.html",
+"https://en.wikipedia.org"
+],
+"fahrzeuge": [
+{
+"n": "T-72B3 / B3M",
+"typ": "panzer",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Uralwagonsawod, Nischni Tagil",
+"land": "Russland",
+"km": 4,
+"reichweite": "Kanone 125 mm: ca. 2–3 km · Lenkrakete 9M119M: bis 5 km",
+"nutzer": "Russland, Ukraine (T-72AMT, erbeutet), Belarus, Indien, Polen (PT-91), Syrien u. v. m.",
+"info": "Häufigster Panzer des Krieges, auf beiden Seiten."
+},
+{
+"n": "T-80BV / BVM",
+"typ": "panzer",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Omsktransmasch, Omsk (urspr. Kirow-Werk, Leningrad)",
+"land": "Russland",
+"km": 5,
+"reichweite": "Kanone 125 mm: ca. 2–3 km · Lenkrakete: bis 5 km",
+"nutzer": "Russland, Ukraine (T-80BV, erbeutet), Kasachstan, Zypern, Südkorea",
+"info": "Gasturbinen-Panzer, schnell, hoher Spritverbrauch."
+},
+{
+"n": "T-90M „Proryv“",
+"typ": "panzer",
+"seite": [
+"ru"
+],
+"hersteller": "Uralwagonsawod, Nischni Tagil",
+"land": "Russland",
+"km": 5,
+"reichweite": "Kanone 125 mm: ca. 2–3 km · Lenkrakete 9M119M1: bis 5 km",
+"nutzer": "Russland; T-90-Familie: Indien, Algerien, Aserbaidschan, Turkmenistan, Vietnam",
+"info": "Modernster russischer Serienpanzer im Einsatz."
+},
+{
+"n": "T-62M / MV",
+"typ": "panzer",
+"seite": [
+"ru"
+],
+"hersteller": "Uralwagonsawod (Sowjetunion)",
+"land": "Sowjetunion",
+"km": 4,
+"reichweite": "Kanone 115 mm: ca. 1,5–2 km · Lenkrakete 9K116-2: bis 4 km",
+"nutzer": "Russland (aus Lagerbeständen), Nordkorea, Syrien",
+"info": "Aus den 1960ern, im Krieg reaktiviert."
+},
+{
+"n": "T-55 / T-54",
+"typ": "panzer",
+"seite": [
+"ru"
+],
+"hersteller": "Uralwagonsawod u. a. (Sowjetunion)",
+"land": "Sowjetunion",
+"km": 1.5,
+"reichweite": "Kanone 100 mm: ca. 1–1,5 km",
+"nutzer": "Russland (aus Lagerbeständen), viele Staaten in Afrika und Asien",
+"info": "Teils als mobile Artillerie genutzt."
+},
+{
+"n": "T-64BV / BM „Bulat“",
+"typ": "panzer",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Malyschew-Werk, Charkiw",
+"land": "Ukraine",
+"km": 5,
+"reichweite": "Kanone 125 mm: ca. 2–3 km · Lenkrakete „Kombat“: bis 5 km",
+"nutzer": "Ukraine (Hauptpanzer), Russland/Separatisten (erbeutet)",
+"info": "Wird nur in der Ukraine in größerer Zahl genutzt."
+},
+{
+"n": "PT-91 Twardy",
+"typ": "panzer",
+"seite": [
+"ua"
+],
+"hersteller": "Bumar-Łabędy, Gliwice",
+"land": "Polen",
+"km": 3,
+"reichweite": "Kanone 125 mm: ca. 2–3 km",
+"nutzer": "Ukraine, Polen, Malaysia",
+"info": "Polnische Weiterentwicklung des T-72."
+},
+{
+"n": "Leopard 2A4 / 2A6",
+"typ": "panzer",
+"seite": [
+"ua"
+],
+"hersteller": "Krauss-Maffei Wegmann, München",
+"land": "Deutschland",
+"km": 4,
+"reichweite": "Kanone 120 mm: ca. 3–4 km",
+"nutzer": "Ukraine, Deutschland, Polen, Spanien, Kanada, Norwegen, Finnland, Türkei u. v. m.",
+"info": "Von mehreren Staaten an die Ukraine abgegeben."
+},
+{
+"n": "Leopard 1A5",
+"typ": "panzer",
+"seite": [
+"ua"
+],
+"hersteller": "Krauss-Maffei Wegmann, München",
+"land": "Deutschland",
+"km": 2.5,
+"reichweite": "Kanone 105 mm: ca. 2–2,5 km",
+"nutzer": "Ukraine, Brasilien, Chile, Griechenland, Türkei",
+"info": "Oft als Feuerunterstützung hinter der Front."
+},
+{
+"n": "M1A1 Abrams",
+"typ": "panzer",
+"seite": [
+"ua"
+],
+"hersteller": "General Dynamics Land Systems, Lima (Ohio)",
+"land": "USA",
+"km": 4,
+"reichweite": "Kanone 120 mm: ca. 3–4 km",
+"nutzer": "Ukraine, USA, Australien, Ägypten, Saudi-Arabien, Irak, Polen",
+"info": "Ukraine erhielt Fahrzeuge aus den USA und Australien."
+},
+{
+"n": "Challenger 2",
+"typ": "panzer",
+"seite": [
+"ua"
+],
+"hersteller": "Vickers / BAE Systems, Newcastle",
+"land": "Großbritannien",
+"km": 4,
+"reichweite": "Kanone 120 mm (gezogen): ca. 3–4 km",
+"nutzer": "Ukraine, Großbritannien, Oman",
+"info": "Nur wenige Fahrzeuge an die Ukraine."
+},
+{
+"n": "BMP-1 / BMP-1AM",
+"typ": "spz",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Kurganmaschsawod, Kurgan",
+"land": "Sowjetunion",
+"km": 3,
+"reichweite": "Kanone 73 mm: ca. 1,3 km · Lenkrakete 9M14: bis 3 km",
+"nutzer": "Russland, Ukraine und über 50 weitere Staaten",
+"info": "Einer der meistgenutzten Schützenpanzer der Welt."
+},
+{
+"n": "BMP-2",
+"typ": "spz",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Kurganmaschsawod, Kurgan",
+"land": "Sowjetunion",
+"km": 4,
+"reichweite": "Maschinenkanone 30 mm: ca. 2–4 km · Lenkrakete 9M113: bis 4 km",
+"nutzer": "Russland, Ukraine, Indien, Kasachstan, Iran u. v. m.",
+"info": "Rückgrat der Infanterie beider Seiten."
+},
+{
+"n": "BMP-3",
+"typ": "spz",
+"seite": [
+"ru"
+],
+"hersteller": "Kurganmaschsawod, Kurgan",
+"land": "Russland",
+"km": 5.5,
+"reichweite": "Kanone 100 mm, Lenkrakete 9M117: bis 5,5 km · Maschinenkanone 30 mm: ca. 2 km",
+"nutzer": "Russland, VAE, Kuwait, Indonesien, Venezuela (Ukraine: erbeutet)",
+"info": "Schwer bewaffnet, aber schwach gepanzert."
+},
+{
+"n": "BMD-2 / BMD-4M",
+"typ": "spz",
+"seite": [
+"ru"
+],
+"hersteller": "Wolgograder Traktorenwerk / Kurganmaschsawod",
+"land": "Russland",
+"km": 5.5,
+"reichweite": "30 mm: ca. 2 km · BMD-4M mit 100 mm und Lenkrakete: bis 5,5 km",
+"nutzer": "Russland (Luftlandetruppen)",
+"info": "Leichter, luftverladbarer Schützenpanzer."
+},
+{
+"n": "M2A2 Bradley ODS",
+"typ": "spz",
+"seite": [
+"ua"
+],
+"hersteller": "BAE Systems, York (Pennsylvania)",
+"land": "USA",
+"km": 3.75,
+"reichweite": "Maschinenkanone 25 mm: ca. 2,5 km · TOW-Lenkrakete: bis 3,75 km",
+"nutzer": "Ukraine, USA, Saudi-Arabien, Kroatien, Griechenland",
+"info": "Gilt in der Ukraine als besonders überlebensfähig."
+},
+{
+"n": "Marder 1A3",
+"typ": "spz",
+"seite": [
+"ua"
+],
+"hersteller": "Rheinmetall, Kassel",
+"land": "Deutschland",
+"km": 2,
+"reichweite": "Maschinenkanone 20 mm: ca. 2 km",
+"nutzer": "Ukraine, Deutschland, Chile, Indonesien",
+"info": "Seit 2023 in der Ukraine."
+},
+{
+"n": "CV90",
+"typ": "spz",
+"seite": [
+"ua"
+],
+"hersteller": "BAE Systems Hägglunds, Örnsköldsvik",
+"land": "Schweden",
+"km": 3,
+"reichweite": "Maschinenkanone 35/40 mm: ca. 2–3 km",
+"nutzer": "Ukraine, Schweden, Norwegen, Finnland, Dänemark, Niederlande, Estland, Tschechien",
+"info": "Von Schweden geliefert, teils in der Ukraine weiter beschafft."
+},
+{
+"n": "BTR-82A",
+"typ": "tpz",
+"seite": [
+"ru"
+],
+"hersteller": "Arsamas-Maschinenbauwerk, Arsamas",
+"land": "Russland",
+"km": 2,
+"reichweite": "Maschinenkanone 30 mm: ca. 2 km",
+"nutzer": "Russland, Belarus, Kasachstan, Syrien (Ukraine: erbeutet)",
+"info": "Radpanzer, Weiterentwicklung des BTR-80."
+},
+{
+"n": "BTR-4 „Bucephalus“",
+"typ": "tpz",
+"seite": [
+"ua"
+],
+"hersteller": "Charkiwer Konstruktionsbüro für Maschinenbau (KMDB)",
+"land": "Ukraine",
+"km": 2,
+"reichweite": "Maschinenkanone 30 mm: ca. 2 km · Lenkrakete (je nach Turm): bis 5 km",
+"nutzer": "Ukraine, Irak, Indonesien",
+"info": "Ukrainischer Radschützenpanzer."
+},
+{
+"n": "M113",
+"typ": "tpz",
+"seite": [
+"ua"
+],
+"hersteller": "FMC / BAE Systems",
+"land": "USA",
+"km": 1.8,
+"reichweite": "Maschinengewehr 12,7 mm: ca. 1,8 km",
+"nutzer": "Ukraine und über 40 weitere Staaten",
+"info": "Aus vielen NATO-Staaten an die Ukraine abgegeben."
+},
+{
+"n": "MT-LB",
+"typ": "tpz",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Charkiwer Traktorenwerk (Sowjetunion); Lizenzbau Polen, Bulgarien",
+"land": "Sowjetunion",
+"km": 1,
+"reichweite": "Maschinengewehr 7,62 mm: ca. 1 km (oft mit nachgerüsteten Waffen)",
+"nutzer": "Russland, Ukraine, Polen, Bulgarien, Finnland, Schweden u. v. m.",
+"info": "Vielseitiges Kettenfahrzeug, oft improvisiert umgebaut."
+},
+{
+"n": "M1126 Stryker",
+"typ": "tpz",
+"seite": [
+"ua"
+],
+"hersteller": "General Dynamics Land Systems (USA/Kanada)",
+"land": "USA",
+"km": 2,
+"reichweite": "Maschinengewehr 12,7 mm / Granatwerfer 40 mm: ca. 1,5–2 km",
+"nutzer": "Ukraine, USA, Thailand",
+"info": "Radpanzer, 2023 an die Ukraine geliefert."
+},
+{
+"n": "Bushmaster PMV",
+"typ": "tpz",
+"seite": [
+"ua"
+],
+"hersteller": "Thales Australia, Bendigo",
+"land": "Australien",
+"km": 1,
+"reichweite": "Maschinengewehr: ca. 1 km",
+"nutzer": "Ukraine, Australien, Niederlande, Japan, Indonesien, Großbritannien",
+"info": "Minengeschütztes Fahrzeug (MRAP)."
+},
+{
+"n": "MaxxPro",
+"typ": "tpz",
+"seite": [
+"ua"
+],
+"hersteller": "Navistar Defense",
+"land": "USA",
+"km": 1.8,
+"reichweite": "Maschinengewehr 12,7 mm: ca. 1,8 km",
+"nutzer": "Ukraine, USA, Pakistan, VAE u. a.",
+"info": "Minengeschütztes Fahrzeug (MRAP)."
+},
+{
+"n": "Roshel Senator",
+"typ": "tpz",
+"seite": [
+"ua"
+],
+"hersteller": "Roshel, Brampton (Ontario)",
+"land": "Kanada",
+"km": 1,
+"reichweite": "Maschinengewehr: ca. 1 km",
+"nutzer": "Ukraine, Kanada",
+"info": "Gepanzerter Geländewagen, in großer Zahl geliefert."
+},
+{
+"n": "Kozak-2",
+"typ": "tpz",
+"seite": [
+"ua"
+],
+"hersteller": "Praktika, Kiew",
+"land": "Ukraine",
+"km": 1,
+"reichweite": "Maschinengewehr: ca. 1 km",
+"nutzer": "Ukraine",
+"info": "Ukrainisches minengeschütztes Fahrzeug."
+},
+{
+"n": "GAZ Tigr",
+"typ": "tpz",
+"seite": [
+"ru"
+],
+"hersteller": "GAZ / Militär-Industrie-Gesellschaft, Arsamas",
+"land": "Russland",
+"km": 1,
+"reichweite": "Maschinengewehr / Granatwerfer: ca. 1–1,7 km",
+"nutzer": "Russland, Belarus, Armenien, Uruguay u. a.",
+"info": "Russischer gepanzerter Geländewagen."
+},
+{
+"n": "BRDM-2",
+"typ": "tpz",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Gorki-Automobilwerk (Sowjetunion)",
+"land": "Sowjetunion",
+"km": 2,
+"reichweite": "Maschinengewehr 14,5 mm: ca. 2 km",
+"nutzer": "Russland, Ukraine und viele weitere Staaten",
+"info": "Spähwagen, auf beiden Seiten verbreitet."
+},
+{
+"n": "2S1 Gvozdika",
+"typ": "art",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Charkiwer Traktorenwerk (Sowjetunion)",
+"land": "Sowjetunion",
+"km": 21.9,
+"reichweite": "122 mm: 15,3 km · mit Raketenunterstützung: 21,9 km",
+"nutzer": "Russland, Ukraine, Polen, Finnland u. v. m.",
+"info": "Leichte Panzerhaubitze."
+},
+{
+"n": "2S3 Akatsiya",
+"typ": "art",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Uraltransmasch, Jekaterinburg",
+"land": "Sowjetunion",
+"km": 24,
+"reichweite": "152 mm: 18,5 km · mit Raketenunterstützung: 24 km",
+"nutzer": "Russland, Ukraine, Syrien, Irak u. a.",
+"info": ""
+},
+{
+"n": "2S19 Msta-S",
+"typ": "art",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Uraltransmasch, Jekaterinburg",
+"land": "Russland",
+"km": 29,
+"reichweite": "152 mm: 24,7 km · mit Raketenunterstützung: 29 km",
+"nutzer": "Russland, Ukraine (erbeutet), Belarus, Venezuela, Aserbaidschan, Äthiopien",
+"info": "Wichtigste russische Panzerhaubitze."
+},
+{
+"n": "2S5 Giatsint-S",
+"typ": "art",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Uraltransmasch, Jekaterinburg",
+"land": "Sowjetunion",
+"km": 33.5,
+"reichweite": "152 mm: 28,4 km · mit Raketenunterstützung: 33,5 km",
+"nutzer": "Russland, Ukraine, Finnland, Eritrea",
+"info": ""
+},
+{
+"n": "2S7 Pion / 2S7M Malka",
+"typ": "art",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Kirow-Werk, Sankt Petersburg",
+"land": "Sowjetunion",
+"km": 47.5,
+"reichweite": "203 mm: 37,5 km · mit Raketenunterstützung: 47,5 km",
+"nutzer": "Russland (2S7M), Ukraine (2S7)",
+"info": "Größtes Kaliber im Krieg."
+},
+{
+"n": "2S4 Tyulpan",
+"typ": "art",
+"seite": [
+"ru"
+],
+"hersteller": "Uraltransmasch, Jekaterinburg",
+"land": "Sowjetunion",
+"km": 20,
+"reichweite": "Mörser 240 mm: 9,6 km · mit Raketenunterstützung: ca. 20 km",
+"nutzer": "Russland",
+"info": "Schwerster Mörser der Welt."
+},
+{
+"n": "2S9 Nona",
+"typ": "art",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Wolgograder Traktorenwerk",
+"land": "Sowjetunion",
+"km": 12.8,
+"reichweite": "120 mm: 8,8 km · mit Raketenunterstützung: 12,8 km",
+"nutzer": "Russland, Ukraine, Usbekistan u. a.",
+"info": "Luftlandefähiger Mörser-Haubitzen-Panzer."
+},
+{
+"n": "vz. 77 Dana",
+"typ": "art",
+"seite": [
+"ua"
+],
+"hersteller": "ZTS Dubnica (Tschechoslowakei)",
+"land": "Tschechoslowakei",
+"km": 18.7,
+"reichweite": "152 mm: 18,7 km",
+"nutzer": "Ukraine, Tschechien, Polen, Libyen",
+"info": "Radhaubitze auf Tatra-Lkw."
+},
+{
+"n": "PzH 2000",
+"typ": "art",
+"seite": [
+"ua"
+],
+"hersteller": "Krauss-Maffei Wegmann, München",
+"land": "Deutschland",
+"km": 56,
+"reichweite": "155 mm: 30 km · mit Spezialmunition: 40–56 km",
+"nutzer": "Ukraine, Deutschland, Italien, Niederlande, Griechenland, Kroatien, Litauen, Ungarn",
+"info": "Sehr präzise, hohe Feuerrate."
+},
+{
+"n": "AHS Krab",
+"typ": "art",
+"seite": [
+"ua"
+],
+"hersteller": "Huta Stalowa Wola, Stalowa Wola",
+"land": "Polen",
+"km": 40,
+"reichweite": "155 mm: 30 km · mit Spezialmunition: 40 km",
+"nutzer": "Ukraine, Polen",
+"info": "In größerer Zahl an die Ukraine geliefert."
+},
+{
+"n": "CAESAR",
+"typ": "art",
+"seite": [
+"ua"
+],
+"hersteller": "KNDS France (Nexter), Roanne",
+"land": "Frankreich",
+"km": 42,
+"reichweite": "155 mm: ca. 40–42 km",
+"nutzer": "Ukraine, Frankreich, Dänemark, Belgien, Litauen, Indonesien, Saudi-Arabien",
+"info": "Radhaubitze, schnell in Stellung und wieder weg."
+},
+{
+"n": "M109A3 / A4 / A6",
+"typ": "art",
+"seite": [
+"ua"
+],
+"hersteller": "BAE Systems (urspr. United Defense)",
+"land": "USA",
+"km": 30,
+"reichweite": "155 mm: 18–24 km · A6 mit Raketenunterstützung: 30 km",
+"nutzer": "Ukraine, USA, Norwegen, Belgien, Italien, Lettland u. v. m.",
+"info": "Weltweit verbreitetste Panzerhaubitze."
+},
+{
+"n": "Zuzana 2",
+"typ": "art",
+"seite": [
+"ua"
+],
+"hersteller": "Konštrukta-Defence, Trenčín",
+"land": "Slowakei",
+"km": 41,
+"reichweite": "155 mm: 41 km",
+"nutzer": "Ukraine, Slowakei",
+"info": "Radhaubitze."
+},
+{
+"n": "Archer",
+"typ": "art",
+"seite": [
+"ua"
+],
+"hersteller": "BAE Systems Bofors, Karlskoga",
+"land": "Schweden",
+"km": 40,
+"reichweite": "155 mm: 40 km (mit Excalibur bis 50 km)",
+"nutzer": "Ukraine, Schweden",
+"info": "Vollautomatische Radhaubitze."
+},
+{
+"n": "2S22 Bohdana",
+"typ": "art",
+"seite": [
+"ua"
+],
+"hersteller": "Kramatorsker Werk für Schwermaschinenbau",
+"land": "Ukraine",
+"km": 60,
+"reichweite": "155 mm: 42 km · mit Raketenunterstützung: 60 km",
+"nutzer": "Ukraine",
+"info": "Ukrainische Eigenentwicklung, in Serie seit 2023."
+},
+{
+"n": "BM-21 Grad",
+"typ": "mlrs",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Motowilicha-Werk, Perm",
+"land": "Sowjetunion",
+"km": 40,
+"reichweite": "122 mm Raketen: 20 km · neuere Raketen: bis 40 km",
+"nutzer": "Russland, Ukraine und über 50 weitere Staaten",
+"info": "Meistgenutzter Raketenwerfer der Welt."
+},
+{
+"n": "RM-70",
+"typ": "mlrs",
+"seite": [
+"ua"
+],
+"hersteller": "ZTS / Excalibur Army",
+"land": "Tschechoslowakei",
+"km": 20,
+"reichweite": "122 mm (Grad-Raketen): 20 km",
+"nutzer": "Ukraine, Tschechien, Slowakei u. a.",
+"info": "Tschechische Version des Grad."
+},
+{
+"n": "BM-27 Uragan",
+"typ": "mlrs",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Motowilicha-Werk, Perm / NPO Splav",
+"land": "Sowjetunion",
+"km": 35,
+"reichweite": "220 mm Raketen: 35 km",
+"nutzer": "Russland, Ukraine, Belarus, Kasachstan u. a.",
+"info": ""
+},
+{
+"n": "BM-30 Smerch",
+"typ": "mlrs",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "NPO Splav, Tula / Motowilicha-Werk",
+"land": "Sowjetunion",
+"km": 90,
+"reichweite": "300 mm Raketen: 70–90 km",
+"nutzer": "Russland, Ukraine, Belarus, Indien, Algerien u. a.",
+"info": ""
+},
+{
+"n": "9K515 Tornado-S",
+"typ": "mlrs",
+"seite": [
+"ru"
+],
+"hersteller": "NPO Splav (Rostec), Tula",
+"land": "Russland",
+"km": 120,
+"reichweite": "300 mm gelenkte Raketen: bis 120 km",
+"nutzer": "Russland",
+"info": "Russisches Gegenstück zu HIMARS."
+},
+{
+"n": "Tornado-G",
+"typ": "mlrs",
+"seite": [
+"ru"
+],
+"hersteller": "NPO Splav / Motowilicha-Werk",
+"land": "Russland",
+"km": 40,
+"reichweite": "122 mm Raketen: bis 40 km",
+"nutzer": "Russland",
+"info": "Modernisierter Grad."
+},
+{
+"n": "TOS-1A „Solnzepjok“",
+"typ": "mlrs",
+"seite": [
+"ru"
+],
+"hersteller": "Omsktransmasch / Uralwagonsawod",
+"land": "Russland",
+"km": 6,
+"reichweite": "Thermobarische Raketen: ca. 6 km",
+"nutzer": "Russland, Aserbaidschan, Irak, Kasachstan, Saudi-Arabien (Ukraine: erbeutet)",
+"info": "Auf T-72-Fahrgestell, sehr kurze Reichweite."
+},
+{
+"n": "TOS-2 „Tosotschka“",
+"typ": "mlrs",
+"seite": [
+"ru"
+],
+"hersteller": "NPO Splav, Tula",
+"land": "Russland",
+"km": 20,
+"reichweite": "Thermobarische Raketen: bis 20 km",
+"nutzer": "Russland",
+"info": "Radfahrzeug, seit 2021 im Dienst."
+},
+{
+"n": "M142 HIMARS",
+"typ": "mlrs",
+"seite": [
+"ua"
+],
+"hersteller": "Lockheed Martin, Camden (Arkansas)",
+"land": "USA",
+"km": 300,
+"reichweite": "GMLRS: 70–80 km · ATACMS: bis 300 km",
+"nutzer": "Ukraine, USA, Polen, Rumänien, Estland, Lettland, Litauen, Australien, Singapur u. a.",
+"info": "Präzise Langstrecken-Artillerie auf Lkw."
+},
+{
+"n": "M270 MLRS",
+"typ": "mlrs",
+"seite": [
+"ua"
+],
+"hersteller": "Lockheed Martin (USA); Varianten in GB, DE, FR, IT",
+"land": "USA",
+"km": 300,
+"reichweite": "GMLRS: 70–80 km · ATACMS: bis 300 km",
+"nutzer": "Ukraine, USA, Großbritannien, Deutschland, Frankreich, Italien, Finnland u. a.",
+"info": "Kettenfahrzeug, doppelt so viele Raketen wie HIMARS."
+},
+{
+"n": "Vilkha / Vilkha-M",
+"typ": "mlrs",
+"seite": [
+"ua"
+],
+"hersteller": "KB Luch, Kiew",
+"land": "Ukraine",
+"km": 130,
+"reichweite": "300 mm gelenkte Raketen: ca. 70 km · Vilkha-M: bis 110–130 km",
+"nutzer": "Ukraine",
+"info": "Ukrainischer Präzisions-Raketenwerfer."
+},
+{
+"n": "Pantsir-S1",
+"typ": "fla",
+"seite": [
+"ru"
+],
+"hersteller": "KBP Tula / Uljanowsker Werk",
+"land": "Russland",
+"km": 20,
+"reichweite": "Raketen: bis 20 km · Kanonen 30 mm: bis 4 km",
+"nutzer": "Russland, VAE, Syrien, Algerien, Serbien u. a.",
+"info": "Schützt vor allem gegen Drohnen und Marschflugkörper."
+},
+{
+"n": "Tor-M2",
+"typ": "fla",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Kupol, Ischewsk",
+"land": "Russland",
+"km": 16,
+"reichweite": "Raketen: bis 16 km (Tor-M1 der Ukraine: 12 km)",
+"nutzer": "Russland, Belarus, Ukraine (Tor-M1), Armenien, China u. a.",
+"info": "Kurzstrecken-Flugabwehr."
+},
+{
+"n": "Buk-M1 / M2 / M3",
+"typ": "fla",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Almas-Antei (Uljanowsk, Jekaterinburg)",
+"land": "Sowjetunion",
+"km": 70,
+"reichweite": "Buk-M1: 35 km · M2: 45 km · M3: bis 70 km",
+"nutzer": "Russland, Ukraine (Buk-M1), Belarus, Ägypten, Syrien u. a.",
+"info": "Mittelstrecke."
+},
+{
+"n": "S-300PS / S-300V",
+"typ": "fla",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Almas-Antei, Moskau",
+"land": "Sowjetunion",
+"km": 150,
+"reichweite": "je nach Version 75–150 km",
+"nutzer": "Russland, Ukraine, Belarus, China, Iran, Griechenland u. a.",
+"info": "Russland nutzt sie auch gegen Bodenziele."
+},
+{
+"n": "S-400 Triumf",
+"typ": "fla",
+"seite": [
+"ru"
+],
+"hersteller": "Almas-Antei, Moskau",
+"land": "Russland",
+"km": 250,
+"reichweite": "Raketen 48N6: bis 250 km (40N6: bis 380 km)",
+"nutzer": "Russland, China, Indien, Türkei, Belarus",
+"info": "Langstrecken-Flugabwehr."
+},
+{
+"n": "Osa (9K33)",
+"typ": "fla",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Ischewsker Elektromechanisches Werk / Kupol",
+"land": "Sowjetunion",
+"km": 10,
+"reichweite": "Raketen: bis 10 km",
+"nutzer": "Russland, Ukraine, Polen, Griechenland u. a.",
+"info": "Ältere Kurzstrecken-Flugabwehr."
+},
+{
+"n": "Strela-10 (9K35)",
+"typ": "fla",
+"seite": [
+"ua",
+"ru"
+],
+"hersteller": "Saratower Werk (Sowjetunion)",
+"land": "Sowjetunion",
+"km": 5,
+"reichweite": "Raketen: bis 5 km",
+"nutzer": "Russland, Ukraine und viele weitere Staaten",
+"info": "Auf MT-LB-Fahrgestell."
+},
+{
+"n": "2K22 Tunguska",
+"typ": "fla",
+"seite": [
+"ru"
+],
+"hersteller": "Uljanowsker Mechanisches Werk / KBP Tula",
+"land": "Sowjetunion",
+"km": 10,
+"reichweite": "Kanonen 30 mm: 4 km · Raketen: bis 8–10 km",
+"nutzer": "Russland, Indien, Belarus, Ukraine (wenige)",
+"info": ""
+},
+{
+"n": "Patriot",
+"typ": "fla",
+"seite": [
+"ua"
+],
+"hersteller": "Raytheon / Lockheed Martin",
+"land": "USA",
+"km": 160,
+"reichweite": "PAC-3: ca. 35–60 km · PAC-2 GEM-T: bis 160 km",
+"nutzer": "Ukraine, USA, Deutschland, Niederlande, Polen, Japan, Saudi-Arabien u. v. m.",
+"info": "Kann auch ballistische Raketen abfangen."
+},
+{
+"n": "SAMP/T",
+"typ": "fla",
+"seite": [
+"ua"
+],
+"hersteller": "Eurosam (MBDA / Thales)",
+"land": "Frankreich / Italien",
+"km": 120,
+"reichweite": "Aster 30: bis 120 km",
+"nutzer": "Ukraine, Frankreich, Italien, Singapur",
+"info": "Europäisches Gegenstück zu Patriot."
+},
+{
+"n": "IRIS-T SLM",
+"typ": "fla",
+"seite": [
+"ua"
+],
+"hersteller": "Diehl Defence, Überlingen",
+"land": "Deutschland",
+"km": 40,
+"reichweite": "Raketen: bis 40 km (Höhe 20 km)",
+"nutzer": "Ukraine, Deutschland, Ägypten, Estland, Lettland, Slowenien, Schweiz",
+"info": "Sehr hohe Abschussquote in der Ukraine."
+},
+{
+"n": "NASAMS",
+"typ": "fla",
+"seite": [
+"ua"
+],
+"hersteller": "Kongsberg (Norwegen) / Raytheon (USA)",
+"land": "Norwegen",
+"km": 50,
+"reichweite": "AMRAAM: ca. 30 km · AMRAAM-ER: bis 50 km",
+"nutzer": "Ukraine, Norwegen, USA, Finnland, Spanien, Niederlande, Litauen u. a.",
+"info": ""
+},
+{
+"n": "Flakpanzer Gepard",
+"typ": "fla",
+"seite": [
+"ua"
+],
+"hersteller": "Krauss-Maffei Wegmann, München",
+"land": "Deutschland",
+"km": 5.5,
+"reichweite": "Kanonen 35 mm: bis ca. 5,5 km",
+"nutzer": "Ukraine, Rumänien, Brasilien, Katar",
+"info": "Sehr erfolgreich gegen Shahed-Drohnen."
+},
+{
+"n": "M1097 Avenger",
+"typ": "fla",
+"seite": [
+"ua"
+],
+"hersteller": "Boeing",
+"land": "USA",
+"km": 8,
+"reichweite": "Stinger-Raketen: bis 8 km",
+"nutzer": "Ukraine, USA",
+"info": "Kurzstrecken-Flugabwehr auf Humvee."
+}
+]
+}

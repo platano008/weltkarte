@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Fahrzeuge · Plyus</title>
+<meta name="description" content="Fahrzeuge im Russland-Ukraine-Krieg: Reichweite, Herkunft und Nutzerländer.">
+<link rel="icon" type="image/png" href="bild/favicon.png?v=2">
+<link rel="apple-touch-icon" href="bild/icon-180.png?v=2">
+<link rel="stylesheet" href="style.css?v=202611231301">
+<link rel="stylesheet" href="seiten.css?v=202611231301">
+<script src="lang.js?v=202611231301" defer></script>
+<style>
+.fz-leiste{position:sticky;top:0;z-index:5;display:flex;flex-direction:column;gap:12px;padding:14px 0 16px;margin-bottom:18px;background:linear-gradient(#000 80%,rgba(0,0,0,0))}
+#fzSuche{width:100%;padding:14px 18px;border:1px solid rgba(255,255,255,.18);border-radius:999px!important;background:#0b0b0b;color:#fff;font:inherit;font-size:16px;outline:none}
+#fzSuche:focus{border-color:rgba(255,255,255,.6)}
+.fz-chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.fz-chips button{padding:8px 14px;border:1px solid rgba(255,255,255,.18);border-radius:999px!important;background:none;color:#cfcfcf;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.fz-chips button:hover{border-color:rgba(255,255,255,.55)}
+.fz-chips button.on{background:#fff;color:#000;border-color:#fff}
+.fz-sort{margin-left:auto;display:flex;gap:6px}
+.pk{display:inline-block;width:9px;height:9px;border-radius:50%!important}
+.pk.ua{background:#4aa3ff;box-shadow:0 0 8px #4aa3ff}.pk.ru{background:#ff3550;box-shadow:0 0 8px #ff3550}
+.fz-liste{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:14px}
+.fz-k{position:relative;display:flex;flex-direction:column;gap:12px;padding:20px 20px 22px;border:1px solid rgba(255,255,255,.13);border-radius:20px!important;background:linear-gradient(180deg,#0c0c0c,#050505);overflow:hidden}
+.fz-k::before{content:"";position:absolute;right:-50px;top:-50px;width:140px;height:140px;border-radius:50%!important;background:radial-gradient(circle,var(--g,rgba(255,255,255,.12)),transparent 70%)}
+.fz-k.ua{--g:rgba(74,163,255,.24)}.fz-k.ru{--g:rgba(255,53,80,.24)}.fz-k.beide{--g:rgba(190,120,255,.2)}
+.fz-kopf{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.fz-k h3{margin:0;font-family:var(--korn);font-size:clamp(21px,2.2vw,26px);line-height:1.08}
+.fz-typ{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a8a8a;margin-top:5px}
+.fz-seite{display:flex;gap:5px;flex:none;padding-top:4px}
+.fz-seite span{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:3px 7px;border-radius:999px!important;border:1px solid}
+.fz-seite .ua{color:#8cc6ff;border-color:rgba(74,163,255,.5)}.fz-seite .ru{color:#ff8a99;border-color:rgba(255,53,80,.5)}
+.fz-rw{display:flex;flex-direction:column;gap:6px}
+.fz-balken{height:6px;border-radius:999px!important;background:rgba(255,255,255,.08);overflow:hidden}
+.fz-balken i{display:block;height:100%;border-radius:999px!important;background:linear-gradient(90deg,#fff,#ff3550)}
+.fz-rw b{font-family:var(--korn);font-size:22px;font-weight:700}
+.fz-rw small{color:#b5b5b5;font-size:13.5px;line-height:1.5}
+.fz-k dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13.5px;line-height:1.5}
+.fz-k dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7a7a7a;padding-top:3px}
+.fz-k dd{margin:0;color:#dcdcdc}
+.fz-info{color:#9a9a9a;font-size:13.5px;line-height:1.5;margin:0}
+.fz-leer{grid-column:1/-1;padding:40px 0;text-align:center;color:#8a8a8a}
+.fz-hinweis{margin-top:40px;font-size:14px!important;color:#9a9a9a!important}
+@media (max-width:640px){.fz-sort{margin-left:0}.fz-leiste{position:static}.fz-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}.fz-chips button{flex:none}}
+</style>
+</head>
+<body>
+<script>(function(){ try{ const c = navigator.hardwareConcurrency || 8, m = navigator.deviceMemory || 8; if(c <= 4 || m <= 4 || matchMedia("(hover:none),(pointer:coarse)").matches) document.documentElement.classList.add("lite"); }catch(e){} })();</script>
+<header class="kopf"><a class="logo" href="./" aria-label="Plyus"><img src="bild/logo.svg" alt=""><svg class="szug-k" viewBox="0 0 558.8 100" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z"/></g></svg></a><button class="burger" id="burger" aria-label="Menü öffnen" aria-expanded="false"><i></i><i></i><i></i></button></header>
+<div class="menu" id="menu" hidden>
+  <div class="sprachwahl" role="group" aria-label="Sprache"><button data-sprache="de" data-nolang>DE</button><button data-sprache="en" data-nolang>EN</button></div>
+  <button class="menu-x" id="menuX" aria-label="Menü schließen"><svg viewBox="0 0 28 28"><path d="M2 2l24 24M26 2L2 26"/></svg></button>
+  <nav>
+    <a href="karte.html">Karte</a>
+    <span class="aus">Drohnenkarte<em>in Arbeit</em></span>
+    <a href="blog.html">Blog</a>
+    <span class="aus">Telegram<em>folgt</em></span>
+    <a href="https://x.com/plyusmap" target="_blank" rel="noopener">Twitter<em data-nolang>@plyusmap</em></a>
+    <a href="fahrzeuge.html">Fahrzeuge</a>
+    <a href="mitwirkende.html">Mitwirkende</a>
+    <a href="kontakt.html">Kontakt</a>
+    <a href="impressum.html">Impressum</a>
+  </nav>
+  <div class="menu-logo"><img src="bild/logo.svg" alt=""><svg class="szug-k" viewBox="0 0 558.8 100" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z"/></g></svg></div>
+</div>
+<section class="sk-held">
+  <div class="sk-szene" aria-hidden="true"><div class="sk-boden" style="--rz:-10deg"><div class="sk-gitter"></div><svg class="front" viewBox="0 0 1800 1800"><path class="zone-r" d="M1800 0V1800H1060L1010 1600L1070 1440L990 1300L1040 1150L960 1000L1010 860L930 720L980 560L900 400L950 230L880 0Z"/><path class="zone-b" d="M0 0H830L900 230L850 400L930 560L880 720L960 860L910 1000L990 1150L940 1300L1020 1440L960 1600L1010 1800H0Z"/><path d="M880 0L950 230L900 400L980 560L930 720L1010 860L960 1000L1040 1150L990 1300L1070 1440L1010 1600L1060 1800"/><path class="ua" d="M830 0L900 230L850 400L930 560L880 720L960 860L910 1000L990 1150L940 1300L1020 1440L960 1600L1010 1800"/></svg><div class="ding" style="--x:760px;--y:900px"><span class="saeule ua" style="--h:200px;--d:0.2s"></span></div><div class="ding" style="--x:1060px;--y:860px"><span class="saeule " style="--h:240px;--d:0.5s"></span></div><div class="ding" style="--x:900px;--y:1000px"><span class="saeule w" style="--h:160px;--d:0.8s"></span></div></div></div>
+  <span class="brk a" aria-hidden="true"></span><span class="brk b" aria-hidden="true"></span>
+  <div class="hud" aria-hidden="true">Einträge <b id="fzAnzahl">–</b><br>Stand <b>11/2026</b></div>
+  <div class="sk-titel"><span class="eyebrow"><i></i><span>Plyus · Arsenal</span></span><h1>Fahrzeuge</h1><p>Panzer, Artillerie, Raketenwerfer und Flugabwehr, die im Russland-Ukraine-Krieg eingesetzt werden – mit Reichweite, Herkunft und Nutzerländern.</p></div>
+</section>
+<main class="sk-inhalt fz">
+  <div class="fz-leiste">
+    <input id="fzSuche" type="search" placeholder="Suchen, z. B. Leopard, HIMARS, Deutschland …" aria-label="Fahrzeuge suchen">
+    <div class="fz-chips" id="fzTyp">
+      <button data-t="" class="on">Alle</button><button data-t="panzer">Kampfpanzer</button><button data-t="spz">Schützenpanzer</button><button data-t="tpz">Transport &amp; Spähwagen</button><button data-t="art">Artillerie</button><button data-t="mlrs">Raketenwerfer</button><button data-t="fla">Flugabwehr</button>
+    </div>
+    <div class="fz-chips" id="fzSeite">
+      <button data-s="" class="on">Beide Seiten</button><button data-s="ua"><i class="pk ua"></i>Ukraine</button><button data-s="ru"><i class="pk ru"></i>Russland</button>
+      <span class="fz-sort"><button data-o="name" class="on">A–Z</button><button data-o="km">Reichweite</button></span>
+    </div>
+  </div>
+  <div class="fz-liste" id="fzListe"></div>
+  <div class="sk-text fz-hinweis"><p>Reichweiten sind ungefähre Höchstwerte nach Herstellerangaben und Fachliteratur – im Einsatz hängen sie stark von Munition, Gelände und Wetter sowie von der Zielerfassung ab. „Erbeutet“ heißt: Die Seite setzt Fahrzeuge ein, die sie dem Gegner abgenommen hat. Gezogene Geschütze, Flugzeuge, Schiffe und Drohnen sind hier nicht enthalten.</p>
+  <p>Grundlage: Fotobelegte Verlustlisten von <a href="https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-equipment.html" target="_blank" rel="noopener">Oryx (Russland)</a> und <a href="https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-ukrainian.html" target="_blank" rel="noopener">Oryx (Ukraine)</a>, technische Daten aus Herstellerangaben und Fachquellen wie Wikipedia.</p></div>
+</main>
+<footer class="sk-fuss"><a href="mitwirkende.html">Mitwirkende</a><a href="kontakt.html">Kontakt</a><a href="impressum.html">Impressum</a><a href="https://x.com/plyusmap" target="_blank" rel="noopener">X / Twitter</a><span class="r">© <span id="jahr">2026</span> Plyus</span></footer>
+
+<script>
+(function(){
+  const TYP = {panzer:"Kampfpanzer", spz:"Schützenpanzer", tpz:"Transport & Spähwagen", art:"Artillerie", mlrs:"Raketenwerfer", fla:"Flugabwehr"};
+  const nf = new Intl.NumberFormat("de-DE", {maximumFractionDigits:1});
+  let ALLE = [], typ = "", seite = "", ord = "name", q = "";
+  const esc = s=>String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const skala = km=>Math.max(3, Math.min(100, Math.log10(1 + km)/Math.log10(301)*100));
+  function zeichnen(){
+    const L = ALLE.filter(f=>(!typ || f.typ === typ) && (!seite || f.seite.includes(seite)) &&
+      (!q || (f.n + " " + f.hersteller + " " + f.land + " " + f.nutzer + " " + TYP[f.typ]).toLowerCase().includes(q)));
+    L.sort(ord === "km" ? (a,b)=>b.km - a.km : (a,b)=>a.n.localeCompare(b.n, "de"));
+    document.getElementById("fzListe").innerHTML = L.length ? L.map(f=>{
+      const s = f.seite.length > 1 ? "beide" : f.seite[0];
+      return `<article class="fz-k ${s}">
+        <div class="fz-kopf"><div><h3 data-nolang>${esc(f.n)}</h3><div class="fz-typ">${TYP[f.typ]}</div></div>
+          <div class="fz-seite">${f.seite.includes("ua") ? '<span class="ua">UA</span>' : ""}${f.seite.includes("ru") ? '<span class="ru">RU</span>' : ""}</div></div>
+        <div class="fz-rw"><b>bis ${nf.format(f.km)} km</b><div class="fz-balken"><i style="width:${skala(f.km).toFixed(1)}%"></i></div><small>${esc(f.reichweite)}</small></div>
+        <dl><dt>Herkunft</dt><dd>${esc(f.land)}</dd><dt>Hersteller</dt><dd>${esc(f.hersteller)}</dd><dt>Nutzer</dt><dd>${esc(f.nutzer)}</dd></dl>
+        ${f.info ? `<p class="fz-info">${esc(f.info)}</p>` : ""}
+      </article>`; }).join("") : '<div class="fz-leer">Nichts gefunden.</div>';
+    document.getElementById("fzAnzahl").textContent = L.length + " / " + ALLE.length;
+  }
+  const chips = (id, attr, set)=>document.getElementById(id).addEventListener("click", e=>{ const b = e.target.closest("button"); if(!b || b.dataset[attr] == null) return;
+    b.parentElement.querySelectorAll("button").forEach(x=>x.classList.toggle("on", x === b)); set(b.dataset[attr]); zeichnen(); });
+  chips("fzTyp", "t", v=>typ = v); chips("fzSeite", "s", v=>seite = v);
+  document.querySelector(".fz-sort").addEventListener("click", e=>{ const b = e.target.closest("button"); if(!b) return; e.stopPropagation();
+    b.parentElement.querySelectorAll("button").forEach(x=>x.classList.toggle("on", x === b)); ord = b.dataset.o; zeichnen(); }, true);
+  document.getElementById("fzSuche").addEventListener("input", e=>{ q = e.target.value.trim().toLowerCase(); zeichnen(); });
+  fetch("daten/fahrzeuge.json?v=202611231301").then(r=>r.json()).then(d=>{ ALLE = d.fahrzeuge; zeichnen(); })
+    .catch(()=>{ document.getElementById("fzListe").innerHTML = '<div class="fz-leer">Liste konnte nicht geladen werden.</div>'; });
+})();
+</script>
+<script src="seiten.js?v=202611231301"></script>
+</body>
+</html>

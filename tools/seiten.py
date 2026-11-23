@@ -13,6 +13,7 @@ NAV = '''  <nav>
     <a href="blog.html">Blog</a>
     <span class="aus">Telegram<em>folgt</em></span>
     <a href="https://x.com/plyusmap" target="_blank" rel="noopener">Twitter<em data-nolang>@plyusmap</em></a>
+    <a href="fahrzeuge.html">Fahrzeuge</a>
     <a href="mitwirkende.html">Mitwirkende</a>
     <a href="kontakt.html">Kontakt</a>
     <a href="impressum.html">Impressum</a>
