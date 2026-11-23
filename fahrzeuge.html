@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <title>Fahrzeuge · Plyus</title>
-<meta name="description" content="Fahrzeuge im Russland-Ukraine-Krieg: Kategorien, Reichweite, Herkunft, Varianten und Geberländer der Ukraine.">
+<meta name="description" content="Alle Bodenfahrzeuge im Russland-Ukraine-Krieg: Kategorien, Reichweite, Herkunft, Varianten und Geberländer der Ukraine.">
 <link rel="icon" type="image/png" href="bild/favicon.png?v=2">
 <link rel="apple-touch-icon" href="bild/icon-180.png?v=2">
-<link rel="stylesheet" href="style.css?v=202611231904">
-<link rel="stylesheet" href="seiten.css?v=202611231904">
-<script src="lang.js?v=202611231904" defer></script>
+<link rel="stylesheet" href="style.css?v=202611231943">
+<link rel="stylesheet" href="seiten.css?v=202611231943">
+<script src="lang.js?v=202611231943" defer></script>
 <style>
 .fz-leiste{position:sticky;top:0;z-index:5;display:flex;flex-direction:column;gap:12px;padding:14px 0 16px;margin-bottom:18px;background:linear-gradient(#000 80%,rgba(0,0,0,0))}
 #fzSuche{width:100%;padding:14px 18px;border:1px solid rgba(255,255,255,.18);border-radius:999px!important;background:#0b0b0b;color:#fff;font:inherit;font-size:16px;outline:none}
@@ -78,8 +78,8 @@
 <section class="sk-held">
   <div class="sk-szene" aria-hidden="true"><div class="sk-boden" style="--rz:-10deg"><div class="sk-gitter"></div><svg class="front" viewBox="0 0 1800 1800"><path class="zone-r" d="M1800 0V1800H1060L1010 1600L1070 1440L990 1300L1040 1150L960 1000L1010 860L930 720L980 560L900 400L950 230L880 0Z"/><path class="zone-b" d="M0 0H830L900 230L850 400L930 560L880 720L960 860L910 1000L990 1150L940 1300L1020 1440L960 1600L1010 1800H0Z"/><path d="M880 0L950 230L900 400L980 560L930 720L1010 860L960 1000L1040 1150L990 1300L1070 1440L1010 1600L1060 1800"/><path class="ua" d="M830 0L900 230L850 400L930 560L880 720L960 860L910 1000L990 1150L940 1300L1020 1440L960 1600L1010 1800"/></svg><div class="ding" style="--x:760px;--y:900px"><span class="saeule ua" style="--h:200px;--d:0.2s"></span></div><div class="ding" style="--x:1060px;--y:860px"><span class="saeule " style="--h:240px;--d:0.5s"></span></div><div class="ding" style="--x:900px;--y:1000px"><span class="saeule w" style="--h:160px;--d:0.8s"></span></div></div></div>
   <span class="brk a" aria-hidden="true"></span><span class="brk b" aria-hidden="true"></span>
-  <div class="hud" aria-hidden="true">Einträge <b id="fzAnzahl">–</b><br>Stand <b>11/2026</b></div>
-  <div class="sk-titel"><span class="eyebrow"><i></i><span>Plyus · Arsenal</span></span><h1>Fahrzeuge</h1><p>Alle Fahrzeugtypen, die im Russland-Ukraine-Krieg nachweislich eingesetzt werden – vom Kampfpanzer bis zum Brückenleger, mit Reichweite, Herkunft, Varianten und den Ländern, die sie der Ukraine geliefert haben.</p></div>
+  <div class="hud" aria-hidden="true">Einträge <b id="fzAnzahl">–</b><br>Typen &amp; Varianten <b id="fzVar">–</b><br>Stand <b>11/2026</b></div>
+  <div class="sk-titel"><span class="eyebrow"><i></i><span>Plyus · Arsenal</span></span><h1>Fahrzeuge</h1><p>Alle Bodenfahrzeuge, die im Russland-Ukraine-Krieg eingesetzt werden – vom Kampfpanzer über Lkw und Pick-ups bis zum Bodenroboter, mit Reichweite, Herkunft, Varianten und den Ländern, die sie der Ukraine geliefert haben.</p></div>
 </section>
 <main class="sk-inhalt fz">
   <div class="fz-leiste">
@@ -93,8 +93,8 @@
     </div>
   </div>
   <div class="fz-liste" id="fzListe"></div>
-  <div class="sk-text fz-hinweis"><p>Reichweiten sind ungefähre Höchstwerte nach Herstellerangaben und Fachliteratur – im Einsatz hängen sie stark von Munition, Gelände und Wetter sowie von der Zielerfassung ab. „Erbeutet“ heißt: Die Seite setzt Fahrzeuge ein, die sie dem Gegner abgenommen hat. „Geliefert von“ nennt die Staaten, die der Ukraine diesen Typ abgegeben oder bezahlt haben („finanziert“). Lkw, Flugzeuge, Hubschrauber, Schiffe und Drohnen sind hier nicht enthalten.</p>
-  <p>Grundlage: Fotobelegte Verlustlisten und die Lieferliste „<a href="https://www.oryxspioenkop.com/2022/04/answering-call-heavy-weaponry-supplied.html" target="_blank" rel="noopener">Answering the Call</a>“ von <a href="https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-equipment.html" target="_blank" rel="noopener">Oryx (Russland)</a> und <a href="https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-ukrainian.html" target="_blank" rel="noopener">Oryx (Ukraine)</a>, technische Daten aus Herstellerangaben und Fachquellen wie Wikipedia.</p></div>
+  <div class="sk-text fz-hinweis"><p>Reichweiten sind ungefähre Höchstwerte nach Herstellerangaben und Fachliteratur – im Einsatz hängen sie stark von Munition, Gelände und Wetter sowie von der Zielerfassung ab. „Erbeutet“ heißt: Die Seite setzt Fahrzeuge ein, die sie dem Gegner abgenommen hat. „Geliefert von“ nennt die Staaten, die der Ukraine diesen Typ abgegeben oder bezahlt haben („finanziert“). Steht bei einem Eintrag „gemeldet“, gibt es dafür keinen Fotobeleg von der Front. Flugzeuge, Hubschrauber, Schiffe und Flugdrohnen sind hier nicht enthalten.</p>
+  <p>Grundlage: Fotobelegte Verlustlisten und die Lieferliste „<a href="https://www.oryxspioenkop.com/2022/04/answering-call-heavy-weaponry-supplied.html" target="_blank" rel="noopener">Answering the Call</a>“ von <a href="https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-equipment.html" target="_blank" rel="noopener">Oryx (Russland)</a> und <a href="https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-ukrainian.html" target="_blank" rel="noopener">Oryx (Ukraine)</a>, die <a href="https://en.wikipedia.org/wiki/List_of_military_aid_to_Ukraine_during_the_Russo-Ukrainian_war" target="_blank" rel="noopener">Wikipedia-Liste der Militärhilfe</a>, die <a href="https://www.bundesregierung.de/breg-de/themen/krieg-in-der-ukraine/lieferungen-ukraine-2054514" target="_blank" rel="noopener">Lieferliste der Bundesregierung</a> und die Ausrüstungslisten der <a href="https://en.wikipedia.org/wiki/List_of_equipment_of_the_Armed_Forces_of_Ukraine" target="_blank" rel="noopener">ukrainischen</a> und <a href="https://en.wikipedia.org/wiki/List_of_equipment_of_the_Russian_Ground_Forces" target="_blank" rel="noopener">russischen</a> Streitkräfte; technische Daten aus Herstellerangaben und Fachquellen.</p></div>
 </main>
 <footer class="sk-fuss"><a href="mitwirkende.html">Mitwirkende</a><a href="kontakt.html">Kontakt</a><a href="impressum.html">Impressum</a><a href="https://x.com/plyusmap" target="_blank" rel="noopener">X / Twitter</a><span class="r">© <span id="jahr">2026</span> Plyus</span></footer>
 
@@ -108,7 +108,7 @@
   const label = f=>D.typen[f.typ].l;
   const passt = f=>(!gruppe || D.typen[f.typ].g === gruppe) && (!typ || f.typ === typ) && (!seite || f.seite.includes(seite)) &&
     (!geber || (f.geber || []).some(g=>land(g) === geber)) &&
-    (!q || [f.n, f.hersteller, f.land, f.nutzer, label(f), f.var || "", (f.geber || []).join(" ")].join(" ").toLowerCase().includes(q));
+    (!q || [f.n, f.hersteller, f.land, f.nutzer, label(f), f.var || "", f.a || "", (f.geber || []).join(" ")].join(" ").toLowerCase().includes(q));
   const knopf = (attr, v, text, n, an)=>`<button data-${attr}="${v}"${an ? ' class="on"' : ""}>${text}${n != null ? ` <small>${n}</small>` : ""}</button>`;
   function chipsBauen(){
     const zahl = k=>ALLE.filter(f=>D.typen[f.typ].g === k).length;
@@ -127,7 +127,7 @@
       return `<article class="fz-k ${s}">
         <div class="fz-kopf"><div><h3 data-nolang>${esc(f.n)}</h3><div class="fz-typ">${esc(label(f))}</div></div>
           <div class="fz-seite">${f.seite.includes("ua") ? '<span class="ua">UA</span>' : ""}${f.seite.includes("ru") ? '<span class="ru">RU</span>' : ""}</div></div>
-        <div class="fz-rw${f.km ? "" : " leer"}"><b>${f.km ? "bis " + nf.format(f.km) + " km" : "Keine Fernwaffe"}</b>${f.km ? `<div class="fz-balken"><i style="width:${skala(f.km).toFixed(1)}%"></i></div>` : ""}<small>${esc(f.reichweite)}</small></div>
+        ${f.km ? `<div class="fz-rw"><b>bis ${nf.format(f.km)} km</b><div class="fz-balken"><i style="width:${skala(f.km).toFixed(1)}%"></i></div><small>${esc(f.reichweite)}</small></div>` : `<div class="fz-rw leer"><b>${esc(f.reichweite)}</b></div>`}
         <dl><dt>Herkunft</dt><dd>${esc(f.land)}</dd><dt>Hersteller</dt><dd>${esc(f.hersteller)}</dd><dt>Nutzer</dt><dd>${esc(f.nutzer)}</dd>
           ${f.geber ? `<dt>Geliefert von</dt><dd class="fz-geber">${f.geber.map(g=>`<span>${esc(g)}</span>`).join("")}</dd>` : ""}
           ${f.var ? `<dt>Varianten</dt><dd class="fz-var" data-nolang>${esc(f.var)}</dd>` : ""}</dl>
@@ -147,13 +147,14 @@
   const sel = document.getElementById("fzGeber");
   sel.addEventListener("change", ()=>{ geber = sel.value; sel.classList.toggle("on", !!geber); zeichnen(); });
   document.getElementById("fzSuche").addEventListener("input", e=>{ q = e.target.value.trim().toLowerCase(); zeichnen(); });
-  fetch("daten/fahrzeuge.json?v=202611231904").then(r=>r.json()).then(d=>{ D = d; ALLE = d.fahrzeuge;
+  fetch("daten/fahrzeuge.json?v=202611231943").then(r=>r.json()).then(d=>{ D = d; ALLE = d.fahrzeuge;
     const z = {}; ALLE.forEach(f=>new Set((f.geber || []).map(land)).forEach(g=>z[g] = (z[g] || 0) + 1));
     sel.insertAdjacentHTML("beforeend", Object.keys(z).sort((a,b)=>a.localeCompare(b, "de")).map(g=>`<option value="${esc(g)}">${esc(g)} (${z[g]})</option>`).join(""));
+    document.getElementById("fzVar").textContent = nf.format(ALLE.reduce((n, f)=>n + (f.var ? f.var.split(", ").length : 1), 0));
     chipsBauen(); zeichnen(); })
     .catch(()=>{ document.getElementById("fzListe").innerHTML = '<div class="fz-leer">Liste konnte nicht geladen werden.</div>'; });
 })();
 </script>
-<script src="seiten.js?v=202611231904"></script>
+<script src="seiten.js?v=202611231943"></script>
 </body>
 </html>

@@ -154,7 +154,7 @@ function init(map, opts){
   const fzEsc = t=>String(t).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   function fzLaden(){ if(fzAlle) return Promise.resolve(fzAlle);
     return fetch("daten/fahrzeuge.json").then(r=>r.json())
-      .then(d=>fzAlle = d.fahrzeuge.filter(f=>f.km > 0).map(f=>Object.assign({such:[f.n, f.land, d.typen[f.typ].l, f.var || "", (f.geber || []).join(" ")].join(" ").toLowerCase()}, f)))
+      .then(d=>fzAlle = d.fahrzeuge.filter(f=>f.km > 0).map(f=>Object.assign({such:[f.n, f.land, d.typen[f.typ].l, f.var || "", f.a || "", (f.geber || []).join(" ")].join(" ").toLowerCase()}, f)))
       .catch(()=>fzAlle = []); }
   function fzTreffer(){ const q = fzQ.toLowerCase();
     return (fzAlle||[]).filter(f=>!q || f.such.includes(q)).sort((a,b)=>b.km - a.km).slice(0, 40); }
