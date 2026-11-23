@@ -47,6 +47,67 @@ function polygone(f){ const g = f.geometry; if(!g) return []; if(g.type==="Polyg
 function drin(px, py, ring){ let c = false; for(let i=0, j=ring.length-1; i<ring.length; j=i++){ const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
   if(((yi > py) !== (yj > py)) && (px < (xj - xi)*(py - yi)/(yj - yi) + xi)) c = !c; } return c; }
 
+
+/* --- Gebäude direkt aus den OpenFreeMap-Vektorkacheln (Zoom 14 = alle Häuser, unabhängig von der Ansicht, kostenlos) --- */
+let ofmVorlage = null; const mvtCache = new Map();
+function pbfLeser(buf){
+  let p = 0;
+  const v = ()=>{ let r = 0, s = 1, b; do { b = buf[p++]; r += (b & 0x7f)*s; s *= 128; } while(b & 0x80); return r; };
+  return { get pos(){ return p; }, set pos(x){ p = x; }, v, ende:()=>p >= buf.length,
+    feld(){ const k = v(); return [k >> 3, k & 7]; },
+    skip(t){ if(t === 0) v(); else if(t === 1) p += 8; else if(t === 2){ const l = v(); p += l; } else if(t === 5) p += 4; },
+    bytes(){ const l = v(); const a = buf.subarray(p, p + l); p += l; return a; } };
+}
+const td = new TextDecoder();
+function wert(b){ const r = pbfLeser(b); let w = null; const dv = new DataView(b.buffer, b.byteOffset, b.byteLength);
+  while(!r.ende()){ const [f, t] = r.feld();
+    if(f === 1) w = td.decode(r.bytes()); else if(f === 2){ w = dv.getFloat32(r.pos, true); r.pos += 4; } else if(f === 3){ w = dv.getFloat64(r.pos, true); r.pos += 8; }
+    else if(f === 4 || f === 5) w = r.v(); else if(f === 6){ const z = r.v(); w = (z % 2) ? -(z + 1)/2 : z/2; } else if(f === 7) w = !!r.v(); else r.skip(t); }
+  return w; }
+function gebaeudeAusKachel(buf, z, tx, ty){
+  const out = [], T = pbfLeser(buf);
+  while(!T.ende()){ const [f, t] = T.feld(); if(f !== 3){ T.skip(t); continue; }
+    const L = pbfLeser(T.bytes()); let name = "", ext = 4096; const keys = [], vals = [], feats = [];
+    while(!L.ende()){ const [g, u] = L.feld();
+      if(g === 1) name = td.decode(L.bytes()); else if(g === 2) feats.push(L.bytes()); else if(g === 3) keys.push(td.decode(L.bytes()));
+      else if(g === 4) vals.push(wert(L.bytes())); else if(g === 5) ext = L.v(); else L.skip(u); }
+    if(name !== "building") continue;
+    const n = 2**z;
+    const ll = (px, py)=>{ const X = (tx + px/ext)/n, Y = (ty + py/ext)/n; return [X*360 - 180, Math.atan(Math.sinh(Math.PI*(1 - 2*Y)))*180/Math.PI]; };
+    for(const fb of feats){ const F = pbfLeser(fb); let tags = [], geom = [], typ = 0;
+      while(!F.ende()){ const [g, u] = F.feld();
+        if(g === 2){ const l = F.v(), e = F.pos + l; while(F.pos < e) tags.push(F.v()); }
+        else if(g === 3) typ = F.v();
+        else if(g === 4){ const l = F.v(), e = F.pos + l; while(F.pos < e) geom.push(F.v()); }
+        else F.skip(u); }
+      if(typ !== 3) continue;
+      const props = {}; for(let i=0;i+1<tags.length;i+=2) props[keys[tags[i]]] = vals[tags[i+1]];
+      const ringe = []; let x = 0, y = 0, i = 0, ring = null;
+      while(i < geom.length){ const c = geom[i++], cmd = c & 7, cnt = c >> 3;
+        if(cmd === 1 || cmd === 2){ for(let k=0;k<cnt;k++){ const dx = geom[i++], dy = geom[i++]; x += (dx >> 1) ^ (-(dx & 1)); y += (dy >> 1) ^ (-(dy & 1));
+            if(cmd === 1){ ring = [[x, y]]; ringe.push(ring); } else ring.push([x, y]); } }
+        else if(cmd === 7 && ring){ ring.push(ring[0]); } }
+      /* Außenringe (positive Fläche in Kachelkoordinaten) */
+      const fl = ringe.map(r=>{ let a = 0; for(let k=0;k+1<r.length;k++) a += r[k][0]*r[k+1][1] - r[k+1][0]*r[k][1]; return a; });
+      const aussen = fl.some(a=>a > 0) ? (a=>a > 0) : (a=>a < 0);   /* falls die Drehrichtung andersherum kodiert ist */
+      ringe.forEach((r, k)=>{ if(aussen(fl[k]) && r.length > 3) out.push({properties:props, geometry:{type:"Polygon", coordinates:[r.map(q=>ll(q[0], q[1]))]}}); });
+    }
+  }
+  return out;
+}
+async function hausKacheln(lon0, lat0, R, mx, my){
+  if(!ofmVorlage){ const tj = await (await fetch("https://tiles.openfreemap.org/planet")).json(); ofmVorlage = tj.tiles[0]; }
+  const z = 14, [x1, y1] = kachel(lon0 - R/mx, lat0 + R/my, z), [x2, y2] = kachel(lon0 + R/mx, lat0 - R/my, z), jobs = [];
+  for(let x=Math.floor(x1); x<=Math.floor(x2); x++) for(let y=Math.floor(y1); y<=Math.floor(y2); y++){
+    const k = x+"/"+y;
+    if(!mvtCache.has(k)) mvtCache.set(k, fetch(ofmVorlage.replace("{z}", z).replace("{x}", x).replace("{y}", y))
+      .then(r=>{ if(!r.ok) throw new Error("Kachel " + r.status); return r.arrayBuffer(); }).then(b=>gebaeudeAusKachel(new Uint8Array(b), z, x, y))
+      .catch(e=>{ mvtCache.delete(k); throw e; }));
+    jobs.push(mvtCache.get(k));
+  }
+  return (await Promise.all(jobs)).flat();
+}
+
 async function berechne(map, ll, opt){
   opt = opt || {};
   const R = opt.radius || 1000, zelle = Math.max(2.5, R/250), N = Math.round(2*R/zelle);
@@ -54,8 +115,9 @@ async function berechne(map, ll, opt){
   const toXY = (lon, lat)=>[(lon - lon0)*mx, (lat - lat0)*my], geo = (x, y)=>[lon0 + x/mx, lat0 + y/my];
 
   /* 1. Häuser: Grundriss in Metern, Höhe, Winkelbereich vom Beobachter aus */
-  const src = opt.quelle || gebaeudeQuelle(map);
-  const feats = src ? map.querySourceFeatures(src, {sourceLayer:"building"}) : [];
+  let feats = [];
+  try{ feats = await hausKacheln(lon0, lat0, R, mx, my); }catch(e){ console.warn("Sichtfeld: Gebäudekacheln", e); }
+  if(!feats.length){ const src = opt.quelle || gebaeudeQuelle(map); feats = src ? map.querySourceFeatures(src, {sourceLayer:"building"}) : []; }
   const haeuser = [], seen = new Set(), BINS = 1440, bins = Array.from({length:BINS}, ()=>[]);
   let beob = -1, beobD = Infinity;
   for(const f of feats){
@@ -82,11 +144,18 @@ async function berechne(map, ll, opt){
   }
   /* 2. Höhenmodell als feines Gitter */
   const dem = await hoehenGitter(lon0, lat0, R, zelle, N, mx, my);
+  /* Höhenmodell leicht glätten: Messrauschen von 1–2 m würde sonst auf freiem Feld die Sicht unnötig abschneiden */
+  { const r = Math.max(1, Math.round(9/zelle)), tmp = new Float32Array(N*N);
+    for(let pass=0; pass<2; pass++){
+      for(let j=0;j<N;j++){ let s = 0, n = 0; for(let i=-r;i<=r;i++){ if(i>=0 && i<N){ s += dem[j*N+i]; n++; } }
+        for(let i=0;i<N;i++){ tmp[j*N+i] = s/n; const a = i - r, b = i + r + 1; if(a >= 0){ s -= dem[j*N+a]; n--; } if(b < N){ s += dem[j*N+b]; n++; } } }
+      for(let i=0;i<N;i++){ let s = 0, n = 0; for(let j=-r;j<=r;j++){ if(j>=0 && j<N){ s += tmp[j*N+i]; n++; } }
+        for(let j=0;j<N;j++){ dem[j*N+i] = s/n; const a = j - r, b = j + r + 1; if(a >= 0){ s -= tmp[a*N+i]; n--; } if(b < N){ s += tmp[b*N+i]; n++; } } } } }
   const gelaende = (x, y)=>{ const fi = (x + R)/zelle - 0.5, fj = (R - y)/zelle - 0.5;
     const i = Math.max(0, Math.min(N-2, Math.floor(fi))), j = Math.max(0, Math.min(N-2, Math.floor(fj))), u = Math.min(1, Math.max(0, fi - i)), v = Math.min(1, Math.max(0, fj - j));
     return (dem[j*N+i]*(1-u) + dem[j*N+i+1]*u)*(1-v) + (dem[(j+1)*N+i]*(1-u) + dem[(j+1)*N+i+1]*u)*v; };
   const hausH = beob >= 0 ? haeuser[beob].h : (opt.hoehe || 0);
-  const z0 = gelaende(0, 0) + hausH + AUGE;
+  const extra = +opt.extra || 0, z0 = gelaende(0, 0) + hausH + AUGE + extra;
 
   /* 3. Sichtstrahlen: exakte Schnittpunkte mit den Hauswänden + Gelände alle paar Meter */
   const STR = R <= 600 ? 2880 : 3600, schritt = Math.max(1.5, R/450), dw = 2*Math.PI/STR;
@@ -143,11 +212,11 @@ async function berechne(map, ll, opt){
   /* Sicht und Schatten als ein Bild in hoher Auflösung: ein einziger Pfad, dadurch keine Nähte, gerade Kanten */
   const S = 2048, sk = S/(2*R), cv = document.createElement("canvas"); cv.width = cv.height = S;
   const c = cv.getContext("2d"), X = x=>(x + R)*sk, Y = y=>(R - y)*sk;
-  c.fillStyle = "rgba(40,235,120,0.34)"; c.beginPath(); c.arc(S/2, S/2, S/2, 0, 2*Math.PI); c.fill();
+  c.fillStyle = "rgba(255,255,255,0.3)"; c.beginPath(); c.arc(S/2, S/2, S/2, 0, 2*Math.PI); c.fill();
   c.save(); c.beginPath(); c.arc(S/2, S/2, S/2, 0, 2*Math.PI); c.clip();
   c.beginPath();
   for(const r of flaechen){ c.moveTo(X(r[0][0]), Y(r[0][1])); for(let i=1;i<r.length;i++) c.lineTo(X(r[i][0]), Y(r[i][1])); c.closePath(); }
-  c.globalCompositeOperation = "source-over"; c.fillStyle = "rgba(12,7,24,0.66)";
+  c.globalCompositeOperation = "source-over"; c.fillStyle = "rgba(8,2,6,0.68)";
   /* zuerst ausstanzen, dann dunkel füllen – damit der grüne Ton unter den Schatten nicht durchscheint */
   c.save(); c.globalCompositeOperation = "destination-out"; c.fillStyle = "#000"; c.fill("nonzero"); c.restore(); c.fill("nonzero"); c.restore();
   const F = [{type:"Feature", properties:{k:"kreis"}, geometry:{type:"LineString", coordinates:kreis}}];
@@ -158,7 +227,7 @@ async function berechne(map, ll, opt){
   F.push({type:"Feature", properties:{k:"auge"}, geometry:{type:"Point", coordinates:[lon0, lat0]}});
   if(beob >= 0) F.push({type:"Feature", properties:{k:"haus"}, geometry:{type:"Polygon", coordinates:haeuser[beob].poly}});
   return {bild: cv.toDataURL("image/png"), ecken:[geo(-R, R), geo(R, R), geo(R, -R), geo(-R, -R)], geojson:{type:"FeatureCollection", features:F}, anteil: Math.max(0, 1 - versteckt/(Math.PI*R*R)), blockierer: nBlock,
-    hoehe: hausH, gebaeude: haeuser.length, haus: beob >= 0, radius: R};
+    hoehe: hausH, extra, gebaeude: haeuser.length, haus: beob >= 0, radius: R};
 }
 
 /* --- Auf die Karte legen --- */
@@ -169,10 +238,10 @@ function zeigen(map, r){
   const K = k=>["==",["get","k"],k];
   map.addSource("sicht-bild", {type:"image", url:r.bild, coordinates:r.ecken});
   map.addLayer({id:"sicht-flaeche", type:"raster", source:"sicht-bild", paint:{"raster-opacity":1, "raster-fade-duration":0, "raster-resampling":"linear"}}, vor);
-  map.addLayer({id:"sicht-hweg", type:"fill", source:"sicht", filter:K("hweg"), paint:{"fill-color":"#3a3448","fill-opacity":0.85}}, vor);
-  map.addLayer({id:"sicht-hsicht", type:"fill", source:"sicht", filter:K("hsicht"), paint:{"fill-color":"#2ee87f","fill-opacity":0.85}}, vor);
+  map.addLayer({id:"sicht-hweg", type:"fill", source:"sicht", filter:K("hweg"), paint:{"fill-color":"#26242b","fill-opacity":0.92}}, vor);
+  map.addLayer({id:"sicht-hsicht", type:"fill", source:"sicht", filter:K("hsicht"), paint:{"fill-color":"#ffffff","fill-opacity":0.95}}, vor);
   map.addLayer({id:"sicht-block", type:"fill", source:"sicht", filter:K("block"), paint:{"fill-color":"#ff2d4f","fill-opacity":0.9}}, vor);
-  map.addLayer({id:"sicht-block-l", type:"line", source:"sicht", filter:["in",["get","k"],["literal",["block","hsicht"]]], paint:{"line-color":"#ffffff","line-width":0.8}}, vor);
+  map.addLayer({id:"sicht-block-l", type:"line", source:"sicht", filter:["in",["get","k"],["literal",["block","hsicht"]]], paint:{"line-color":["case",["==",["get","k"],"block"],"#ffffff","#ff2d4f"],"line-width":0.8}}, vor);
   map.addLayer({id:"sicht-haus", type:"fill", source:"sicht", filter:K("haus"), paint:{"fill-color":"#18e0ff","fill-opacity":0.95}}, vor);
   map.addLayer({id:"sicht-kreis", type:"line", source:"sicht", filter:K("kreis"), paint:{"line-color":"#ffffff","line-width":2,"line-dasharray":[3,2]}});
   map.addLayer({id:"sicht-auge", type:"circle", source:"sicht", filter:K("auge"), paint:{"circle-radius":6,"circle-color":"#18e0ff","circle-stroke-color":"#000","circle-stroke-width":2}});

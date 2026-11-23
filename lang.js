@@ -65,6 +65,8 @@
     "verdeckt":"hidden",
     "blockiert":"blocking",
     "Standort":"Position",
+    "Höhe":"Height",
+    "Dach":"Roof",
     "Haus sichtbar":"building visible",
     "Haus verdeckt":"building hidden",
     "blockiert die Sicht":"blocks the view",

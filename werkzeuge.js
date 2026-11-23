@@ -68,13 +68,13 @@ const HINT = {
   punkt: "Einen Punkt auf der Karte antippen.",
   sicht: "Ein Haus antippen – dann siehst du, was man von dort oben sehen kann."
 };
-const SICHT_R = [300, 500, 1000, 2000], STD_H = 8;
+const SICHT_R = [300, 500, 1000, 2000], SICHT_H = [0, 10, 30, 100], STD_H = 8;
 const RANGES = [5, 10, 20, 40, 70, 150, 300];
 
 function init(map, opts){
   opts = opts || {};
   let tool = null, pts = [], hover = null, radiusKm = null, done = [], labels = [], live = null;
-  let sichtR = 1000, sichtRes = null, sichtLauf = 0, sichtInfo = null, sichtPunkt = null;
+  let sichtR = 1000, sichtH = 0, sichtRes = null, sichtLauf = 0, sichtInfo = null, sichtPunkt = null;
   const root = document.createElement("div");
   root.className = "wz";
   root.innerHTML = `<div class="wz-rail" role="toolbar" aria-label="Werkzeuge">
@@ -149,18 +149,19 @@ function init(map, opts){
   /* Anzeige */
   const pct = v=>nf0.format(Math.round(v*100)) + " %";
   function sichtBox(){
-    const rk = `<div class="wz-ranges">${SICHT_R.map(r=>`<button data-sr="${r}" class="${sichtR===r?"on":""}">${r < 1000 ? r + " m" : r/1000 + " km"}</button>`).join("")}</div>`;
+    const rk = `<div class="wz-ranges"><span class="wz-lab">Radius</span>${SICHT_R.map(r=>`<button data-sr="${r}" class="${sichtR===r?"on":""}">${r < 1000 ? r + " m" : r/1000 + " km"}</button>`).join("")}</div>
+      <div class="wz-ranges"><span class="wz-lab">Höhe</span>${SICHT_H.map(h=>`<button data-sh="${h}" class="${sichtH===h?"on":""}">${h ? "+" + h + " m" : "Dach"}</button>`).join("")}</div>`;
     let big = "–", sub = "", hint = HINT.sicht;
     if(sichtInfo === "laeuft"){ big = "Berechne …"; hint = ""; }
     else if(typeof sichtInfo === "string"){ big = "Fehler"; sub = sichtInfo; hint = ""; }
     else if(sichtRes){ const r = sichtRes;
       big = pct(r.anteil) + " sichtbar"; hint = "";
-      sub = `${r.haus ? "Vom Dach aus, Augenhöhe " + nf0.format(r.hoehe + 1.6) + " m" : "Kein Haus getroffen – Sicht vom Boden aus"} · Radius ${fmtKm(r.radius/1000)} · ${r.blockierer} ${r.blockierer === 1 ? "Haus verdeckt" : "Häuser verdecken"} die Sicht`;
+      sub = `${r.haus ? "Vom Dach aus, Augenhöhe " + nf0.format(r.hoehe + 1.6 + r.extra) + " m über Grund" : "Kein Haus getroffen – Sicht vom Boden aus, Augenhöhe " + nf0.format(1.6 + r.extra) + " m"} · Radius ${fmtKm(r.radius/1000)} · ${r.blockierer} ${r.blockierer === 1 ? "Haus verdeckt" : "Häuser verdecken"} die Sicht`;
       if(!r.gebaeude) sub += " · Keine Häuser in den Kartendaten gefunden";
     }
     box.innerHTML = `<div class="wz-h"><span class="eyebrow">${NAMES.sicht}</span><button class="wz-x" data-x="close" aria-label="Werkzeug schließen">✕</button></div>
       <div class="wz-big">${big}</div>${sub ? `<div class="wz-sub">${sub}</div>` : ""}${rk}
-      <div class="wz-leg"><span><i style="background:#28eb78"></i>sichtbar</span><span><i style="background:#1a1426"></i>verdeckt</span><span><i style="background:#2ee87f"></i>Haus sichtbar</span><span><i style="background:#3a3448"></i>Haus verdeckt</span><span><i style="background:#ff2d4f"></i>blockiert die Sicht</span><span><i style="background:#18e0ff"></i>Standort</span></div>
+      <div class="wz-leg"><span><i style="background:rgba(255,255,255,.55)"></i>sichtbar</span><span><i style="background:#120a10"></i>verdeckt</span><span><i style="background:#ffffff"></i>Haus sichtbar</span><span><i style="background:#26242b"></i>Haus verdeckt</span><span><i style="background:#ff2d4f"></i>blockiert die Sicht</span><span><i style="background:#18e0ff"></i>Standort</span></div>
       ${hint ? `<div class="wz-hint">${hint}</div>` : ""}
       ${sichtRes ? "" : `<div class="wz-hint">Häuser ohne Höhenangabe in den Kartendaten werden mit ${STD_H} m gerechnet. Bäume werden nicht berücksichtigt.</div>`}`;
   }
@@ -246,6 +247,7 @@ function init(map, opts){
     if(b.dataset.x==="undo"){ if(tool==="radius"){ pts = []; radiusKm = null; } else pts.pop(); refresh(true); }
     if(b.dataset.r) setRadius(+b.dataset.r);
     if(b.dataset.sr){ sichtR = +b.dataset.sr; if(sichtPunkt) sichtRechnen(sichtPunkt); else readout(); }
+    if(b.dataset.sh != null){ sichtH = +b.dataset.sh; if(sichtPunkt) sichtRechnen(sichtPunkt); else readout(); }
     if(b.dataset.copy != null){ const v = b.dataset.copy;
       (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(()=>{ b.textContent = "Kopiert"; setTimeout(()=>b.textContent = "Kopieren", 1400); })
         .catch(()=>{ b.textContent = "Nicht möglich"; }); }
@@ -287,7 +289,7 @@ function init(map, opts){
       map.fitBounds([[b[0], b[1]], [b[2], b[3]]], {padding:{top:oben, bottom:110, left:20, right:70}, maxZoom:16, duration:700});
       await new Promise(r=>setTimeout(r, 750)); await warteIdle();
       if(map.getZoom() < 13){ map.easeTo({center:ll, zoom:13, duration:400}); await new Promise(r=>setTimeout(r, 450)); await warteIdle(); }
-      const r = await Sicht.berechne(map, ll, {radius:sichtR, quelle:q});
+      const r = await Sicht.berechne(map, ll, {radius:sichtR, quelle:q, extra:sichtH});
       if(lauf !== sichtLauf) return;
       sichtRes = r; sichtInfo = null; Sicht.zeigen(map, r);
       if(innerWidth < 700) map.easeTo({center:ll, offset:[0, map.getContainer().clientHeight*0.17], duration:500});
