@@ -3,16 +3,13 @@
 "use strict";
 
 const MAPTILER_KEY = "4TDQhzPsZwABTFDNshhB";
-const MAPTILER_KEY2 = "H4qj8sTsBEDzkjdlj2cO";   /* zweiter Schlüssel, für den Stil „Schlicht“ (MapTiler Backdrop) */
 const MT = n => `https://api.maptiler.com/maps/${n}/style.json?key=${MAPTILER_KEY}`;
 const STYLES = {
   sat:  {name:"Satellit", url:MT("hybrid-v4"), theme:"sat"},
   karte:{name:"Karte",    url:()=>hellStyle(), theme:null, own:true},
   topo: {name:"Gelände",  url:()=>hellStyle(true), theme:null, own:true},
   hoehe:{name:"Topo", url:()=>topoStyle(), theme:null, own:true},
-  hell: {name:"Hell",    url:"https://tiles.openfreemap.org/styles/positron", theme:null, own:true},
-  dunkel:{name:"Dunkel", url:"https://tiles.openfreemap.org/styles/dark", theme:null, own:true},
-  schlicht:{name:"Schlicht", url:`https://api.maptiler.com/maps/backdrop-v4/style.json?key=${MAPTILER_KEY2}`, theme:null}
+  mix:  {name:"Mix",     url:()=>mixStyle(), theme:null, own:true}
 };
 const STYLE_FREE = "https://tiles.openfreemap.org/styles/liberty";
 
@@ -163,6 +160,23 @@ function aus3D(map){
   try{ map.setTerrain(null); }catch(e){}
   ["gebaeude-3d","gebaeude-2d"].forEach(id=>{ if(map.getLayer(id)) map.removeLayer(id); });
   if(map.getPitch() > 5) map.easeTo({pitch:0, duration:700});
+}
+
+/* „Mix“: die helle „Karte“ halb durchsichtig über den Satellitenbildern (Esri World Imagery, im freien Kontingent).
+   Straßen, Grenzen und Namen bleiben voll sichtbar, Flächen werden durchsichtig. */
+function mixStyle(){
+  const st = hellStyle(false);
+  const deck = {wood:0.3, grass:0.25, farmland:0.2, sand:0.25, urban:0.42, water:0.55, "water-edge":1, building:0.6, "urban-edge":0.8};
+  for(const l of st.layers){
+    if(l.type === "fill" && deck[l.id] != null) l.paint["fill-opacity"] = deck[l.id];
+    if(l.id === "urban-edge") l.paint["line-opacity"] = deck[l.id];
+  }
+  if(!esriOff && ESRI_KEY){
+    st.sources.mixsat = {type:"raster", tiles:[ESRI_URLS[esriUrl]], tileSize:256, bounds:ESRI_BOUNDS, minzoom:5, maxzoom:19, attribution:ESRI_ATTR};
+    st.layers.splice(1, 0, {id:"mixsat", type:"raster", source:"mixsat", minzoom:5, paint:{"raster-fade-duration":200, "raster-saturation":-0.1}});
+  }
+  st.name = "Plyus Mix";
+  return st;
 }
 
 /* Esri World Imagery: schärfere Satellitenbilder, nur über der Ukraine und erst ab Zoom 7.
