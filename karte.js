@@ -154,7 +154,7 @@ function an3D(map, globe, kamera){
       if(!flach.length) map.addLayer({id:"gebaeude-2d", type:"fill", source:src, "source-layer":"building", minzoom:13,
         paint:{"fill-color": hell ? "#e7b85a" : "#4a4f57", "fill-outline-color": hell ? "#c4923a" : "#6a707a"}}, vor);
       map.addLayer({id:"gebaeude-3d", type:"fill-extrusion", source:src, "source-layer":"building", minzoom:13,
-        paint:{"fill-extrusion-color": hell ? "#e3b45c" : "#5b616b", "fill-extrusion-height":["coalesce",["get","render_height"],8], "fill-extrusion-base":["coalesce",["get","render_min_height"],0], "fill-extrusion-opacity":0.8}}, vor);
+        paint:{"fill-extrusion-color": hell ? ["interpolate",["linear"],["coalesce",["get","render_height"],8],0,"#f6f1e8",30,"#e9e2f2",80,"#c9c2e0"] : ["interpolate",["linear"],["coalesce",["get","render_height"],8],0,"#9aa1ab",40,"#c3c9d2"], "fill-extrusion-height":["*",1.3,["coalesce",["get","render_height"],8]], "fill-extrusion-base":["coalesce",["get","render_min_height"],0], "fill-extrusion-opacity":0.88, "fill-extrusion-vertical-gradient":true}}, vor);
     }
   }
   if(kamera && map.getPitch() < 30) map.easeTo({pitch:55, duration:900});
