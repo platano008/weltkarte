@@ -263,7 +263,7 @@ function init(map, opts){
     lastClick = now; lastPt = pt;
     /* Doppelklick beendet nur mit Maus; am Handy tippt man oft schnell hintereinander, dort gibt es „Fertig“ */
     if(dbl && !coarse && (tool==="lineal" || tool==="flaeche")){ finish(true); return; }
-    if(tool==="sicht"){ sichtRechnen(ll); return; }
+    if(tool==="sicht"){ const h = hausAmPunkt(e.point, e.lngLat); sichtRechnen(h ? h.mitte : ll, h); return; }
     if(tool==="punkt"){ pts = [ll]; refresh(true); return; }
     if(tool==="radius"){
       if(!pts.length || radiusKm != null){ pts = [ll]; radiusKm = null; }
@@ -272,11 +272,26 @@ function init(map, opts){
     }
     pts.push(ll); hover = null; liveLabel(null); refresh(true);
   });
+  /* Angetipptes Haus finden – auch bei 3D-Häusern (dort zeigt der Klick sonst auf den Boden dahinter) und mit etwas Spielraum am Handy */
+  function hausAmPunkt(pt, ll){
+    let F = [];
+    for(const r of [0, 6, 14]){ try{ F = map.queryRenderedFeatures(r ? [[pt.x - r, pt.y - r], [pt.x + r, pt.y + r]] : pt).filter(f=>f.sourceLayer === "building" && f.geometry && /Polygon/.test(f.geometry.type)); }catch(e){ F = []; } if(F.length) break; }
+    if(!F.length) return null;
+    const ringe = f=>f.geometry.type === "Polygon" ? [f.geometry.coordinates[0]] : f.geometry.coordinates.map(p=>p[0]);
+    const innen = (p, r)=>{ let c = false; for(let i=0, j=r.length-1; i<r.length; j=i++){ if(((r[i][1] > p[1]) !== (r[j][1] > p[1])) && (p[0] < (r[j][0]-r[i][0])*(p[1]-r[i][1])/(r[j][1]-r[i][1]) + r[i][0])) c = !c; } return c; };
+    const p0 = [ll.lng, ll.lat];
+    let best = null, bd = Infinity;
+    for(const f of F) for(const r of ringe(f)){ const m = schwerpunkt(r), d = innen(p0, r) ? -1 : dist(p0, m); if(d < bd){ bd = d; best = {ring:r, mitte:m, h:+(f.properties.render_height || f.properties.height || 0) || 0}; } }
+    return best;
+  }
+  function schwerpunkt(r){ let a = 0, x = 0, y = 0; for(let i=0, j=r.length-1; i<r.length; j=i++){ const c = r[j][0]*r[i][1] - r[i][0]*r[j][1]; a += c; x += (r[j][0] + r[i][0])*c; y += (r[j][1] + r[i][1])*c; }
+    return Math.abs(a) < 1e-14 ? r[0] : [x/(3*a), y/(3*a)]; }
   /* Sichtfeld berechnen: Karte so einstellen, dass der ganze Kreis drin ist (dann sind alle Häuser geladen) */
   function warteIdle(){ return new Promise(res=>{ let fertig = false; const f = ()=>{ if(!fertig){ fertig = true; res(); } }; map.once("idle", f); setTimeout(f, 6000); }); }
-  async function sichtRechnen(ll){
+  let sichtHaus = null;
+  async function sichtRechnen(ll, haus){
     if(!window.Sicht) return;
-    const lauf = ++sichtLauf; sichtPunkt = ll; sichtInfo = "laeuft"; readout();
+    const lauf = ++sichtLauf; sichtPunkt = ll; if(haus !== undefined) sichtHaus = haus; sichtInfo = "laeuft"; readout();
     try{
       let q = Sicht.gebaeudeQuelle(map);
       if(!q && typeof MAPTILER_KEY !== "undefined"){
@@ -289,7 +304,7 @@ function init(map, opts){
       map.fitBounds([[b[0], b[1]], [b[2], b[3]]], {padding:{top:oben, bottom:110, left:20, right:70}, maxZoom:16, duration:700});
       await new Promise(r=>setTimeout(r, 750)); await warteIdle();
       if(map.getZoom() < 13){ map.easeTo({center:ll, zoom:13, duration:400}); await new Promise(r=>setTimeout(r, 450)); await warteIdle(); }
-      const r = await Sicht.berechne(map, ll, {radius:sichtR, quelle:q, extra:sichtH});
+      const r = await Sicht.berechne(map, ll, {radius:sichtR, quelle:q, extra:sichtH, haus:sichtHaus});
       if(lauf !== sichtLauf) return;
       sichtRes = r; sichtInfo = null; Sicht.zeigen(map, r);
       if(innerWidth < 700) map.easeTo({center:ll, offset:[0, map.getContainer().clientHeight*0.17], duration:500});

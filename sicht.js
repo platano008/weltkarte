@@ -4,7 +4,7 @@
    Häuser, die die Sicht blockieren, werden rot markiert. */
 (function(){
 "use strict";
-const DEM_Z = 14, AUGE = 1.6, ZIEL = 1.7, STD_HOEHE = 8;
+const DEM_Z = 14, AUGE = 1.6, ZIEL = 1.7, STD_HOEHE = 8, KRUEMMUNG = 0.87/(2*6371000);   /* Erdkrümmung mit üblicher Lichtbrechung */
 const TERRA = (z,x,y)=>`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${x}/${y}.png`;
 const demCache = new Map();
 
@@ -142,6 +142,13 @@ async function berechne(map, ll, opt){
       for(let b=b1; b<=b2; b++) bins[((b % BINS) + BINS) % BINS].push(idx);
     }
   }
+  /* angetipptes Haus: das Haus nehmen, das den Schwerpunkt enthält – oder das angetippte selbst ergänzen */
+  if(opt.haus && opt.haus.ring){
+    const tr = opt.haus.ring.map(q=>toXY(q[0], q[1]));
+    const hit = haeuser.findIndex(H=>drin(0, 0, H.ring));
+    if(hit >= 0) beob = hit;
+    else { haeuser.push({poly:[opt.haus.ring], ring:tr, h: opt.haus.h || STD_HOEHE, hb:0, sicht:false, block:false}); beob = haeuser.length - 1; }
+  }
   /* 2. Höhenmodell als feines Gitter */
   const dem = await hoehenGitter(lon0, lat0, R, zelle, N, mx, my);
   /* Höhenmodell leicht glätten: Messrauschen von 1–2 m würde sonst auf freiem Feld die Sicht unnötig abschneiden */
@@ -178,7 +185,7 @@ async function berechne(map, ll, opt){
     for(const d of proben){
       while(ivk < iv.length && iv[ivk][1] < d) ivk++;
       let bh = 0, bi = -1; for(let k=ivk; k<iv.length && iv[k][0] <= d; k++) if(d <= iv[k][1] && haeuser[iv[k][2]].h > bh){ bh = haeuser[iv[k][2]].h; bi = iv[k][2]; }
-      const g = gelaende(cx*d, cy*d), oben = g + bh;
+      const g = gelaende(cx*d, cy*d) - d*d*KRUEMMUNG, oben = g + bh;
       const ziel = (bi >= 0 ? oben : g + ZIEL), vis = (ziel - z0)/d >= maxS;
       if(bi >= 0 && vis) haeuser[bi].sicht = true;
       if(!vis){ if(start < 0) start = d; if(blocker >= 0) haeuser[blocker].block = true; }
