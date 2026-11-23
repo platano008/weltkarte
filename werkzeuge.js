@@ -57,24 +57,28 @@ const ICONS = {
   flaeche: '<path d="M4 6l9-3 8 7-4 10H6z"/><circle cx="4" cy="6" r="1.6"/><circle cx="13" cy="3" r="1.6"/><circle cx="21" cy="10" r="1.6"/><circle cx="17" cy="20" r="1.6"/><circle cx="6" cy="20" r="1.6"/>',
   radius: '<circle cx="12" cy="12" r="9"/><path d="M12 12h9"/><circle cx="12" cy="12" r="1.4"/>',
   punkt: '<circle cx="12" cy="12" r="6"/><path d="M12 1v5M12 18v5M1 12h5M18 12h5"/>',
-  weg: '<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/>'
+  weg: '<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/>',
+  sicht: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'
 };
-const NAMES = {lineal:"Lineal", flaeche:"Fläche", radius:"Radius", punkt:"Koordinate"};
+const NAMES = {lineal:"Lineal", flaeche:"Fläche", radius:"Radius", punkt:"Koordinate", sicht:"Sichtfeld"};
 const HINT = {
   lineal: "Auf die Karte tippen, um Punkte zu setzen. Doppelt tippen oder „Fertig“ beendet.",
   flaeche: "Eckpunkte der Fläche antippen. Doppelt tippen oder „Fertig“ schließt sie.",
   radius: "Mittelpunkt antippen, dann den Rand – oder unten einen Radius wählen.",
-  punkt: "Einen Punkt auf der Karte antippen."
+  punkt: "Einen Punkt auf der Karte antippen.",
+  sicht: "Ein Haus antippen – dann siehst du, was man von dort oben sehen kann."
 };
+const SICHT_R = [300, 500, 1000, 2000], STD_H = 8;
 const RANGES = [5, 10, 20, 40, 70, 150, 300];
 
 function init(map, opts){
   opts = opts || {};
   let tool = null, pts = [], hover = null, radiusKm = null, done = [], labels = [], live = null;
+  let sichtR = 1000, sichtRes = null, sichtLauf = 0, sichtInfo = null, sichtPunkt = null;
   const root = document.createElement("div");
   root.className = "wz";
   root.innerHTML = `<div class="wz-rail" role="toolbar" aria-label="Werkzeuge">
-      ${["lineal","flaeche","radius","punkt"].map(k=>`<button data-t="${k}" title="${NAMES[k]}" aria-label="${NAMES[k]}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg></button>`).join("")}
+      ${["lineal","flaeche","radius","punkt","sicht"].map(k=>`<button data-t="${k}" title="${NAMES[k]}" aria-label="${NAMES[k]}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg></button>`).join("")}
       <button data-x="clear" title="Alle Messungen löschen" aria-label="Alle Messungen löschen" class="wz-clear"><svg viewBox="0 0 24 24">${ICONS.weg}</svg></button>
     </div>
     <div class="wz-box" hidden></div>`;
@@ -94,6 +98,7 @@ function init(map, opts){
       if(!m.getLayer("wz-prev")) m.addLayer({id:"wz-prev", type:"line", source:"wz", filter:["all",["==",["get","k"],"line"],["get","p"]], layout:{"line-join":"round"}, paint:{"line-color":"#ffffff","line-width":2.2,"line-dasharray":[1.5,1.5]}});
       if(!m.getLayer("wz-pt")) m.addLayer({id:"wz-pt", type:"circle", source:"wz", filter:["==",["get","k"],"pt"], paint:{"circle-radius":4.5,"circle-color":"#ffffff","circle-stroke-color":"#000000","circle-stroke-width":2}});
       ["wz-fill","wz-case","wz-line","wz-prev","wz-pt"].forEach(l=>{ try{ m.moveLayer(l); }catch(e){} });
+      if(sichtRes && window.Sicht && !m.getLayer("sicht-bild")) Sicht.zeigen(m, sichtRes);
       draw();
     }catch(e){}
   }
@@ -142,9 +147,27 @@ function init(map, opts){
     if(tool && tool!=="punkt") labels = labels.concat(shapeLabels(tool, pts, radiusKm)); }
 
   /* Anzeige */
+  const pct = v=>nf0.format(Math.round(v*100)) + " %";
+  function sichtBox(){
+    const rk = `<div class="wz-ranges">${SICHT_R.map(r=>`<button data-sr="${r}" class="${sichtR===r?"on":""}">${r < 1000 ? r + " m" : r/1000 + " km"}</button>`).join("")}</div>`;
+    let big = "–", sub = "", hint = HINT.sicht;
+    if(sichtInfo === "laeuft"){ big = "Berechne …"; hint = ""; }
+    else if(typeof sichtInfo === "string"){ big = "Fehler"; sub = sichtInfo; hint = ""; }
+    else if(sichtRes){ const r = sichtRes;
+      big = pct(r.anteil) + " sichtbar"; hint = "";
+      sub = `${r.haus ? "Vom Dach aus, Augenhöhe " + nf0.format(r.hoehe + 1.6) + " m" : "Kein Haus getroffen – Sicht vom Boden aus"} · Radius ${fmtKm(r.radius/1000)} · ${r.blockierer} ${r.blockierer === 1 ? "Haus verdeckt" : "Häuser verdecken"} die Sicht`;
+      if(!r.gebaeude) sub += " · Keine Häuser in den Kartendaten gefunden";
+    }
+    box.innerHTML = `<div class="wz-h"><span class="eyebrow">${NAMES.sicht}</span><button class="wz-x" data-x="close" aria-label="Werkzeug schließen">✕</button></div>
+      <div class="wz-big">${big}</div>${sub ? `<div class="wz-sub">${sub}</div>` : ""}${rk}
+      <div class="wz-leg"><span><i style="background:#28eb78"></i>sichtbar</span><span><i style="background:#1a1426"></i>verdeckt</span><span><i style="background:#ff2d4f"></i>blockiert</span><span><i style="background:#18e0ff"></i>Standort</span></div>
+      ${hint ? `<div class="wz-hint">${hint}</div>` : ""}
+      ${sichtRes ? "" : `<div class="wz-hint">Häuser ohne Höhenangabe in den Kartendaten werden mit ${STD_H} m gerechnet. Bäume werden nicht berücksichtigt.</div>`}`;
+  }
   function readout(){
     if(!tool){ box.hidden = true; return; }
     box.hidden = false;
+    if(tool === "sicht"){ sichtBox(); return; }
     const p = hover && tool!=="punkt" && tool!=="radius" ? pts.concat([hover]) : pts;
     let big = "–", sub = "", extra = "";
     if(tool==="lineal"){
@@ -213,7 +236,7 @@ function init(map, opts){
   root.querySelector(".wz-rail").addEventListener("click", e=>{
     const b = e.target.closest("button"); if(!b) return;
     if(b.dataset.t){ if(tool===b.dataset.t) finish(); else start(b.dataset.t); }
-    if(b.dataset.x==="clear"){ done = []; pts = []; radiusKm = null; refresh(true); }
+    if(b.dataset.x==="clear"){ done = []; pts = []; radiusKm = null; sichtRes = null; sichtPunkt = null; sichtInfo = null; sichtLauf++; if(window.Sicht) Sicht.entfernen(map); refresh(true); }
   });
   box.addEventListener("click", e=>{
     const b = e.target.closest("button"); if(!b) return;
@@ -222,6 +245,7 @@ function init(map, opts){
     if(b.dataset.x==="new"){ pts = []; radiusKm = null; refresh(true); }
     if(b.dataset.x==="undo"){ if(tool==="radius"){ pts = []; radiusKm = null; } else pts.pop(); refresh(true); }
     if(b.dataset.r) setRadius(+b.dataset.r);
+    if(b.dataset.sr){ sichtR = +b.dataset.sr; if(sichtPunkt) sichtRechnen(sichtPunkt); else readout(); }
     if(b.dataset.copy != null){ const v = b.dataset.copy;
       (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(()=>{ b.textContent = "Kopiert"; setTimeout(()=>b.textContent = "Kopieren", 1400); })
         .catch(()=>{ b.textContent = "Nicht möglich"; }); }
@@ -237,6 +261,7 @@ function init(map, opts){
     lastClick = now; lastPt = pt;
     /* Doppelklick beendet nur mit Maus; am Handy tippt man oft schnell hintereinander, dort gibt es „Fertig“ */
     if(dbl && !coarse && (tool==="lineal" || tool==="flaeche")){ finish(true); return; }
+    if(tool==="sicht"){ sichtRechnen(ll); return; }
     if(tool==="punkt"){ pts = [ll]; refresh(true); return; }
     if(tool==="radius"){
       if(!pts.length || radiusKm != null){ pts = [ll]; radiusKm = null; }
@@ -245,9 +270,33 @@ function init(map, opts){
     }
     pts.push(ll); hover = null; liveLabel(null); refresh(true);
   });
+  /* Sichtfeld berechnen: Karte so einstellen, dass der ganze Kreis drin ist (dann sind alle Häuser geladen) */
+  function warteIdle(){ return new Promise(res=>{ let fertig = false; const f = ()=>{ if(!fertig){ fertig = true; res(); } }; map.once("idle", f); setTimeout(f, 6000); }); }
+  async function sichtRechnen(ll){
+    if(!window.Sicht) return;
+    const lauf = ++sichtLauf; sichtPunkt = ll; sichtInfo = "laeuft"; readout();
+    try{
+      let q = Sicht.gebaeudeQuelle(map);
+      if(!q && typeof MAPTILER_KEY !== "undefined"){
+        if(!map.getSource("sicht-geb")) map.addSource("sicht-geb", {type:"vector", url:`https://api.maptiler.com/tiles/v3/tiles.json?key=${MAPTILER_KEY}`});
+        if(!map.getLayer("sicht-geb")) map.addLayer({id:"sicht-geb", type:"fill", source:"sicht-geb", "source-layer":"building", minzoom:13, paint:{"fill-opacity":0}});
+        q = "sicht-geb";
+      }
+      const km = sichtR/1000, b = [dest(ll, km, 270)[0], dest(ll, km, 180)[1], dest(ll, km, 90)[0], dest(ll, km, 0)[1]];
+      const kasten = box.getBoundingClientRect(), H = map.getContainer().clientHeight, oben = box.hidden ? 30 : (innerWidth < 700 ? H*0.5 : Math.min(kasten.bottom + 12, H*0.55));
+      map.fitBounds([[b[0], b[1]], [b[2], b[3]]], {padding:{top:oben, bottom:110, left:20, right:70}, maxZoom:16, duration:700});
+      await new Promise(r=>setTimeout(r, 750)); await warteIdle();
+      if(map.getZoom() < 13){ map.easeTo({center:ll, zoom:13, duration:400}); await new Promise(r=>setTimeout(r, 450)); await warteIdle(); }
+      const r = await Sicht.berechne(map, ll, {radius:sichtR, quelle:q});
+      if(lauf !== sichtLauf) return;
+      sichtRes = r; sichtInfo = null; Sicht.zeigen(map, r);
+      if(innerWidth < 700) map.easeTo({center:ll, offset:[0, map.getContainer().clientHeight*0.17], duration:500});
+    }catch(e){ if(lauf === sichtLauf){ sichtInfo = "Konnte nicht berechnet werden (" + (e.message || e) + ")."; } console.warn("Sichtfeld:", e); }
+    if(tool === "sicht") readout();
+  }
   let raf = 0, mv = null;
   map.on("mousemove", e=>{
-    if(!tool || coarse) return;   /* am Handy erzeugt jedes Tippen auch ein mousemove – keine Vorschau dort */ mv = [e.lngLat.lng, e.lngLat.lat];
+    if(!tool || coarse || tool==='sicht') return;   /* am Handy erzeugt jedes Tippen auch ein mousemove – keine Vorschau dort */ mv = [e.lngLat.lng, e.lngLat.lat];
     if(!raf) raf = requestAnimationFrame(()=>{ raf = 0; hover = mv; if(tool==="radius" && radiusKm != null) hover = null; draw(); readout(); liveLabel(hover); });
   });
   map.getCanvas && map.getCanvas().addEventListener("mouseleave", ()=>{ if(!tool) return; hover = null; draw(); readout(); liveLabel(null); });
