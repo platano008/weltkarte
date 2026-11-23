@@ -120,7 +120,6 @@ h1{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-heigh
 .wz-x:hover{color:var(--fg)}
 .wz-big{font-family:var(--display);font-size:30px;line-height:1.05;margin:6px 0 2px;overflow-wrap:anywhere}
 .wz-sub{font-family:var(--mono);font-size:11.5px;color:var(--muted);line-height:1.5}
-.wz-hint{font-size:12.5px;color:var(--faint);margin-top:10px;line-height:1.4}
 .wz-act{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .wz-act:empty{display:none}
 .wz-act button,.wz-ranges button,.wz-co button{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:7px 10px;background:none;border:1px solid var(--line-2);color:var(--fg);cursor:pointer}

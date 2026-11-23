@@ -62,14 +62,7 @@ const ICONS = {
   fahrzeug: '<path d="M3 15h18l-2 4H5z"/><path d="M6 15v-3h9l2 3"/><path d="M9 12V9h5v3"/><path d="M14 10.5h7"/>'
 };
 const NAMES = {lineal:"Lineal", flaeche:"Fläche", radius:"Radius", punkt:"Koordinate", sicht:"Sichtfeld", fahrzeug:"Fahrzeug setzen"};
-const HINT = {
-  lineal: "Auf die Karte tippen, um Punkte zu setzen. Doppelt tippen oder „Fertig“ beendet.",
-  flaeche: "Eckpunkte der Fläche antippen. Doppelt tippen oder „Fertig“ schließt sie.",
-  radius: "Mittelpunkt antippen, dann den Rand – oder unten einen Radius wählen.",
-  punkt: "Einen Punkt auf der Karte antippen.",
-  sicht: "Nah an eine Stadt ranzoomen und ein Haus antippen – dann siehst du, was man von dort oben sehen kann."
-};
-const SICHT_R = [300, 500, 1000, 2000], SICHT_H = [0, 10, 30, 100], STD_H = 8;
+const SICHT_R = [300, 500, 1000, 2000], SICHT_H = [0, 10, 30, 100];
 const RANGES = [5, 10, 20, 40, 70, 150, 300];
 
 function init(map, opts){
@@ -164,7 +157,7 @@ function init(map, opts){
   function fzTreffer(){ const q = fzQ.toLowerCase();
     return (fzAlle||[]).filter(f=>!q || (f.n + " " + f.land + " " + f.typ).toLowerCase().includes(q)).sort((a,b)=>b.km - a.km).slice(0, 40); }
   function fzListeHTML(){ const L = fzTreffer();
-    return L.length ? L.map(f=>`<button class="fz-w${fzWahl && fzWahl.n === f.n ? " on" : ""}" data-fz="${fzEsc(f.n)}"><i class="pk ${fzSeite(f)}"></i><span>${fzEsc(f.n)}</span><b>${nf1.format(f.km).replace(",0","")} km</b></button>`).join("") : '<div class="wz-hint">Nichts gefunden.</div>'; }
+    return L.length ? L.map(f=>`<button class="fz-w${fzWahl && fzWahl.n === f.n ? " on" : ""}" data-fz="${fzEsc(f.n)}"><i class="pk ${fzSeite(f)}"></i><span>${fzEsc(f.n)}</span><b>${nf1.format(f.km).replace(",0","")} km</b></button>`).join("") : '<div class="wz-sub">Nichts gefunden.</div>'; }
   function fzBox(){
     if(!fzAlle){ box.innerHTML = `<div class="wz-h"><span class="eyebrow">${NAMES.fahrzeug}</span><button class="wz-x" data-x="close" aria-label="Werkzeug schließen">✕</button></div><div class="wz-big">Lade …</div>`; fzLaden().then(()=>{ if(tool === "fahrzeug") fzBox(); }); return; }
     if(box.querySelector(".fz-such")){ box.querySelector(".fz-wahl").innerHTML = fzListeHTML(); fzKopf(); fzAuf(); return; }
@@ -179,8 +172,8 @@ function init(map, opts){
   /* nach der Auswahl klappt die Liste zu, damit man die Karte sieht */
   function fzAuf(){ const zu = !!fzWahl && !fzOffen; ["fz-such","fz-wahl"].forEach(c=>{ const e = box.querySelector("." + c); if(e) e.hidden = zu; }); }
   function fzKopf(){ const k = box.querySelector(".fz-kopfz"); if(!k) return;
-    k.innerHTML = fzWahl ? `<div class="wz-big">${fzEsc(fzWahl.n)}</div><div class="wz-sub">Reichweite bis ${nf1.format(fzWahl.km).replace(",0","")} km · ${fzEsc(fzWahl.reichweite)}</div><div class="wz-hint">Auf die Karte tippen, um es dort einzusetzen. Mehrmals tippen setzt mehrere.</div>`
-      : `<div class="wz-hint">Fahrzeug auswählen, dann auf die Karte tippen – der Kreis zeigt die Reichweite.</div>`;
+    k.innerHTML = fzWahl ? `<div class="wz-big">${fzEsc(fzWahl.n)}</div><div class="wz-sub">bis ${nf1.format(fzWahl.km).replace(",0","")} km · ${fzEsc(fzWahl.reichweite)}</div>`
+      : `<div class="wz-big">Fahrzeug wählen</div>`;
     const a = box.querySelector(".wz-act"); if(a) a.innerHTML = (fzWahl && !fzOffen ? '<button data-x="fzwechsel">Anderes Fahrzeug</button>' : "") + (fzGesetzt.length ? '<button data-x="fzundo">Letztes entfernen</button>' : "") + '<a class="wz-link" href="fahrzeuge.html">Zur Fahrzeugliste →</a>'; }
   function fzZeichnen(m){
     m = m || map; const src = m.getSource && m.getSource("wz-fz"); if(!src) return;
@@ -197,19 +190,17 @@ function init(map, opts){
   function sichtBox(){
     const rk = `<div class="wz-ranges"><span class="wz-lab">Radius</span>${SICHT_R.map(r=>`<button data-sr="${r}" class="${sichtR===r?"on":""}">${r < 1000 ? r + " m" : r/1000 + " km"}</button>`).join("")}</div>
       <div class="wz-ranges"><span class="wz-lab">Höhe</span>${SICHT_H.map(h=>`<button data-sh="${h}" class="${sichtH===h?"on":""}">${h ? "+" + h + " m" : "Dach"}</button>`).join("")}</div>`;
-    let big = "–", sub = "", hint = HINT.sicht;
-    if(sichtInfo === "laeuft"){ big = "Berechne …"; hint = ""; }
-    else if(typeof sichtInfo === "string"){ big = "Fehler"; sub = sichtInfo; hint = ""; }
+    let big = "Haus antippen", sub = "";
+    if(sichtInfo === "laeuft") big = "Berechne …";
+    else if(typeof sichtInfo === "string"){ big = "Fehler"; sub = sichtInfo; }
     else if(sichtRes){ const r = sichtRes;
-      big = pct(r.anteil) + " sichtbar"; hint = "";
-      sub = `${r.haus ? "Vom Dach aus, Augenhöhe " + nf0.format(r.hoehe + 1.6 + r.extra) + " m über Grund" : "Kein Haus getroffen – Sicht vom Boden aus, Augenhöhe " + nf0.format(1.6 + r.extra) + " m"} · Radius ${fmtKm(r.radius/1000)} · ${r.blockierer} ${r.blockierer === 1 ? "Haus verdeckt" : "Häuser verdecken"} die Sicht`;
-      sub += r.gebaeude ? ` · ${nf0.format(r.gebaeude)} Häuser im Umkreis berücksichtigt (Karte ${nf0.format(r.nKarte||0)}, nachgeladen ${nf0.format(r.nKachel||0)})` : " · Keine Häuser in den Kartendaten gefunden";
+      big = pct(r.anteil) + " sichtbar";
+      sub = `Augenhöhe ${nf0.format((r.haus ? r.hoehe : 0) + 1.6 + r.extra)} m · ${r.gebaeude ? r.blockierer + (r.blockierer === 1 ? " Haus verdeckt" : " Häuser verdecken") : "keine Häuser gefunden"}${r.haus ? "" : " · vom Boden"}`;
     }
     box.innerHTML = `<div class="wz-h"><span class="eyebrow">${NAMES.sicht}</span><button class="wz-x" data-x="close" aria-label="Werkzeug schließen">✕</button></div>
       <div class="wz-big">${big}</div>${sub ? `<div class="wz-sub">${sub}</div>` : ""}${rk}
-      <div class="wz-leg"><span><i style="background:rgba(255,255,255,.55)"></i>sichtbar</span><span><i style="background:#120a10"></i>verdeckt</span><span><i style="background:#ffffff"></i>Haus sichtbar</span><span><i style="background:#26242b"></i>Haus verdeckt</span><span><i style="background:#ff2d4f"></i>blockiert die Sicht</span><span><i style="background:#18e0ff"></i>Standort</span></div>
-      ${hint ? `<div class="wz-hint">${hint}</div>` : ""}
-      ${sichtRes ? "" : `<div class="wz-hint">Häuser ohne Höhenangabe in den Kartendaten werden mit ${STD_H} m gerechnet. Bäume werden nicht berücksichtigt.</div>`}`;
+      <div class="wz-leg"><span><i style="background:rgba(255,255,255,.55)"></i>sichtbar</span><span><i style="background:#120a10"></i>verdeckt</span><span><i style="background:#ff2d4f"></i>blockiert</span><span><i style="background:#18e0ff"></i>Standort</span></div>
+`;
   }
   function readout(){
     if(!tool){ box.hidden = true; return; }
@@ -237,7 +228,6 @@ function init(map, opts){
     const canUndo = pts.length > 0 && tool!=="punkt";
     box.innerHTML = `<div class="wz-h"><span class="eyebrow">${NAMES[tool]}</span><button class="wz-x" data-x="close" aria-label="Werkzeug schließen">✕</button></div>
       <div class="wz-big">${big}</div>${sub ? `<div class="wz-sub">${sub}</div>` : ""}${extra}
-      ${pts.length ? "" : `<div class="wz-hint">${HINT[tool]}</div>`}
       <div class="wz-act">${canUndo ? '<button data-x="undo">Rückgängig</button>' : ""}${(tool==="lineal"||tool==="flaeche") && pts.length > 1 ? '<button data-x="finish" class="solid">Fertig</button>' : ""}${pts.length ? '<button data-x="new">Neu</button>' : ""}</div>`;
     const inp = box.querySelector("input");
     if(inp) inp.addEventListener("change", ()=>{ const v = parseFloat(String(inp.value).replace(",", ".")); if(v > 0){ setRadius(v); } });
@@ -365,14 +355,14 @@ function init(map, opts){
       hausEbene();
       const q = Sicht.gebaeudeQuelle(map);
       const km = sichtR/1000, b = [dest(ll, km, 270)[0], dest(ll, km, 180)[1], dest(ll, km, 90)[0], dest(ll, km, 0)[1]];
-      const kasten = box.getBoundingClientRect(), H = map.getContainer().clientHeight, oben = box.hidden ? 30 : (innerWidth < 700 ? H*0.5 : Math.min(kasten.bottom + 12, H*0.55));
-      map.fitBounds([[b[0], b[1]], [b[2], b[3]]], {padding:{top:oben, bottom:110, left:20, right:70}, maxZoom:16, duration:700});
+      const kasten = box.getBoundingClientRect(), H = map.getContainer().clientHeight, oben = box.hidden ? 30 : (innerWidth < 700 ? 110 : Math.min(kasten.bottom + 12, H*0.55)), unten = innerWidth < 700 ? H*0.45 : 110;
+      map.fitBounds([[b[0], b[1]], [b[2], b[3]]], {padding:{top:oben, bottom:unten, left:20, right:70}, maxZoom:16, duration:700});
       await new Promise(r=>setTimeout(r, 750)); await warteIdle();
       if(map.getZoom() < 13){ map.easeTo({center:ll, zoom:13, duration:400}); await new Promise(r=>setTimeout(r, 450)); await warteIdle(); }
       const r = await Sicht.berechne(map, ll, {radius:sichtR, quelle:q, extra:sichtH, haus:sichtHaus});
       if(lauf !== sichtLauf) return;
       sichtRes = r; sichtInfo = null; Sicht.zeigen(map, r);
-      if(innerWidth < 700) map.easeTo({center:ll, offset:[0, map.getContainer().clientHeight*0.17], duration:500});
+      if(innerWidth < 700) map.easeTo({center:ll, offset:[0, -map.getContainer().clientHeight*0.17], duration:500});
     }catch(e){ if(lauf === sichtLauf){ sichtInfo = "Konnte nicht berechnet werden (" + (e.message || e) + ")."; } console.warn("Sichtfeld:", e); }
     if(tool === "sicht") readout();
   }

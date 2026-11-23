@@ -16,12 +16,12 @@
 <link rel="preconnect" href="https://api.maptiler.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=202611231328">
+<link rel="stylesheet" href="style.css?v=202611231757">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611231328"></script>
-<script src="sicht.js?v=202611231328"></script>
-<script src="werkzeuge.js?v=202611231328"></script>
+<script src="karte.js?v=202611231757"></script>
+<script src="sicht.js?v=202611231757"></script>
+<script src="werkzeuge.js?v=202611231757"></script>
 <style>
 .item.chg .ic{width:22px}
 .card{right:calc(max(16px,env(safe-area-inset-right)) + 56px)!important}
@@ -40,7 +40,9 @@
 body.tl-old .dock .dot{display:block}
 .switches{display:none!important;left:auto!important;right:calc(max(16px,env(safe-area-inset-right)) + 54px)!important;top:max(16px,env(safe-area-inset-top))!important;flex-direction:column!important;align-items:flex-end!important;gap:8px!important;justify-content:flex-start!important}
 body.d-ansicht .switches{display:flex!important}
-.maplibregl-ctrl-top-right{top:calc(max(16px,env(safe-area-inset-top)) + 134px)!important}
+.maplibregl-ctrl-top-right{top:calc(max(16px,env(safe-area-inset-top)) + 190px)!important}
+/* Touch: Zoomen geht mit zwei Fingern – Zoom-Knöpfe weg, weniger auf dem Bildschirm */
+@media (hover:none),(pointer:coarse){.maplibregl-ctrl-top-right .maplibregl-ctrl-group{display:none}}
 .wz-rail{display:none!important;flex-direction:row!important;top:calc(max(16px,env(safe-area-inset-top)) + 45px)!important;bottom:auto!important;right:calc(max(16px,env(safe-area-inset-right)) + 54px)!important}
 .wz-rail button{border-top:0!important;border-left:1px solid var(--line)}
 .wz-rail button:first-child{border-left:0}
@@ -129,59 +131,49 @@ body.panel-gone .reopen{opacity:1;transform:none;pointer-events:auto;transition-
 .card .med img,.card .med video,.card .med iframe{display:block;width:100%;height:auto;border:0;background:#111}
 .card .med iframe{aspect-ratio:16/9}
 
-/* ===== Neues Bedienkonzept: Glas + Leuchten von unten ===== */
-:root{--glow:255,255,255}
+/* ===== Bedienung: ruhige dunkle Flächen, dünne Ränder, kein Leuchten ===== */
+:root{--glow:255,255,255;--flaeche:rgba(16,16,18,.94);--rand:rgba(255,255,255,.1);--rund:12px}
 .maplibregl-map{font-family:var(--body)!important}
-.maplibregl-ctrl-attrib,.maplibregl-ctrl-scale{font-family:var(--mono)!important;letter-spacing:.04em}
-.maplibregl-ctrl-scale{background:rgba(10,10,10,.45)!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-width:0 1.5px 1.5px!important}
-.maplibregl-ctrl-attrib{background:rgba(10,10,10,.45)!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.mt-logo{left:max(16px,env(safe-area-inset-left))!important;bottom:calc(env(safe-area-inset-bottom) + 12px)!important}
-/* Glas-Knöpfe: Leiste rechts, Zoom/Norden, Werkzeuge */
-.dock,.maplibregl-ctrl-group,.wz-rail,.wz-box,.switches .seg,.tl{background:rgba(12,12,12,.42)!important;backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);
-  border:1px solid rgba(255,255,255,.09)!important;border-radius:14px!important;overflow:hidden;
-  box-shadow:0 10px 30px -10px rgba(0,0,0,.7),0 0 26px -6px rgba(var(--glow),.45),inset 0 -12px 18px -12px rgba(var(--glow),.75)!important;transition:box-shadow .8s}
-.dock button,.wz-rail button,.maplibregl-ctrl-group button{background:transparent!important;border-color:rgba(255,255,255,.07)!important;color:#e9e9e9!important}
-.dock svg,.wz-rail svg{filter:drop-shadow(0 0 4px rgba(255,255,255,.55)) drop-shadow(0 0 10px rgba(var(--glow),.6))}
-.maplibregl-ctrl-group button .maplibregl-ctrl-icon{filter:invert(1) drop-shadow(0 0 3px rgba(255,255,255,.7)) drop-shadow(0 0 9px rgba(var(--glow),.7))!important}
+/* Quellenangaben: klein unten links, aufklappbar über das „i“ */
+.maplibregl-ctrl-bottom-left{bottom:calc(env(safe-area-inset-bottom) + 4px)!important;left:max(6px,env(safe-area-inset-left))!important}
+.maplibregl-ctrl-attrib{font-family:var(--mono)!important;font-size:9.5px!important;letter-spacing:.02em;background:var(--flaeche)!important;color:#8a8a8a!important;border-radius:var(--rund)!important;margin:0 0 4px!important}
+.maplibregl-ctrl-attrib a{color:#b5b5b5!important}
+.maplibregl-ctrl-attrib.maplibregl-compact{min-height:22px}
+.maplibregl-ctrl-attrib-button{filter:invert(1);opacity:.55}
+.maplibregl-ctrl-scale{font-family:var(--mono)!important;font-size:9.5px!important;background:var(--flaeche)!important;color:#9a9a9a!important;border-color:#666!important;border-width:0 1px 1px!important;margin:0 0 4px!important}
+.mt-logo{left:auto!important;right:max(8px,env(safe-area-inset-right))!important;bottom:calc(env(safe-area-inset-bottom) + 8px)!important;opacity:.7}
+.mt-logo img{width:62px!important}
+/* Knöpfe und Kästen */
+.dock,.maplibregl-ctrl-group,.wz-rail,.wz-box,.switches .seg,.tl{background:var(--flaeche)!important;border:1px solid var(--rand)!important;border-radius:var(--rund)!important;overflow:hidden;box-shadow:0 8px 24px -12px rgba(0,0,0,.8)!important}
+.dock button,.wz-rail button,.maplibregl-ctrl-group button{background:transparent!important;border-color:rgba(255,255,255,.07)!important;color:#d9d9d9!important}
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon{filter:invert(1)!important;opacity:.85}
 .dock button:hover,.wz-rail button:hover,.maplibregl-ctrl-group button:hover{background:rgba(255,255,255,.07)!important}
-.dock button.on,.wz-rail button.on{background:rgba(var(--glow),.22)!important;color:#fff!important;box-shadow:inset 0 -10px 16px -8px rgba(var(--glow),.9)}
-/* alte Leiste: Kopf ausblenden, wird zum Glas-Blatt über der Pille */
+.dock button.on,.wz-rail button.on{background:#fff!important;color:#000!important}
+/* Liste der Veränderungen: Blatt über der Pille */
 .reopen,#hide,#toggle,.panel .ph h1,.panel .pf{display:none!important}
-body .panel{left:50%!important;right:auto!important;top:auto!important;bottom:calc(env(safe-area-inset-bottom) + 92px)!important;width:min(430px,calc(100vw - 24px))!important;max-height:min(56vh,540px)!important;
-  border:1px solid rgba(255,255,255,.09)!important;border-radius:18px!important;overflow:hidden;padding:0!important;
-  background:rgba(10,10,10,.5)!important;backdrop-filter:blur(22px) saturate(1.4);-webkit-backdrop-filter:blur(22px) saturate(1.4);
-  box-shadow:0 24px 60px -20px rgba(0,0,0,.85),0 0 40px -10px rgba(var(--glow),.35),inset 0 -26px 34px -26px rgba(var(--glow),.8)!important;
-  opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translate(-50%,18px) scale(.97)!important;transform-origin:50% 100%;
-  transition:opacity .25s,transform .35s cubic-bezier(.2,.8,.2,1),visibility 0s .35s!important}
-body.k-auf .panel{opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:translate(-50%,0)!important;transition:opacity .25s,transform .35s cubic-bezier(.2,.8,.2,1),visibility 0s!important}
+body .panel{left:50%!important;right:auto!important;top:auto!important;bottom:calc(env(safe-area-inset-bottom) + 76px)!important;width:min(430px,calc(100vw - 24px))!important;max-height:min(56vh,540px)!important;
+  border:1px solid var(--rand)!important;border-radius:16px!important;overflow:hidden;padding:0!important;background:var(--flaeche)!important;box-shadow:0 20px 50px -20px rgba(0,0,0,.85)!important;
+  opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translate(-50%,12px)!important;
+  transition:opacity .2s,transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s .3s!important}
+body.k-auf .panel{opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:translate(-50%,0)!important;transition:opacity .2s,transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s!important}
 .panel .ph{padding:14px 18px 10px!important;border-bottom:1px solid rgba(255,255,255,.07)!important;cursor:default!important}
 .panel .list{overflow-y:auto!important;display:block!important}
-.panel .grp{background:rgba(20,20,20,.55)!important;border-color:rgba(255,255,255,.06)!important}
+.panel .grp{background:rgba(22,22,24,.98)!important;border-color:rgba(255,255,255,.06)!important}
 .panel .item{border-color:rgba(255,255,255,.06)!important}
 .panel .item:hover{background:rgba(255,255,255,.05)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-/* die Pille unten in der Mitte */
-.pille{position:fixed;z-index:8;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);display:flex;align-items:center;gap:12px;height:58px;padding:0 20px 0 18px;
-  border:1px solid rgba(255,255,255,.1);border-radius:999px!important;color:#fff;cursor:pointer;
-  background:rgba(10,10,10,.42);backdrop-filter:blur(18px) saturate(1.5);-webkit-backdrop-filter:blur(18px) saturate(1.5);
-  box-shadow:0 14px 40px -12px rgba(0,0,0,.8),0 6px 44px -6px rgba(var(--glow),.55),inset 0 -16px 22px -14px rgba(var(--glow),.95);transition:box-shadow .8s,transform .3s}
-.pille:hover{transform:translateX(-50%) translateY(-2px)}
-.pille img{height:24px;width:auto;filter:drop-shadow(0 0 6px rgba(255,255,255,.5))}
-.pille .szug-k{height:21px;width:auto;color:#fff;filter:drop-shadow(0 0 8px rgba(255,255,255,.45))}
-.pille .chev{width:15px;height:15px;opacity:.7;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+/* die Pille unten in der Mitte; die dünne Linie oben zeigt, wer zuletzt vorgerückt ist */
+.pille{position:fixed;z-index:8;left:50%;bottom:calc(env(safe-area-inset-bottom) + 16px);transform:translateX(-50%);display:flex;align-items:center;gap:10px;height:48px;padding:0 16px 0 15px;
+  border:1px solid var(--rand);border-radius:999px!important;color:#fff;cursor:pointer;background:var(--flaeche);box-shadow:0 10px 30px -14px rgba(0,0,0,.9),inset 0 2px 0 -0.5px rgba(var(--glow),.85)}
+.pille img{height:20px;width:auto}
+.pille .szug-k{height:17px;width:auto;color:#fff}
+.pille .chev{width:13px;height:13px;opacity:.6;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
 body.k-auf .pille .chev{transform:rotate(180deg)}
-.pille::before{content:"";position:absolute;left:8%;right:8%;bottom:-26px;height:48px;border-radius:50%;background:radial-gradient(closest-side,rgba(var(--glow),.75),rgba(var(--glow),0));filter:blur(14px);z-index:-1;animation:atmen 4.5s ease-in-out infinite;pointer-events:none}
-@keyframes atmen{50%{opacity:.55;transform:scaleX(.88)}}
-/* Leuchten vom unteren Bildschirmrand */
-.bodenglow{position:fixed;z-index:3;left:0;right:0;bottom:0;height:150px;pointer-events:none;background:radial-gradient(60% 100% at 50% 100%,rgba(var(--glow),.22),rgba(var(--glow),0) 70%);transition:background .8s}
 .tl{bottom:calc(env(safe-area-inset-bottom) + 92px)!important}
 body.k-auf .tl{opacity:0;pointer-events:none}
 @media (max-width:720px){
   .tl{left:12px!important;right:66px!important}
-  .pille{height:54px}
-  .maplibregl-ctrl-bottom-right{bottom:calc(env(safe-area-inset-bottom) + 80px)!important}
 }
-@media (prefers-reduced-motion:reduce){.pille::before{animation:none}}
 .k-sprache{position:absolute;right:14px;top:12px;z-index:2;display:flex;padding:2px;border:1px solid rgba(255,255,255,.16);border-radius:999px!important}
 .k-sprache button{border:0;background:none;color:#8d8d8d;font-family:var(--mono);font-size:10px;letter-spacing:.12em;padding:5px 9px;border-radius:999px!important;cursor:pointer}
 .k-sprache button.an{background:#fff;color:#000}
@@ -203,10 +195,6 @@ body.k-auf .tl{opacity:0;pointer-events:none}
 /* Tablets/Handys: keine Unschärfe hinter Glas, stattdessen dunkler – spart viel Rechenleistung */
 @media (hover:none),(pointer:coarse){
   *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-  .dock,.maplibregl-ctrl-group,.wz-rail,.wz-box,.switches .seg,.tl,.maplibregl-ctrl-scale,.maplibregl-ctrl-attrib{background:rgba(12,12,12,.86)!important}
-  body .panel{background:rgba(10,10,10,.92)!important}
-  .pille{background:rgba(10,10,10,.85)}
-  .pille::before{animation:none}
 }
 /* Liste: Neu / Log */
 .k-tabs{display:flex;gap:4px;margin-top:10px}
@@ -214,11 +202,6 @@ body.k-auf .tl{opacity:0;pointer-events:none}
 .k-tabs button.an{background:#fff;color:#000;border-color:#fff}
 .panel .grp.mon{position:sticky;top:0;z-index:1}
 .item.alt .cq{opacity:.35}.item.alt b{color:#a9a9a9}
-/* heller Kartenstil: Bedienelemente bleiben dunkel und gut lesbar */
-body.hell .dock,body.hell .maplibregl-ctrl-group,body.hell .wz-rail,body.hell .wz-box,body.hell .switches .seg,body.hell .tl,body.hell .maplibregl-ctrl-scale,body.hell .maplibregl-ctrl-attrib{background:rgba(12,12,12,.88)!important}
-body.hell .panel{background:rgba(10,10,10,.92)!important}
-body.hell .pille{background:rgba(10,10,10,.88)}
-body.hell .maplibregl-ctrl-attrib a,body.hell .maplibregl-ctrl-attrib{color:#cfcfcf!important}
 @media (max-width:520px){#base button{padding:9px 7px!important;font-size:12px!important;letter-spacing:0!important}}
 .switches .seg[hidden]{display:none!important}
 .fz-such{width:100%;margin:10px 0 8px;padding:10px 14px;border:1px solid var(--line-2);border-radius:999px!important;background:rgba(0,0,0,.35);color:#fff;font:inherit;font-size:14px;outline:none}
@@ -232,12 +215,17 @@ body.hell .maplibregl-ctrl-attrib a,body.hell .maplibregl-ctrl-attrib{color:#cfc
 .pk.ua{background:#4aa3ff}.pk.ru{background:#ff3550}
 .wz-link{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#cfcfcf;text-decoration:none;align-self:center;margin-left:auto}
 .wz-lbl.fz.ua b{color:#8cc6ff}.wz-lbl.fz.ru b{color:#ff8a99}.wz-lbl.fz.beide b{color:#d6b3ff}
+@media (max-width:720px){
+  .wz-box{top:auto!important;bottom:calc(env(safe-area-inset-bottom) + 74px)!important;left:12px!important;right:12px!important;width:auto!important;max-height:42vh!important;overflow:auto}
+  body.d-wz .pille,body.wz-on .pille{opacity:0;pointer-events:none}
+  body.wz-on .wz-box{bottom:calc(env(safe-area-inset-bottom) + 16px)!important}
+}
 .wz-lab{align-self:center;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-right:2px}
 @media (max-width:520px){.wz-box .wz-ranges{flex-wrap:nowrap;gap:4px}.wz-box .wz-ranges button{padding:6px 6px!important;font-size:10.5px!important;letter-spacing:0!important}.wz-leg{gap:4px 10px!important;font-size:11px!important}}
 .wz-leg{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:10px;font-size:12px;color:var(--muted)}
 .wz-leg i{display:inline-block;width:11px;height:11px;margin-right:5px;vertical-align:-1px;border:1px solid rgba(255,255,255,.35)}
 </style>
-<script src="lang.js?v=202611231328" defer></script>
+<script src="lang.js?v=202611231757" defer></script>
 </head>
 <body>
 <div id="map"></div>
@@ -275,7 +263,6 @@ body.hell .maplibregl-ctrl-attrib a,body.hell .maplibregl-ctrl-attrib{color:#cfc
   <div class="pf"><span class="cur" id="cur">Koordinaten: Maus über die Karte</span><span id="count"></span></div>
 </section>
 
-<div class="bodenglow" aria-hidden="true"></div>
 <button class="pille" id="pille" aria-expanded="false" aria-controls="panel" title="Neueste Veränderungen"><img src="bild/logo.svg" alt=""><svg class="szug-k" viewBox="0 0 558.8 100" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z"/></g></svg><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M6 15l6-6 6 6"/></svg><span class="sr">Plyus – neueste Veränderungen</span></button>
 <button class="reopen" id="reopen" title="Leiste einblenden" aria-label="Leiste einblenden"><img src="bild/logo.svg" alt="" width="40" height="22"><span>Plyus</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M9 6l6 6-6 6"/></svg></button>
 <div class="tl" id="tl" hidden>
@@ -306,7 +293,7 @@ function setDock(name){
   ["ansicht","wz","tl"].forEach(n=>{ const on = n===name; document.body.classList.toggle("d-"+n, on);
     const b = $("dock").querySelector(`[data-d=${n}]`); if(b) b.classList.toggle("on", on); });
   if(name !== "wz" && window.WZ && WZ.active()) WZ.stop();
-  if(name) select(null);
+  if(name){ select(null); document.body.classList.remove("k-auf"); }
 }
 $("dock").querySelectorAll("button").forEach(b=>b.onclick=()=>b.dataset.link ? (location.href = b.dataset.link) : setDock(document.body.classList.contains("d-"+b.dataset.d) ? null : b.dataset.d));
 /* switches */
@@ -617,7 +604,7 @@ panelOffset();
   const P = $("panel"), Pi = $("pille");
   P.classList.remove("closed"); document.body.classList.add("panel-gone"); document.body.classList.remove("m-closed");
   new MutationObserver(()=>{ if(P.classList.contains("closed")) P.classList.remove("closed"); if(!document.body.classList.contains("panel-gone")) document.body.classList.add("panel-gone"); }).observe(P, {attributes:true, attributeFilter:["class"]});
-  const auf = on=>{ document.body.classList.toggle("k-auf", on); Pi.setAttribute("aria-expanded", on); };
+  const auf = on=>{ if(on) setDock(null); document.body.classList.toggle("k-auf", on); Pi.setAttribute("aria-expanded", on); };
   Pi.onclick = e=>{ e.stopPropagation(); auf(!document.body.classList.contains("k-auf")); };
   map.on("click", ()=>auf(false));
   document.addEventListener("keydown", e=>{ if(e.key === "Escape") auf(false); });

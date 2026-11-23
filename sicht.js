@@ -130,8 +130,7 @@ async function berechne(map, ll, opt){
   const quellen = new Set(map.getStyle().layers.filter(l=>l["source-layer"] === "building").map(l=>l.source));
   if(opt.quelle) quellen.add(opt.quelle);
   quellen.forEach(q=>{ try{ feats = feats.concat(map.querySourceFeatures(q, {sourceLayer:"building"})); }catch(e){} });
-  const nKarte = feats.length; let nKachel = 0;
-  try{ const k = await hausKacheln(lon0, lat0, R, mx, my); nKachel = k.length; feats = feats.concat(k); }catch(e){ console.warn("Sichtfeld: Gebäudekacheln", e); }
+  try{ feats = feats.concat(await hausKacheln(lon0, lat0, R, mx, my)); }catch(e){ console.warn("Sichtfeld: Gebäudekacheln", e); }
   const haeuser = [], seen = new Set(), BINS = 1440, bins = Array.from({length:BINS}, ()=>[]);
   let beob = -1, beobD = Infinity;
   for(const f of feats){
@@ -248,7 +247,7 @@ async function berechne(map, ll, opt){
   F.push({type:"Feature", properties:{k:"auge"}, geometry:{type:"Point", coordinates:[lon0, lat0]}});
   if(beob >= 0) F.push({type:"Feature", properties:{k:"haus"}, geometry:{type:"Polygon", coordinates:haeuser[beob].poly}});
   return {bild: cv.toDataURL("image/png"), ecken:[geo(-R, R), geo(R, R), geo(R, -R), geo(-R, -R)], geojson:{type:"FeatureCollection", features:F}, anteil: Math.max(0, 1 - versteckt/(Math.PI*R*R)), blockierer: nBlock,
-    hoehe: hausH, extra, gebaeude: haeuser.length, nKarte, nKachel, haus: beob >= 0, radius: R};
+    hoehe: hausH, extra, gebaeude: haeuser.length, haus: beob >= 0, radius: R};
 }
 
 /* --- Auf die Karte legen --- */

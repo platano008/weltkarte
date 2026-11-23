@@ -777,8 +777,8 @@ function createMap(opts){
     attributionControl:false, doubleClickZoom: opts.doubleClickZoom!==false,
     pixelRatio: Math.min(window.devicePixelRatio || 1, matchMedia("(hover:none),(pointer:coarse)").matches ? 1.5 : 2), fadeDuration: 120, clickTolerance: 8, refreshExpiredTiles: false, maxTileCacheZoomLevels: 3});
   map.addControl(new maplibregl.NavigationControl(), "top-right");
-  map.addControl(new maplibregl.ScaleControl({unit:"metric"}), "bottom-right");
-  map.addControl(new maplibregl.AttributionControl({compact:false}), "bottom-right");
+  map.addControl(new maplibregl.AttributionControl({compact:true}), "bottom-left");
+  map.addControl(new maplibregl.ScaleControl({unit:"metric", maxWidth:90}), "bottom-left");
   map.on("error", e=>{
     if(e && e.sourceId==="esri"){ if(++esriErrs > 6) esriFailed(map); return; }
     if(free) return;
