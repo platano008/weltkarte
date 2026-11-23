@@ -153,9 +153,11 @@ function init(map, opts){
   const fzSeite = f=>f.seite.length > 1 ? "beide" : f.seite[0];
   const fzEsc = t=>String(t).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   function fzLaden(){ if(fzAlle) return Promise.resolve(fzAlle);
-    return fetch("daten/fahrzeuge.json").then(r=>r.json()).then(d=>fzAlle = d.fahrzeuge).catch(()=>fzAlle = []); }
+    return fetch("daten/fahrzeuge.json").then(r=>r.json())
+      .then(d=>fzAlle = d.fahrzeuge.filter(f=>f.km > 0).map(f=>Object.assign({such:[f.n, f.land, d.typen[f.typ].l, f.var || "", (f.geber || []).join(" ")].join(" ").toLowerCase()}, f)))
+      .catch(()=>fzAlle = []); }
   function fzTreffer(){ const q = fzQ.toLowerCase();
-    return (fzAlle||[]).filter(f=>!q || (f.n + " " + f.land + " " + f.typ).toLowerCase().includes(q)).sort((a,b)=>b.km - a.km).slice(0, 40); }
+    return (fzAlle||[]).filter(f=>!q || f.such.includes(q)).sort((a,b)=>b.km - a.km).slice(0, 40); }
   function fzListeHTML(){ const L = fzTreffer();
     return L.length ? L.map(f=>`<button class="fz-w${fzWahl && fzWahl.n === f.n ? " on" : ""}" data-fz="${fzEsc(f.n)}"><i class="pk ${fzSeite(f)}"></i><span>${fzEsc(f.n)}</span><b>${nf1.format(f.km).replace(",0","")} km</b></button>`).join("") : '<div class="wz-sub">Nichts gefunden.</div>'; }
   function fzBox(){
