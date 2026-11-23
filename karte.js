@@ -162,7 +162,7 @@ function aus3D(map){
    Straßen, Grenzen und Namen bleiben voll sichtbar, Flächen werden durchsichtig. */
 function mixStyle(){
   const st = hellStyle(false);
-  const deck = {wood:0.18, grass:0.12, farmland:0.08, sand:0.15, urban:0.3, water:0.35, "water-edge":1, building:0.45, "urban-edge":0.7};
+  const deck = {wood:0.4, grass:0.3, farmland:0.25, sand:0.3, urban:0.5, water:0.6, "water-edge":1, building:0.65, "urban-edge":0.85};
   for(const l of st.layers){
     if(l.type === "fill" && deck[l.id] != null) l.paint["fill-opacity"] = deck[l.id];
     if(l.id === "urban-edge") l.paint["line-opacity"] = deck[l.id];
