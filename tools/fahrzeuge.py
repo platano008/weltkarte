@@ -1,7 +1,9 @@
 # Erzeugt daten/fahrzeuge.json – Quelle der Fahrzeugliste (fahrzeuge.html) und des Werkzeugs „Fahrzeug setzen“ (werkzeuge.js).
 # Typen und Varianten nach den fotobelegten Oryx-Verlustlisten beider Seiten; Geberländer nach Oryx „Answering the Call“,
 # der Wikipedia-Liste der Militärhilfe und der Lieferliste der Bundesregierung; ergänzt um Ausrüstungslisten (Wikipedia).
-import json, pathlib
+import json, pathlib, re, sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from fahrzeuge_daten import D as DATEN, MOD
 
 GRUPPEN = {
   "panzer": "Panzer",
@@ -1035,6 +1037,51 @@ F("ugv", "Russische Kampf- & Logistikroboter", "ru", 0, "je nach Ausstattung",
 # ── Panzerzug ────────────────────────────────────────────────────────
 F("pzzug", "Russische Panzerzüge", "ru", 2.5, "Kanonen 23 mm u. a.: ca. 2,5 km",
   "Russische Eisenbahntruppen", "Russland", "Russland", "Sichern Bahnlinien in den besetzten Gebieten.", var="Wolga, Jenissei, Amur, Baikal")
+
+# Bild, Fahrdaten, Schutz, Zweitwaffen und Modelle aus tools/fahrzeuge_daten.py
+def bild(spez, basis=None):
+  b = dict(basis or {})
+  teile = spez.split()
+  if teile and len(teile[0]) == 1: b["c"] = teile.pop(0)
+  for t in teile:
+    if "=" in t:
+      k, v = t.split("=", 1)
+      if v: b[k] = v.replace("+", " ") if k == "f" else v
+      else: b[k] = ""
+    else:
+      m = re.match(r"^(gw|gx|tx|nr|n|L|h|g|r)([0-9.]+)$", t); assert m, (spez, t)
+      b[m[1]] = float(m[2]) if "." in m[2] else int(m[2])
+  return b
+def einheit(v, u):
+  v = v.strip(); m = re.match(r"^([0-9][0-9,.–\s]*?)\s*(\(.*\)|)$", v)
+  return f"{re.sub(r'(?<![0-9,])([0-9])([0-9]{3})(?![0-9])', r'\1.\2', m[1].strip())} {u}{' ' + m[2] if m[2] else ''}" if m else v
+def zerlegen(s):
+  teile, tiefe, akt = [], 0, ""
+  for i, z in enumerate(s):
+    tiefe += (z == "(") - (z == ")")
+    if z == "," and tiefe == 0 and s[i+1:i+2] == " ": teile.append(akt.strip()); akt = ""
+    else: akt += z
+  return teile + [akt.strip()] if akt.strip() else teile
+for e in L:
+  b, v, fb, m, bes, schutz, w2 = [x.strip() for x in DATEN[e["n"]].split("|")]
+  e["b"] = bild(b)
+  e["d"] = {"v": einheit(v, "km/h"), "fb": einheit(fb, "km"), "m": einheit(m, "t"), "bes": bes}
+  e["schutz"] = schutz
+  if w2 != "–": e["w2"] = w2
+  if "var" in e:
+    hinw = MOD.pop(e["n"], {})
+    mods = []
+    for name in zerlegen(e.pop("var")):
+      notiz, ueber = hinw.pop(name, ("", "")) if isinstance(hinw.get(name), tuple) else (hinw.pop(name, ""), "")
+      if e["b"]["c"] == "l":
+        ueber += " a=tank" if "Tankwagen" in name else " k=p" if "Panzerkabine" in name else " a=kran" if " Kran" in " " + name else " a=leer" if "Kipper" in name else ""
+      eintrag = {"n": name}
+      if notiz: eintrag["i"] = notiz
+      if ueber.strip(): eintrag["b"] = bild(ueber.strip())
+      mods.append(eintrag if len(eintrag) > 1 else name)
+    assert not hinw, (e["n"], hinw)
+    e["mod"] = mods
+assert not MOD, MOD
 
 # Englische Schreibweisen, damit die Suche auch sie findet (Feld „a“, wird nicht angezeigt)
 ALIAS = {

@@ -8,9 +8,9 @@
 <meta name="description" content="Alle Bodenfahrzeuge im Russland-Ukraine-Krieg: Kategorien, Reichweite, Herkunft, Varianten und Geberländer der Ukraine.">
 <link rel="icon" type="image/png" href="bild/favicon.png?v=2">
 <link rel="apple-touch-icon" href="bild/icon-180.png?v=2">
-<link rel="stylesheet" href="style.css?v=202611231943">
-<link rel="stylesheet" href="seiten.css?v=202611231943">
-<script src="lang.js?v=202611231943" defer></script>
+<link rel="stylesheet" href="style.css?v=202611232003">
+<link rel="stylesheet" href="seiten.css?v=202611232003">
+<script src="lang.js?v=202611232003" defer></script>
 <style>
 .fz-leiste{position:sticky;top:0;z-index:5;display:flex;flex-direction:column;gap:12px;padding:14px 0 16px;margin-bottom:18px;background:linear-gradient(#000 80%,rgba(0,0,0,0))}
 #fzSuche{width:100%;padding:14px 18px;border:1px solid rgba(255,255,255,.18);border-radius:999px!important;background:#0b0b0b;color:#fff;font:inherit;font-size:16px;outline:none}
@@ -26,11 +26,23 @@
 #fzGeber.on{background-color:#fff;color:#000;border-color:#fff}
 .fz-geber{display:flex;flex-wrap:wrap;gap:5px}
 .fz-geber span{font-size:12px;padding:2px 8px;border-radius:999px!important;background:rgba(74,163,255,.12);color:#b9dbff;white-space:nowrap}
-.fz-var{color:#9a9a9a;font-size:12.5px}
+.fz-bild{margin:-20px -20px 0;padding:16px 14px 2px;background:radial-gradient(110% 90% at 50% 100%,rgba(255,255,255,.07),transparent 70%),#08090b;border-bottom:1px solid rgba(255,255,255,.08)}
+.fz-bild svg{display:block;width:100%;height:auto;aspect-ratio:3/1}
+.fz-mod{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -20px;padding:0 20px}
+.fz-mod::-webkit-scrollbar{display:none}
+.fz-mod button{flex:none;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 11px;border:1px solid rgba(255,255,255,.18);border-radius:999px!important;background:none;color:#b8b8b8;font:inherit;font-size:12px;cursor:pointer}
+.fz-mod button:hover{border-color:rgba(255,255,255,.5)}
+.fz-mod button.on{background:#fff;color:#000;border-color:#fff}
+.fz-modinfo{margin:0;font-size:13px;line-height:1.45;color:#a9a9a9;min-height:1.45em}
+.fz-modinfo b{color:#fff;font-weight:600}
+.fz-fahr{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.09);border-radius:12px!important;overflow:hidden}
+.fz-fahr div{background:#0a0b0d;padding:9px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.fz-fahr span{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#7a7a7a}
+.fz-fahr b{font-size:14.5px;font-weight:600;color:#ededed;overflow-wrap:anywhere}
 .pk{display:inline-block;width:9px;height:9px;border-radius:50%!important}
 .pk.ua{background:#4aa3ff;box-shadow:0 0 8px #4aa3ff}.pk.ru{background:#ff3550;box-shadow:0 0 8px #ff3550}
 .fz-liste{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:14px}
-.fz-k{position:relative;display:flex;flex-direction:column;gap:12px;padding:20px 20px 22px;border:1px solid rgba(255,255,255,.13);border-radius:20px!important;background:linear-gradient(180deg,#0c0c0c,#050505);overflow:hidden}
+.fz-k{content-visibility:auto;contain-intrinsic-size:auto 760px;position:relative;display:flex;flex-direction:column;gap:12px;padding:20px 20px 22px;border:1px solid rgba(255,255,255,.13);border-radius:20px!important;background:linear-gradient(180deg,#0c0c0c,#050505);overflow:hidden}
 .fz-k::before{content:"";position:absolute;right:-50px;top:-50px;width:140px;height:140px;border-radius:50%!important;background:radial-gradient(circle,var(--g,rgba(255,255,255,.12)),transparent 70%)}
 .fz-k.ua{--g:rgba(74,163,255,.24)}.fz-k.ru{--g:rgba(255,53,80,.24)}.fz-k.beide{--g:rgba(190,120,255,.2)}
 .fz-kopf{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
@@ -93,11 +105,12 @@
     </div>
   </div>
   <div class="fz-liste" id="fzListe"></div>
-  <div class="sk-text fz-hinweis"><p>Reichweiten sind ungefähre Höchstwerte nach Herstellerangaben und Fachliteratur – im Einsatz hängen sie stark von Munition, Gelände und Wetter sowie von der Zielerfassung ab. „Erbeutet“ heißt: Die Seite setzt Fahrzeuge ein, die sie dem Gegner abgenommen hat. „Geliefert von“ nennt die Staaten, die der Ukraine diesen Typ abgegeben oder bezahlt haben („finanziert“). Steht bei einem Eintrag „gemeldet“, gibt es dafür keinen Fotobeleg von der Front. Flugzeuge, Hubschrauber, Schiffe und Flugdrohnen sind hier nicht enthalten.</p>
+  <div class="sk-text fz-hinweis"><p>Reichweiten sind ungefähre Höchstwerte nach Herstellerangaben und Fachliteratur – im Einsatz hängen sie stark von Munition, Gelände und Wetter sowie von der Zielerfassung ab. „Erbeutet“ heißt: Die Seite setzt Fahrzeuge ein, die sie dem Gegner abgenommen hat. „Geliefert von“ nennt die Staaten, die der Ukraine diesen Typ abgegeben oder bezahlt haben („finanziert“). Steht bei einem Eintrag „gemeldet“, gibt es dafür keinen Fotobeleg von der Front. Die Bilder sind selbst gezeichnete, schematische Seitenansichten und nicht maßstabsgetreu; Fahrdaten sind ungefähre Herstellerangaben. Flugzeuge, Hubschrauber, Schiffe und Flugdrohnen sind hier nicht enthalten.</p>
   <p>Grundlage: Fotobelegte Verlustlisten und die Lieferliste „<a href="https://www.oryxspioenkop.com/2022/04/answering-call-heavy-weaponry-supplied.html" target="_blank" rel="noopener">Answering the Call</a>“ von <a href="https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-equipment.html" target="_blank" rel="noopener">Oryx (Russland)</a> und <a href="https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-ukrainian.html" target="_blank" rel="noopener">Oryx (Ukraine)</a>, die <a href="https://en.wikipedia.org/wiki/List_of_military_aid_to_Ukraine_during_the_Russo-Ukrainian_war" target="_blank" rel="noopener">Wikipedia-Liste der Militärhilfe</a>, die <a href="https://www.bundesregierung.de/breg-de/themen/krieg-in-der-ukraine/lieferungen-ukraine-2054514" target="_blank" rel="noopener">Lieferliste der Bundesregierung</a> und die Ausrüstungslisten der <a href="https://en.wikipedia.org/wiki/List_of_equipment_of_the_Armed_Forces_of_Ukraine" target="_blank" rel="noopener">ukrainischen</a> und <a href="https://en.wikipedia.org/wiki/List_of_equipment_of_the_Russian_Ground_Forces" target="_blank" rel="noopener">russischen</a> Streitkräfte; technische Daten aus Herstellerangaben und Fachquellen.</p></div>
 </main>
 <footer class="sk-fuss"><a href="mitwirkende.html">Mitwirkende</a><a href="kontakt.html">Kontakt</a><a href="impressum.html">Impressum</a><a href="https://x.com/plyusmap" target="_blank" rel="noopener">X / Twitter</a><span class="r">© <span id="jahr">2026</span> Plyus</span></footer>
 
+<script src="fz-bild.js?v=202611232003"></script>
 <script>
 (function(){
   const nf = new Intl.NumberFormat("de-DE", {maximumFractionDigits:1});
@@ -106,9 +119,12 @@
   const skala = km=>Math.max(3, Math.min(100, Math.log10(1 + km)/Math.log10(601)*100));
   const land = g=>g.replace(/ \(.*\)$/, "");
   const label = f=>D.typen[f.typ].l;
+  const modName = m=>typeof m === "string" ? m : m.n;
+  const modInfo = m=>`<b data-nolang>${esc(modName(m))}</b>${m.i ? ` – ${esc(m.i)}` : ""}`;
+  const modBild = (f, m)=>window.FzBild(Object.assign({}, f.b, typeof m === "object" && m.b || {}));
   const passt = f=>(!gruppe || D.typen[f.typ].g === gruppe) && (!typ || f.typ === typ) && (!seite || f.seite.includes(seite)) &&
     (!geber || (f.geber || []).some(g=>land(g) === geber)) &&
-    (!q || [f.n, f.hersteller, f.land, f.nutzer, label(f), f.var || "", f.a || "", (f.geber || []).join(" ")].join(" ").toLowerCase().includes(q));
+    (!q || [f.n, f.hersteller, f.land, f.nutzer, label(f), (f.mod || []).map(modName).join(" "), f.a || "", (f.geber || []).join(" ")].join(" ").toLowerCase().includes(q));
   const knopf = (attr, v, text, n, an)=>`<button data-${attr}="${v}"${an ? ' class="on"' : ""}>${text}${n != null ? ` <small>${n}</small>` : ""}</button>`;
   function chipsBauen(){
     const zahl = k=>ALLE.filter(f=>D.typen[f.typ].g === k).length;
@@ -123,19 +139,27 @@
     const L = ALLE.filter(passt);
     L.sort(ord === "km" ? (a,b)=>b.km - a.km || a.n.localeCompare(b.n, "de") : (a,b)=>a.n.localeCompare(b.n, "de"));
     document.getElementById("fzListe").innerHTML = L.length ? L.map(f=>{
-      const s = f.seite.length > 1 ? "beide" : f.seite[0];
-      return `<article class="fz-k ${s}">
+      const s = f.seite.length > 1 ? "beide" : f.seite[0], mod = f.mod || [];
+      return `<article class="fz-k ${s}" data-i="${ALLE.indexOf(f)}">
+        <div class="fz-bild">${modBild(f, mod[0])}</div>
         <div class="fz-kopf"><div><h3 data-nolang>${esc(f.n)}</h3><div class="fz-typ">${esc(label(f))}</div></div>
           <div class="fz-seite">${f.seite.includes("ua") ? '<span class="ua">UA</span>' : ""}${f.seite.includes("ru") ? '<span class="ru">RU</span>' : ""}</div></div>
+        ${mod.length > 1 ? `<div class="fz-mod" role="group" aria-label="Modell wählen">${mod.map((m, i)=>`<button data-m="${i}"${i ? "" : ' class="on"'} aria-pressed="${!i}" title="${esc(modName(m))}" data-nolang>${esc(modName(m))}</button>`).join("")}</div>` : ""}
+        ${mod.length ? `<p class="fz-modinfo">${modInfo(mod[0])}</p>` : ""}
         ${f.km ? `<div class="fz-rw"><b>bis ${nf.format(f.km)} km</b><div class="fz-balken"><i style="width:${skala(f.km).toFixed(1)}%"></i></div><small>${esc(f.reichweite)}</small></div>` : `<div class="fz-rw leer"><b>${esc(f.reichweite)}</b></div>`}
-        <dl><dt>Herkunft</dt><dd>${esc(f.land)}</dd><dt>Hersteller</dt><dd>${esc(f.hersteller)}</dd><dt>Nutzer</dt><dd>${esc(f.nutzer)}</dd>
+        <div class="fz-fahr"><div><span>Höchsttempo</span><b>${esc(f.d.v)}</b></div><div><span>Fahrbereich</span><b>${esc(f.d.fb)}</b></div><div><span>Gewicht</span><b>${esc(f.d.m)}</b></div><div><span>Besatzung</span><b>${esc(f.d.bes)}</b></div></div>
+        <dl><dt>Schutz</dt><dd>${esc(f.schutz)}</dd><dt>Zweitwaffen</dt><dd>${f.w2 ? esc(f.w2) : "keine"}</dd><dt>Herkunft</dt><dd>${esc(f.land)}</dd><dt>Hersteller</dt><dd>${esc(f.hersteller)}</dd><dt>Nutzer</dt><dd>${esc(f.nutzer)}</dd>
           ${f.geber ? `<dt>Geliefert von</dt><dd class="fz-geber">${f.geber.map(g=>`<span>${esc(g)}</span>`).join("")}</dd>` : ""}
-          ${f.var ? `<dt>Varianten</dt><dd class="fz-var" data-nolang>${esc(f.var)}</dd>` : ""}</dl>
+</dl>
         ${f.info ? `<p class="fz-info">${esc(f.info)}</p>` : ""}
         ${f.km ? `<a class="fz-karte" href="karte.html#fz=${encodeURIComponent(f.n)}">Auf der Karte einsetzen →</a>` : ""}
       </article>`; }).join("") : '<div class="fz-leer">Nichts gefunden.</div>';
     document.getElementById("fzAnzahl").textContent = L.length + " / " + ALLE.length;
   }
+  document.getElementById("fzListe").addEventListener("click", e=>{ const b = e.target.closest(".fz-mod button"); if(!b) return;
+    const k = b.closest(".fz-k"), f = ALLE[+k.dataset.i], m = f.mod[+b.dataset.m];
+    k.querySelectorAll(".fz-mod button").forEach(x=>{ x.classList.toggle("on", x === b); x.setAttribute("aria-pressed", x === b); });
+    k.querySelector(".fz-bild").innerHTML = modBild(f, m); k.querySelector(".fz-modinfo").innerHTML = modInfo(m); });
   const chips = (id, attr, set)=>document.getElementById(id).addEventListener("click", e=>{ const b = e.target.closest("button"); if(!b || b.dataset[attr] == null) return;
     set(b.dataset[attr]); chipsBauen(); zeichnen(); });
   chips("fzGruppe", "g", v=>{ gruppe = v; typ = ""; });
@@ -147,14 +171,14 @@
   const sel = document.getElementById("fzGeber");
   sel.addEventListener("change", ()=>{ geber = sel.value; sel.classList.toggle("on", !!geber); zeichnen(); });
   document.getElementById("fzSuche").addEventListener("input", e=>{ q = e.target.value.trim().toLowerCase(); zeichnen(); });
-  fetch("daten/fahrzeuge.json?v=202611231943").then(r=>r.json()).then(d=>{ D = d; ALLE = d.fahrzeuge;
+  fetch("daten/fahrzeuge.json?v=202611232003").then(r=>r.json()).then(d=>{ D = d; ALLE = d.fahrzeuge;
     const z = {}; ALLE.forEach(f=>new Set((f.geber || []).map(land)).forEach(g=>z[g] = (z[g] || 0) + 1));
     sel.insertAdjacentHTML("beforeend", Object.keys(z).sort((a,b)=>a.localeCompare(b, "de")).map(g=>`<option value="${esc(g)}">${esc(g)} (${z[g]})</option>`).join(""));
-    document.getElementById("fzVar").textContent = nf.format(ALLE.reduce((n, f)=>n + (f.var ? f.var.split(", ").length : 1), 0));
+    document.getElementById("fzVar").textContent = nf.format(ALLE.reduce((n, f)=>n + Math.max(1, (f.mod || []).length), 0));
     chipsBauen(); zeichnen(); })
     .catch(()=>{ document.getElementById("fzListe").innerHTML = '<div class="fz-leer">Liste konnte nicht geladen werden.</div>'; });
 })();
 </script>
-<script src="seiten.js?v=202611231943"></script>
+<script src="seiten.js?v=202611232003"></script>
 </body>
 </html>
