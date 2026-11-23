@@ -158,7 +158,7 @@ function init(map, opts){
     else if(sichtRes){ const r = sichtRes;
       big = pct(r.anteil) + " sichtbar"; hint = "";
       sub = `${r.haus ? "Vom Dach aus, Augenhöhe " + nf0.format(r.hoehe + 1.6 + r.extra) + " m über Grund" : "Kein Haus getroffen – Sicht vom Boden aus, Augenhöhe " + nf0.format(1.6 + r.extra) + " m"} · Radius ${fmtKm(r.radius/1000)} · ${r.blockierer} ${r.blockierer === 1 ? "Haus verdeckt" : "Häuser verdecken"} die Sicht`;
-      sub += r.gebaeude ? ` · ${nf0.format(r.gebaeude)} Häuser im Umkreis berücksichtigt` : " · Keine Häuser in den Kartendaten gefunden";
+      sub += r.gebaeude ? ` · ${nf0.format(r.gebaeude)} Häuser im Umkreis berücksichtigt (Karte ${nf0.format(r.nKarte||0)}, nachgeladen ${nf0.format(r.nKachel||0)})` : " · Keine Häuser in den Kartendaten gefunden";
     }
     box.innerHTML = `<div class="wz-h"><span class="eyebrow">${NAMES.sicht}</span><button class="wz-x" data-x="close" aria-label="Werkzeug schließen">✕</button></div>
       <div class="wz-big">${big}</div>${sub ? `<div class="wz-sub">${sub}</div>` : ""}${rk}
@@ -300,8 +300,11 @@ function init(map, opts){
     for(const f of F) for(const r of ringe(f)){ const m = schwerpunkt(r), d = innen(p0, r) ? -1 : dist(p0, m); if(d < bd){ bd = d; best = {ring:r, mitte:m, h:+(f.properties.render_height || f.properties.height || 0) || 0}; } }
     return best;
   }
-  function schwerpunkt(r){ let a = 0, x = 0, y = 0; for(let i=0, j=r.length-1; i<r.length; j=i++){ const c = r[j][0]*r[i][1] - r[i][0]*r[j][1]; a += c; x += (r[j][0] + r[i][0])*c; y += (r[j][1] + r[i][1])*c; }
-    return Math.abs(a) < 1e-14 ? r[0] : [x/(3*a), y/(3*a)]; }
+  /* Schwerpunkt relativ zum ersten Punkt rechnen – sonst frisst die Rundung bei Längen-/Breitengraden die Genauigkeit (bis zu Dutzende Meter) */
+  function schwerpunkt(r){ const o = r[0]; let a = 0, x = 0, y = 0;
+    for(let i=0, j=r.length-1; i<r.length; j=i++){ const xj = r[j][0]-o[0], yj = r[j][1]-o[1], xi = r[i][0]-o[0], yi = r[i][1]-o[1], c = xj*yi - xi*yj; a += c; x += (xj + xi)*c; y += (yj + yi)*c; }
+    if(Math.abs(a) < 1e-18){ const n = r.length; return [r.reduce((s,p)=>s+p[0],0)/n, r.reduce((s,p)=>s+p[1],0)/n]; }
+    return [o[0] + x/(3*a), o[1] + y/(3*a)]; }
   /* Sichtfeld berechnen: Karte so einstellen, dass der ganze Kreis drin ist (dann sind alle Häuser geladen) */
   function warteIdle(){ return new Promise(res=>{ let fertig = false; const f = ()=>{ if(!fertig){ fertig = true; res(); } }; map.once("idle", f); setTimeout(f, 6000); }); }
   let sichtHaus = null;
