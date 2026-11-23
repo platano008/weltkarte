@@ -160,9 +160,21 @@ function aus3D(map){
 
 /* „Mix“: die helle „Karte“ halb durchsichtig über den Satellitenbildern (Esri World Imagery, im freien Kontingent).
    Straßen, Grenzen und Namen bleiben voll sichtbar, Flächen werden durchsichtig. */
+const MIX_DECK = {
+  wenig:{wood:0.4, grass:0.3, farmland:0.25, sand:0.3, urban:0.5, water:0.6, "water-edge":1, building:0.65, "urban-edge":0.85},
+  viel: {wood:0.75, grass:0.65, farmland:0.55, sand:0.65, urban:0.82, water:0.85, "water-edge":1, building:0.9, "urban-edge":1}
+};
+let mixStufe = "wenig";
+function mixDeckAnwenden(map, stufe){
+  mixStufe = MIX_DECK[stufe] ? stufe : "wenig";
+  if(!map || !map.getLayer || !map.getLayer("mixsat")) return;
+  const deck = MIX_DECK[mixStufe];
+  for(const id in deck){ if(!map.getLayer(id)) continue;
+    try{ map.setPaintProperty(id, map.getLayer(id).type === "line" ? "line-opacity" : "fill-opacity", deck[id]); }catch(e){} }
+}
 function mixStyle(){
   const st = hellStyle(false);
-  const deck = {wood:0.4, grass:0.3, farmland:0.25, sand:0.3, urban:0.5, water:0.6, "water-edge":1, building:0.65, "urban-edge":0.85};
+  const deck = MIX_DECK[mixStufe];
   for(const l of st.layers){
     if(l.type === "fill" && deck[l.id] != null) l.paint["fill-opacity"] = deck[l.id];
     if(l.id === "urban-edge") l.paint["line-opacity"] = deck[l.id];
@@ -749,6 +761,7 @@ function createMap(opts){
   });
   map.setBase = k=>{ if(free || !STYLES[k] || k===current) return; current = k; errs = 0; styleReady = false; map.setStyle(styleOf(k), {diff:false}); };
   map.setGlobe = g=>{ globe = g; try{ map.setProjection({type: g ? "globe" : "mercator"}); }catch(e){} if(drei && styleReady){ try{ map.setTerrain(g ? null : {source:"dem3d", exaggeration:1.5}); }catch(e){} } };
+  map.setMixDeck = st=>mixDeckAnwenden(map, st);
   map.set3D = on=>{ drei = on; if(!styleReady) return; try{ on ? an3D(map, globe, true) : aus3D(map); }catch(e){ console.warn("3D:", e); } };
   map.currentBase = ()=>current;
   map.isFree = ()=>free;

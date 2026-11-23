@@ -16,11 +16,11 @@
 <link rel="preconnect" href="https://api.maptiler.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=202611230927">
+<link rel="stylesheet" href="style.css?v=202611230930">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611230927"></script>
-<script src="werkzeuge.js?v=202611230927"></script>
+<script src="karte.js?v=202611230930"></script>
+<script src="werkzeuge.js?v=202611230930"></script>
 <style>
 .item.chg .ic{width:22px}
 .card{right:calc(max(16px,env(safe-area-inset-right)) + 56px)!important}
@@ -218,10 +218,10 @@ body.hell .dock,body.hell .maplibregl-ctrl-group,body.hell .wz-rail,body.hell .w
 body.hell .panel{background:rgba(10,10,10,.92)!important}
 body.hell .pille{background:rgba(10,10,10,.88)}
 body.hell .maplibregl-ctrl-attrib a,body.hell .maplibregl-ctrl-attrib{color:#cfcfcf!important}
-#base{flex-wrap:wrap;justify-content:flex-end;max-width:min(560px,calc(100vw - 86px))}
-@media (max-width:520px){#base button{padding:9px 7px!important;font-size:12px!important;letter-spacing:0!important;flex:1 1 22%}#base{border-radius:18px!important}}
+@media (max-width:520px){#base button{padding:9px 7px!important;font-size:12px!important;letter-spacing:0!important}}
+.switches .seg[hidden]{display:none!important}
 </style>
-<script src="lang.js?v=202611230927" defer></script>
+<script src="lang.js?v=202611230930" defer></script>
 </head>
 <body>
 <div id="map"></div>
@@ -238,6 +238,7 @@ body.hell .maplibregl-ctrl-attrib a,body.hell .maplibregl-ctrl-attrib{color:#cfc
 <div class="switches">
   <div class="seg" id="base"></div>
   <div class="seg" id="view"><button data-v="globe">Globus</button><button data-v="flat">Flach</button></div>
+  <div class="seg" id="deck" hidden title="Wie stark die Karte über dem Satellitenbild liegt"><button data-m="wenig" class="on">Wenig</button><button data-m="viel">Viel</button></div>
   <div class="seg" id="drei"><button data-d="3d" aria-pressed="false">3D</button></div>
 </div>
 
@@ -292,7 +293,8 @@ function setDock(name){
 $("dock").querySelectorAll("button").forEach(b=>b.onclick=()=>setDock(document.body.classList.contains("d-"+b.dataset.d) ? null : b.dataset.d));
 /* switches */
 $("base").innerHTML = Object.entries(K.STYLES).map(([k,s])=>`<button data-b="${k}" class="${k==="sat"?"on":""}">${s.name}</button>`).join("");
-$("base").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("base").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setBase(b.dataset.b); document.body.classList.toggle("hell", b.dataset.b !== "sat"); });
+$("base").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("base").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setBase(b.dataset.b); document.body.classList.toggle("hell", b.dataset.b !== "sat"); $("deck").hidden = b.dataset.b !== "mix"; });
+$("deck").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("deck").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setMixDeck(b.dataset.m); });
 $("drei").firstElementChild.onclick = function(){ const on = !this.classList.contains("on"); this.classList.toggle("on", on); this.setAttribute("aria-pressed", on); map.set3D(on); };
 $("view").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("view").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setGlobe(b.dataset.v==="globe"); });
 $("legend").innerHTML = Object.values(K.SIDES).map(s=>`<span><i style="background:${s.color}"></i>${s.short}</span>`).join("") + `<span>- - - vermutet</span>`;
