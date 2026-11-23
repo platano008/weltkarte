@@ -17,7 +17,7 @@
 <script>/* alte geteilte Links (index.html#…) führen weiter zur Karte */
 if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611230802">
+<link rel="stylesheet" href="style.css?v=202611230807">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -858,8 +858,9 @@ html.lite .tick div{animation-duration:70s}
 @keyframes wLoop{0%{offset-distance:0%;opacity:1}85%{opacity:1}100%{offset-distance:100%;opacity:0}}
 @keyframes wLoopFarbe{0%,4%{fill:#8f8f8f}10%,35%{fill:#fff}40%,100%{fill:#6f6f6f}}
 @keyframes wLoopSpur{0%{stroke-dashoffset:.16;stroke:rgba(255,255,255,.75)}35%{stroke:rgba(255,255,255,.75)}40%{stroke:rgba(140,140,140,.6)}100%{stroke-dashoffset:-.84;stroke:rgba(140,140,140,0)}}
+.w-luft{position:fixed;inset:0;width:100vw;height:100vh;z-index:900;pointer-events:none;overflow:visible}
 </style>
-<script src="lang.js?v=202611230802" defer></script>
+<script src="lang.js?v=202611230807" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -1416,41 +1417,50 @@ function flimmern(root){
       else if(e < 0.25 && pf.classList.contains("los")){ pf.classList.remove("los"); jetFlug(pf, false); }
       pf._sy = scrollY; pf._st = performance.now(); }
   }
-  /* Jet fliegt per JS genau auf der gezeichneten Bahn (Strich sitzt exakt dahinter).
-     Er fliegt bis zu „Neueste Veränderungen“; ist er unten am Bildschirmrand, wartet er (fliegt langsam), bis man nachscrollt.
-     Kurz vor dem Ziel kommt eine Flugabwehrrakete von der Seite und schießt ihn ab. */
+  /* Jet-Flug: startet aus dem weißen Vorstoß und fliegt ~4 s in einer eigenen, fest am Bildschirm hängenden Ebene –
+     er bleibt also immer im Bild, egal wie man scrollt. Gleichmäßiges Tempo, mit Looping.
+     Am Ende kommt eine Flugabwehrrakete von der Seite und schießt ihn ab. */
   const SVGNS = "http://www.w3.org/2000/svg";
+  const JET_D = "M0 -32L4 -20L5 -8L28 8L28 13L5 6L4 20L12 27L12 31L2 28L0 31L-2 28L-12 31L-12 27L-4 20L-5 6L-28 13L-28 8L-5 -8L-4 -20Z";
   function jetFlug(pf, an){
-    const sv = pf.querySelector(".w-bahn"), sp = pf.querySelector(".w-spurl"), g = pf.querySelector(".w-jetg"), jp = g.firstChild;
+    const g = pf.querySelector(".w-jetg"), sp = pf.querySelector(".w-spurl");
     cancelAnimationFrame(pf._raf); pf._fliegt = false;
-    sv.querySelectorAll(".w-fx").forEach(n=>n.remove());
-    const setzeJet = (a, w) => g.setAttribute("transform", `translate(${a.x.toFixed(2)} ${a.y.toFixed(2)}) rotate(${w.toFixed(1)})`);
-    if(!an){ sp.style.visibility = "hidden"; g.style.opacity = 1; jp.setAttribute("fill", "#8f8f8f"); setzeJet({x:0,y:0}, 0); return; }
-    /* Ziel: Höhe der Überschrift „Neueste Veränderungen“, gemessen vom Startpunkt des Jets */
-    const r0 = sv.getBoundingClientRect(), oy = r0.top + 320, ziel = document.querySelector("#lage h2");
-    let T = ziel ? Math.round(ziel.getBoundingClientRect().top - 60 - oy) : 1400; T = Math.max(900, T);
-    const we = $("weiss").getBoundingClientRect().bottom - oy;          /* Ende der weißen Fläche */
-    const H = T + 700; sv.setAttribute("viewBox", `-200 -320 400 ${H}`); sv.style.height = H + "px";
-    sp.setAttribute("d", `M0 0L0 -110C0 -200 110 -210 120 -120C130 -20 20 300 10 520C0 ${(520 + (T-520)*0.45).toFixed(0)} -50 ${(T - (T-520)*0.3).toFixed(0)} -20 ${T}`);
-    const L = sp.getTotalLength(), SL = 150, wpx = innerWidth;
-    const farbe = y => (y > -38 && y < we + 70) ? "grau" : "weiss";
-    let d = 0, t0 = performance.now(), tl = t0, rak = null, treffer = null;
-    pf._fliegt = true; pf.style.opacity = 1;
-    const winkel = dd => { const b2 = sp.getPointAtLength(Math.min(L, dd + 1)), c = sp.getPointAtLength(Math.max(0, dd - 1)); return Math.atan2(b2.y - c.y, b2.x - c.x)*180/Math.PI + 90; };
-    const el = (tag, at) => { const n = document.createElementNS(SVGNS, tag); n.setAttribute("class", "w-fx"); for(const k in at) n.setAttribute(k, at[k]); sv.appendChild(n); return n; };
-    function spur(){ const lang = Math.min(SL, d); sp.style.visibility = lang > 0.5 ? "visible" : "hidden";
-      sp.style.strokeDasharray = `${lang.toFixed(1)} ${(L*3).toFixed(0)}`; sp.style.strokeDashoffset = (lang - d).toFixed(1); }
+    if(pf._luft){ pf._luft.remove(); pf._luft = null; }
+    if(sp) sp.style.visibility = "hidden";
+    if(!an){ g.style.opacity = 1; return; }
+    /* Startpunkt = wo der Jet gerade im Vorstoß steht (Bildschirmkoordinaten) */
+    const r = g.getBoundingClientRect(), W = innerWidth, H = innerHeight, m = Math.min(W, H);
+    const x0 = r.left + r.width/2, y0 = Math.min(H*0.92, r.top + r.height/2);
+    g.style.opacity = 0; pf._fliegt = true;
+    const sv = document.createElementNS(SVGNS, "svg"); sv.setAttribute("class", "w-luft"); sv.setAttribute("viewBox", `0 0 ${W} ${H}`); sv.setAttribute("aria-hidden", "true");
+    document.body.appendChild(sv); pf._luft = sv;
+    const el = (tag, at, in_) => { const n = document.createElementNS(SVGNS, tag); for(const k in at) n.setAttribute(k, at[k]); (in_ || sv).appendChild(n); return n; };
+    /* Flugbahn in Bildschirmkoordinaten: hoch, Looping, große Kurve über den Bildschirm, Abschusspunkt */
+    const rl = Math.max(38, m*0.1), ax = Math.min(Math.max(x0, W*0.12), W*0.88 - 2*rl), ay = Math.max(H*0.22 + rl, Math.min(y0 - H*0.25, H*0.5));
+    const f = n => n.toFixed(1);
+    const bahn = `M${f(x0)} ${f(y0)}C${f(x0)} ${f(y0-(y0-ay)*0.5)} ${f(ax)} ${f(ay+(y0-ay)*0.4)} ${f(ax)} ${f(ay)}`
+      + `A${f(rl)} ${f(rl)} 0 1 1 ${f(ax+2*rl)} ${f(ay)}A${f(rl)} ${f(rl)} 0 1 1 ${f(ax)} ${f(ay)}`
+      + `C${f(ax)} ${f(ay-H*0.16)} ${f(W*0.9)} ${f(H*0.1)} ${f(W*0.82)} ${f(H*0.45)}`
+      + `C${f(W*0.76)} ${f(H*0.78)} ${f(W*0.42)} ${f(H*0.8)} ${f(W*0.3)} ${f(H*0.6)}`
+      + `C${f(W*0.2)} ${f(H*0.44)} ${f(W*0.16)} ${f(H*0.36)} ${f(W*0.26)} ${f(H*0.3)}`;
+    const unter = el("path", {d:bahn, fill:"none", stroke:"rgba(0,0,0,.28)", "stroke-width":"4", "stroke-linecap":"round"});
+    const sp2 = el("path", {d:bahn, fill:"none", stroke:"rgba(255,255,255,.85)", "stroke-width":"2", "stroke-linecap":"round"});
+    const L = sp2.getTotalLength(), SL = Math.min(170, L*0.12), DAUER = 4000, RAK = 850;
+    [unter, sp2].forEach(p=>{ p.style.strokeDasharray = `0 ${L*3}`; });
+    const jg = el("g", {}); el("path", {d:JET_D, transform:"scale(.6)", fill:"#fff", stroke:"#3a3a3a", "stroke-width":"2.4", "stroke-linejoin":"round", "paint-order":"stroke"}, jg);
+    const winkel = d => { const a = sp2.getPointAtLength(Math.min(L, d + 1)), b = sp2.getPointAtLength(Math.max(0, d - 1)); return Math.atan2(a.y - b.y, a.x - b.x)*180/Math.PI + 90; };
+    let rak = null, treffer = null, t0 = performance.now(), tl = t0;
     function rakete(){
-      const P = sp.getPointAtLength(L), rechts = Math.random() < 0.5 ? 1 : -1;
-      const S = {x: rechts*(wpx/2 + 60), y: T + 260}, K = {x: rechts*(wpx*0.18), y: T + 160};
-      const rs = el("path", {d:`M${S.x} ${S.y}Q${K.x} ${K.y} ${P.x} ${P.y}`, fill:"none", stroke:"rgba(200,200,200,.55)", "stroke-width":"3", "stroke-linecap":"round"});
+      const P = sp2.getPointAtLength(L), links = P.x < W/2;
+      const S = {x: links ? -40 : W + 40, y: H*0.92}, K = {x: links ? W*0.08 : W*0.92, y: H*0.55};
+      const rs = el("path", {d:`M${f(S.x)} ${f(S.y)}Q${f(K.x)} ${f(K.y)} ${f(P.x)} ${f(P.y)}`, fill:"none", stroke:"rgba(190,190,190,.65)", "stroke-width":"3", "stroke-linecap":"round"});
       const RL = rs.getTotalLength(); rs.style.strokeDasharray = `0 ${RL*2}`;
       const rk = el("g", {});
-      rk.innerHTML = '<circle cx="0" cy="11" r="4" fill="#ffb347"/><circle cx="0" cy="12" r="2.2" fill="#fff"/><path d="M0 -12L2.4 -7L2.4 8L5 11L-5 11L-2.4 8L-2.4 -7Z" fill="#e8e8e8"/>';
-      return {rs, rk, RL, S, P, t: 0};
+      rk.innerHTML = '<circle cx="0" cy="11" r="4" fill="#ffb347"/><circle cx="0" cy="12" r="2.2" fill="#fff"/><path d="M0 -12L2.4 -7L2.4 8L5 11L-5 11L-2.4 8L-2.4 -7Z" fill="#e8e8e8" stroke="#555" stroke-width=".6"/>';
+      return {rs, rk, RL, t: 0};
     }
     function boom(P){
-      jp.parentNode.style.opacity = 0; g.style.opacity = 0;
+      jg.style.opacity = 0;
       const fx = el("g", {transform:`translate(${P.x.toFixed(1)} ${P.y.toFixed(1)})`});
       let h = '<defs><radialGradient id="bFeuer"><stop offset="0" stop-color="#fffbe6"/><stop offset=".3" stop-color="#ffd25a"/><stop offset=".62" stop-color="#ff6a1f"/><stop offset="1" stop-color="#c8102e" stop-opacity="0"/></radialGradient></defs>';
       for(let k=0;k<7;k++){ const w = Math.random()*Math.PI*2, r = 6 + Math.random()*20;
@@ -1475,36 +1485,26 @@ function flimmern(root){
       return t < 2.2;
     }
     const schritt = now => {
-      const dt = Math.min(0.05, (now - tl)/1000), t = (now - t0)/1000; tl = now;
+      const dt = Math.min(0.05, (now - tl)/1000), ms = now - t0; tl = now;
       if(!treffer){
-        /* Tempo: sanft anlaufen; unten am Bildschirmrand warten, oben aus dem Bild wieder aufholen */
-        let v = Math.min(380, 120 + t*420);
-        const a0 = sp.getPointAtLength(d), sy = sv.getBoundingClientRect().top + 320 + a0.y;
-        if(!rak){ if(sy > innerHeight*0.8 && d > 400) v = 45; else if(sy < innerHeight*0.12 && d > 400) v = 1100; }
-        else v = 300;
-        d = Math.min(L, d + v*dt);
-        if(!rak && d >= L - 260){ d = L - 260;   /* Abschuss erst, wenn der Jet gut sichtbar im Bild ist */
-          if(sv.getBoundingClientRect().top + 320 + T < innerHeight*0.7) rak = rakete(); }
-        const a = sp.getPointAtLength(d), w = winkel(d); setzeJet(a, w);
-        const c = farbe(a.y); jp.setAttribute("fill", c === "weiss" ? "#fff" : "#6f6f6f");
-        sp.style.stroke = c === "weiss" ? "rgba(255,255,255,.75)" : "rgba(140,140,140,.6)";
-        spur();
+        const d = Math.min(L, L*ms/DAUER), a = sp2.getPointAtLength(d);
+        jg.setAttribute("transform", `translate(${f(a.x)} ${f(a.y)}) rotate(${winkel(d).toFixed(1)})`);
+        const lang = Math.min(SL, d); [unter, sp2].forEach(p=>{ p.style.strokeDasharray = `${lang.toFixed(1)} ${(L*3).toFixed(0)}`; p.style.strokeDashoffset = (lang - d).toFixed(1); });
+        if(!rak && ms >= DAUER - RAK) rak = rakete();
         if(rak){
-          rak.t += dt; const f = Math.min(1, rak.t/0.85), fe = f*f*(3 - 2*f)*0.4 + f*0.6, dd = fe*rak.RL;
+          rak.t += dt; const q = Math.min(1, rak.t/(RAK/1000)), dd = (q*q*(3 - 2*q)*0.4 + q*0.6)*rak.RL;
           const p = rak.rs.getPointAtLength(dd), p2 = rak.rs.getPointAtLength(Math.min(rak.RL, dd + 1)), p1 = rak.rs.getPointAtLength(Math.max(0, dd - 1));
-          rak.rk.setAttribute("transform", `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${(Math.atan2(p2.y - p1.y, p2.x - p1.x)*180/Math.PI + 90).toFixed(1)})`);
-          const rl = Math.min(dd, 260); rak.rs.style.strokeDasharray = `${rl.toFixed(1)} ${(rak.RL*2).toFixed(0)}`; rak.rs.style.strokeDashoffset = (rl - dd).toFixed(1);
-          if(f >= 1 || d >= L){ rak.rk.remove(); treffer = boom(a); rak.aus = 1; }
+          rak.rk.setAttribute("transform", `translate(${f(p.x)} ${f(p.y)}) rotate(${(Math.atan2(p2.y - p1.y, p2.x - p1.x)*180/Math.PI + 90).toFixed(1)})`);
+          const rr = Math.min(dd, 260); rak.rs.style.strokeDasharray = `${rr.toFixed(1)} ${(rak.RL*2).toFixed(0)}`; rak.rs.style.strokeDashoffset = (rr - dd).toFixed(1);
         }
+        if(ms >= DAUER){ if(rak) rak.rk.remove(); treffer = boom(a); }
       } else {
-        const weiter = boomSchritt(treffer, dt);
-        /* Rauch- und Kondensstreifen verblassen */
-        const o = Math.max(0, 1 - treffer.t/1.2); sp.style.opacity = o; if(rak) rak.rs.style.opacity = o*0.9;
-        if(!weiter){ pf._fliegt = false; return; }
+        const weiter = boomSchritt(treffer, dt), o = Math.max(0, 1 - treffer.t/1.2);
+        unter.style.opacity = sp2.style.opacity = o; if(rak) rak.rs.style.opacity = o*0.9;
+        if(!weiter){ pf._fliegt = false; sv.remove(); if(pf._luft === sv) pf._luft = null; return; }
       }
       pf._raf = requestAnimationFrame(schritt);
     };
-    sp.style.opacity = 1; g.style.opacity = 1; jp.parentNode.style.opacity = 1;
     pf._raf = requestAnimationFrame(schritt);
   }
   let raf = 0; addEventListener("scroll", ()=>{ if(!raf) raf = requestAnimationFrame(()=>{ raf = 0; malen(); }); }, {passive:true});
