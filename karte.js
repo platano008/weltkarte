@@ -166,7 +166,24 @@ const MIX_DECK = {
   wenig:{mixgrund:0.35, urban:0.7, water:0.7, building:0.8, "urban-edge":0.9},
   viel: {mixgrund:0.62, urban:0.85, water:0.9, building:0.95, "urban-edge":1}
 };
-let mixStufe = "wenig";
+let mixStufe = "wenig", mixDunkel = false;
+/* dunkle Variante: dunkler Schleier, helle Schrift mit dunklem Rand, gedämpfte Farben */
+function mixNacht(st){
+  const farbe = {mixgrund:["background-color","#0d1014"], urban:["fill-color","#6b5524"], "urban-edge":["line-color","#9a7a32"], building:["fill-color","#8c6c2e"],
+    water:["fill-color","#173c5e"], "water-edge":["line-color","#2c5f8c"], river:["line-color","#2f6a9e"], stream:["line-color","#2a5a85"],
+    "border-state":["line-color","#7d7788"], "border-country":["line-color","#d9d3e3"], "border-disputed":["line-color","#d9d3e3"], "border-country-glow":["line-color","rgba(0,0,0,0.5)"],
+    rail:["line-color","#6d6a66"], "rail-dash":["line-color","#2a2a2a"]};
+  for(const l of st.layers){
+    const f = farbe[l.id]; if(f) l.paint[f[0]] = f[1];
+    if(l.type === "symbol" && l.paint){
+      const hell = {"place-city":"#ffffff","place-town":"#e6e6e6","place-village":"#c4c4c4","place-state":"#9a95a3","place-country":"#d8d2e2","water-name":"#9cc6ea"}[l.id];
+      if(hell){ l.paint["text-color"] = hell; l.paint["text-halo-color"] = "rgba(8,9,12,0.9)"; l.paint["text-halo-width"] = 1.5; }
+    }
+    if(/^road-(minor|service|track)$/.test(l.id)) l.paint["line-color"] = "#bdb7ad";
+    if(/^road-(minor|service|track)-casing$/.test(l.id)) l.paint["line-color"] = "#3a3631";
+  }
+  return st;
+}
 function mixDeckAnwenden(map, stufe){
   mixStufe = MIX_DECK[stufe] ? stufe : "wenig";
   if(!map || !map.getLayer || !map.getLayer("mixsat")) return;
@@ -188,6 +205,7 @@ function mixStyle(){
     attribution:'Satellit: <a href="https://www.esri.com" target="_blank">Esri</a>, Maxar, Earthstar Geographics, GIS User Community'};
   st.layers.splice(1, 0, {id:"mixsat", type:"raster", source:"mixsat", paint:{"raster-fade-duration":200}},
     {id:"mixgrund", type:"background", paint:{"background-color":"#e8f0dc", "background-opacity":deck.mixgrund}});
+  if(mixDunkel) mixNacht(st);
   st.name = "Plyus Mix";
   return st;
 }
@@ -767,6 +785,7 @@ function createMap(opts){
   map.setBase = k=>{ if(free || !STYLES[k] || k===current) return; current = k; errs = 0; styleReady = false; map.setStyle(styleOf(k), {diff:false}); };
   map.setGlobe = g=>{ globe = g; try{ map.setProjection({type: g ? "globe" : "mercator"}); }catch(e){} if(drei && styleReady){ try{ map.setTerrain(g ? null : {source:"dem3d", exaggeration:1.5}); }catch(e){} } };
   map.setMixDeck = st=>mixDeckAnwenden(map, st);
+  map.setMixDunkel = on=>{ mixDunkel = !!on; if(current === "mix" && !free){ styleReady = false; map.setStyle(styleOf("mix"), {diff:false}); } };
   map.set3D = on=>{ drei = on; if(!styleReady) return; try{ on ? an3D(map, globe, true) : aus3D(map); }catch(e){ console.warn("3D:", e); } };
   map.currentBase = ()=>current;
   map.isFree = ()=>free;
