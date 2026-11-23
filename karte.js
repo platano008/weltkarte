@@ -140,20 +140,16 @@ function an3D(map, globe, kamera){
   if(!map.getSource("dem3d")) map.addSource("dem3d", {type:"raster-dem", tiles:["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"], encoding:"terrarium", tileSize:256, maxzoom:14,
     attribution:'Höhen: <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank">Terrain Tiles (AWS)</a>'});
   if(!globe) map.setTerrain({source:"dem3d", exaggeration:1.5});
+  /* Gebäude immer aus den MapTiler-Daten – die enthalten mehr Häuser als OpenFreeMap; so sieht 3D in jeder Ansicht gleich aus */
   const st = map.getStyle();
-  if(!st.layers.some(l=>l.type==="fill-extrusion")){
-    const flach = st.layers.filter(l=>l["source-layer"]==="building" && l.type==="fill");
-    let src = flach.length ? flach[0].source : Object.keys(st.sources).find(k=>st.sources[k].type==="vector" && /openfreemap|maptiler/.test(st.sources[k].url || ""));
-    if(src){
-      const hell = document.body.classList.contains("hell");
-      const vor = (st.layers.find(l=>l.type==="symbol" || /^imp-|^lage|^front/.test(l.id))||{}).id;
-      /* flache Grundrisse bleiben sichtbar; gibt es keine, kommen eigene dazu */
-      if(!flach.length) map.addLayer({id:"gebaeude-2d", type:"fill", source:src, "source-layer":"building", minzoom:13,
-        paint:{"fill-color": hell ? "#e7b85a" : "#4a4f57", "fill-outline-color": hell ? "#c4923a" : "#6a707a"}}, vor);
-      map.addLayer({id:"gebaeude-3d", type:"fill-extrusion", source:src, "source-layer":"building", minzoom:13,
-        paint:{"fill-extrusion-color": hell ? ["interpolate",["linear"],["coalesce",["get","render_height"],8],0,"#f6f1e8",30,"#e9e2f2",80,"#c9c2e0"] : ["interpolate",["linear"],["coalesce",["get","render_height"],8],0,"#9aa1ab",40,"#c3c9d2"], "fill-extrusion-height":["*",1.3,["coalesce",["get","render_height"],8]], "fill-extrusion-base":["coalesce",["get","render_min_height"],0], "fill-extrusion-opacity":0.88, "fill-extrusion-vertical-gradient":true}}, vor);
-    }
-  }
+  let src = Object.keys(st.sources).find(k=>st.sources[k].type==="vector" && /api\.maptiler\.com\/tiles\/v3/.test(st.sources[k].url || ""));
+  if(!src){ src = "mt3d"; if(!map.getSource(src)) map.addSource(src, {type:"vector", url:`https://api.maptiler.com/tiles/v3/tiles.json?key=${MAPTILER_KEY}`}); }
+  const hell = document.body.classList.contains("hell");
+  const vor = (st.layers.find(l=>l.type==="symbol" || /^imp-|^lage|^front/.test(l.id))||{}).id;
+  if(!map.getLayer("gebaeude-2d")) map.addLayer({id:"gebaeude-2d", type:"fill", source:src, "source-layer":"building", minzoom:13,
+    paint:{"fill-color": hell ? "#e7b85a" : "#4a4f57", "fill-outline-color": hell ? "#c4923a" : "#6a707a"}}, vor);
+  if(!map.getLayer("gebaeude-3d")) map.addLayer({id:"gebaeude-3d", type:"fill-extrusion", source:src, "source-layer":"building", minzoom:13,
+    paint:{"fill-extrusion-color": hell ? ["interpolate",["linear"],["coalesce",["get","render_height"],8],0,"#f6f1e8",30,"#e9e2f2",80,"#c9c2e0"] : ["interpolate",["linear"],["coalesce",["get","render_height"],8],0,"#9aa1ab",40,"#c3c9d2"], "fill-extrusion-height":["*",1.3,["coalesce",["get","render_height"],8]], "fill-extrusion-base":["coalesce",["get","render_min_height"],0], "fill-extrusion-opacity":0.88, "fill-extrusion-vertical-gradient":true}}, vor);
   if(kamera && map.getPitch() < 30) map.easeTo({pitch:55, duration:900});
 }
 function aus3D(map){
@@ -166,15 +162,15 @@ function aus3D(map){
    Straßen, Grenzen und Namen bleiben voll sichtbar, Flächen werden durchsichtig. */
 function mixStyle(){
   const st = hellStyle(false);
-  const deck = {wood:0.3, grass:0.25, farmland:0.2, sand:0.25, urban:0.42, water:0.55, "water-edge":1, building:0.6, "urban-edge":0.8};
+  const deck = {wood:0.18, grass:0.12, farmland:0.08, sand:0.15, urban:0.3, water:0.35, "water-edge":1, building:0.45, "urban-edge":0.7};
   for(const l of st.layers){
     if(l.type === "fill" && deck[l.id] != null) l.paint["fill-opacity"] = deck[l.id];
     if(l.id === "urban-edge") l.paint["line-opacity"] = deck[l.id];
   }
-  if(!esriOff && ESRI_KEY){
-    st.sources.mixsat = {type:"raster", tiles:[ESRI_URLS[esriUrl]], tileSize:256, bounds:ESRI_BOUNDS, minzoom:5, maxzoom:19, attribution:ESRI_ATTR};
-    st.layers.splice(1, 0, {id:"mixsat", type:"raster", source:"mixsat", minzoom:5, paint:{"raster-fade-duration":200, "raster-saturation":-0.1}});
-  }
+  /* Esri World Imagery über die öffentliche Adresse: ohne Schlüssel, weltweit, alle Zoomstufen */
+  st.sources.mixsat = {type:"raster", tiles:["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"], tileSize:256, maxzoom:19,
+    attribution:'Satellit: <a href="https://www.esri.com" target="_blank">Esri</a>, Maxar, Earthstar Geographics, GIS User Community'};
+  st.layers.splice(1, 0, {id:"mixsat", type:"raster", source:"mixsat", paint:{"raster-fade-duration":200}});
   st.name = "Plyus Mix";
   return st;
 }
