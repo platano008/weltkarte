@@ -9,6 +9,7 @@ const STYLES = {
   sat:  {name:"Satellit", url:MT("hybrid-v4"), theme:"sat"},
   karte:{name:"Karte",    url:()=>hellStyle(), theme:null, own:true},
   topo: {name:"Gelände",  url:()=>hellStyle(true), theme:null, own:true},
+  hoehe:{name:"Topo", url:()=>topoStyle(), theme:null, own:true},
   schlicht:{name:"Schlicht", url:`https://api.maptiler.com/maps/backdrop-v4/style.json?key=${MAPTILER_KEY2}`, theme:null}
 };
 const STYLE_FREE = "https://tiles.openfreemap.org/styles/liberty";
@@ -123,6 +124,15 @@ function hellStyle(gelaende){
       {id:"place-state", type:"symbol", source:S, "source-layer":"place", minzoom:5.5, maxzoom:9, filter:["==",K,"state"], layout:{"text-field":NAME,"text-font":FONT,"text-size":11,"text-transform":"uppercase","text-letter-spacing":0.14}, paint:{"text-color":"#8f8a95", ...halo}},
       {id:"place-country", type:"symbol", source:S, "source-layer":"place", maxzoom:9, filter:["==",K,"country"], layout:{"text-field":NAME,"text-font":BOLD,"text-size":Z(2,11,6,16),"text-transform":"uppercase","text-letter-spacing":0.2}, paint:{"text-color":"#4a4552", ...halo}}
     ]};
+}
+
+/* OpenTopoMap: topografische Karte mit Höhenfarben, Schummerung und Höhenlinien (frei, CC-BY-SA, Namensnennung Pflicht). */
+function topoStyle(){
+  return {version:8, name:"OpenTopoMap",
+    glyphs:"https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+    sources:{otm:{type:"raster", tiles:["a","b","c"].map(s=>`https://${s}.tile.opentopomap.org/{z}/{x}/{y}.png`), tileSize:256, maxzoom:17,
+      attribution:'Karte: © <a href="https://opentopomap.org" target="_blank">OpenTopoMap</a> (CC-BY-SA), © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>-Mitwirkende, SRTM'}},
+    layers:[{id:"land", type:"background", paint:{"background-color":"#f2efe8"}},{id:"otm", type:"raster", source:"otm", paint:{"raster-fade-duration":150}}]};
 }
 
 /* Esri World Imagery: schärfere Satellitenbilder, nur über der Ukraine und erst ab Zoom 7.
@@ -804,6 +814,7 @@ function niceScale(maxMeters){
 }
 function attributionFor(map, center, zoom){
   if((map.isFree && map.isFree()) || map.currentBase()==="karte" || map.currentBase()==="topo") return "Karte: © OpenFreeMap, © OpenStreetMap-Mitwirkende";
+  if(map.currentBase && map.currentBase()==="hoehe") return "Karte: © OpenTopoMap (CC-BY-SA), © OpenStreetMap-Mitwirkende";
   let a = "Karte: © MapTiler, © OpenStreetMap-Mitwirkende";
   const [w,s,e,n] = ESRI_BOUNDS;
   if(map.currentBase()==="sat" && !esriOff && zoom >= 7 && center[0]>w && center[0]<e && center[1]>s && center[1]<n)

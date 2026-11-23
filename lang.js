@@ -60,6 +60,10 @@
     // Unterseiten: Mitwirkende, Kontakt, Impressum
     "Für längere Hinweise, Quellen und Anfragen.":"For longer tips, sources and enquiries.",
     "Mail schreiben →":"Send email →",
+    "Topografie":"Topography",
+    "Topografische Karte mit Höhenlinien und Relief.":"Topographic map with contour lines and relief.",
+    "· Bilddaten: Esri · Topografische Karte: ©":"· Imagery: Esri · Topographic map: ©",
+    "(CC-BY-SA) · NATO-Symbole: milsymbol":"(CC-BY-SA) · NATO symbols: milsymbol",
     "Mitwirkende · Plyus":"Contributors · Plyus",
     "Kontakt · Plyus":"Contact · Plyus",
     "Impressum · Plyus":"Legal notice · Plyus",
@@ -133,7 +137,7 @@
     "· Bilddaten: Esri · NATO-Symbole: milsymbol":"· Imagery: Esri · NATO symbols: milsymbol",
     "Datenschutz in Kürze":"Privacy in brief",
     "Diese Website wird über GitHub Pages bereitgestellt. Beim Aufruf verarbeitet der Anbieter technisch notwendige Daten wie deine IP-Adresse.":"This website is hosted on GitHub Pages. When you visit, the provider processes technically necessary data such as your IP address.",
-    "Für Karten und Programmbibliotheken werden Inhalte von MapTiler und jsDelivr geladen. Dabei wird deine IP-Adresse an diese Anbieter übertragen.":"Content for maps and code libraries is loaded from MapTiler and jsDelivr. Your IP address is transmitted to these providers.",
+    "Für Karten und Programmbibliotheken werden Inhalte von MapTiler, Esri, OpenFreeMap, OpenTopoMap, Amazon Web Services (Höhendaten) und jsDelivr geladen. Dabei wird deine IP-Adresse an diese Anbieter übertragen.":"Content for maps and code libraries is loaded from MapTiler, Esri, OpenFreeMap, OpenTopoMap, Amazon Web Services (elevation data) and jsDelivr. Your IP address is transmitted to these providers.",
     "Wir setzen keine Cookies und keine Tracking-Werkzeuge ein. Deine Sprachwahl wird nur lokal in deinem Browser gespeichert.":"We use no cookies and no tracking tools. Your language choice is only stored locally in your browser.",
     "Eine ausführliche Datenschutzerklärung folgt.":"A full privacy policy will follow.",
     // Seitentitel

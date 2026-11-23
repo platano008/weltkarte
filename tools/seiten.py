@@ -85,6 +85,7 @@ seite("mitwirkende.html", "Mitwirkende", "Wer hinter Plyus steht und worauf die 
   <a class="kt weiss" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener"><span class="tag">Geodaten</span><b>OpenStreetMap</b><span class="t">Straßen, Orte und Grenzen – von Freiwilligen auf der ganzen Welt erfasst.</span><span class="pf">Ansehen →</span></a>
   <a class="kt" href="https://www.esri.com" target="_blank" rel="noopener"><span class="tag">Bilddaten</span><b>Esri</b><span class="t">Zusätzliche Satellitenbilder.</span><span class="pf">Ansehen →</span></a>
   <a class="kt blau" href="https://maplibre.org" target="_blank" rel="noopener"><span class="tag">Technik</span><b>MapLibre</b><span class="t">Die Kartenansicht im Browser, inklusive Globus.</span><span class="pf">Ansehen →</span></a>
+  <a class="kt" href="https://opentopomap.org" target="_blank" rel="noopener"><span class="tag">Topografie</span><b>OpenTopoMap</b><span class="t">Topografische Karte mit Höhenlinien und Relief.</span><span class="pf">Ansehen →</span></a>
   <a class="kt weiss" href="https://github.com/spatialillusions/milsymbol" target="_blank" rel="noopener"><span class="tag">Symbole</span><b>milsymbol</b><span class="t">Zeichnet die NATO-Symbole der Einheiten.</span><span class="pf">Ansehen →</span></a>
 </div>''') + "\n" +
     block("03", "Mitmachen", f'''<div class="karten"><a class="kt gross" href="https://x.com/plyusmap" target="_blank" rel="noopener"><span class="ic">{X}</span><span class="mitte"><span class="tag">Hinweise, Korrekturen, Quellen</span><b>Hilf mit.</b><span class="t">Du hast eine Veränderung an der Front gesehen oder einen Fehler entdeckt? Schreib uns.</span></span><span class="pf" data-nolang>@plyusmap →</span></a></div>'''),
@@ -131,10 +132,10 @@ seite("impressum.html", "Impressum", "Impressum und rechtliche Hinweise von Plyu
 <h3>Urheberrecht</h3>
 <p>Die Inhalte und Grafiken auf dieser Website unterliegen dem Urheberrecht. Kartendaten und Bilder stammen von den jeweils genannten Quellen und unterliegen deren Lizenzen.</p>
 </div>''') + "\n" +
-    block("03", "Quellen", '''<div class="sk-text"><p>Lagedaten: ukv3 · Karten: © <a href="https://www.maptiler.com/copyright/" target="_blank" rel="noopener">MapTiler</a>, © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap-Mitwirkende</a> · Bilddaten: Esri · NATO-Symbole: milsymbol</p></div>''') + "\n" +
+    block("03", "Quellen", '''<div class="sk-text"><p>Lagedaten: ukv3 · Karten: © <a href="https://www.maptiler.com/copyright/" target="_blank" rel="noopener">MapTiler</a>, © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap-Mitwirkende</a> · Bilddaten: Esri · Topografische Karte: © <a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a> (CC-BY-SA) · NATO-Symbole: milsymbol</p></div>''') + "\n" +
     block("04", "Datenschutz in Kürze", '''<div class="sk-text recht">
 <p>Diese Website wird über GitHub Pages bereitgestellt. Beim Aufruf verarbeitet der Anbieter technisch notwendige Daten wie deine IP-Adresse.</p>
-<p>Für Karten und Programmbibliotheken werden Inhalte von MapTiler und jsDelivr geladen. Dabei wird deine IP-Adresse an diese Anbieter übertragen.</p>
+<p>Für Karten und Programmbibliotheken werden Inhalte von MapTiler, Esri, OpenFreeMap, OpenTopoMap, Amazon Web Services (Höhendaten) und jsDelivr geladen. Dabei wird deine IP-Adresse an diese Anbieter übertragen.</p>
 <p>Wir setzen keine Cookies und keine Tracking-Werkzeuge ein. Deine Sprachwahl wird nur lokal in deinem Browser gespeichert.</p>
 <p>Eine ausführliche Datenschutzerklärung folgt.</p>
 </div>'''),
