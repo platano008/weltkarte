@@ -59,7 +59,7 @@
     "Feind · Infanterie · Bataillon":"Hostile · infantry · battalion",
     // Unterseiten: Mitwirkende, Kontakt, Impressum
     "Sichtfeld":"Line of sight",
-    "Ein Haus antippen – dann siehst du, was man von dort oben sehen kann.":"Tap a building to see what can be seen from up there.",
+    "Nah an eine Stadt ranzoomen und ein Haus antippen – dann siehst du, was man von dort oben sehen kann.":"Zoom in close to a town and tap a building to see what can be seen from up there.",
     "Berechne …":"Calculating …",
     "sichtbar":"visible",
     "verdeckt":"hidden",

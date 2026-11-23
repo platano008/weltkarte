@@ -66,7 +66,7 @@ const HINT = {
   flaeche: "Eckpunkte der Fläche antippen. Doppelt tippen oder „Fertig“ schließt sie.",
   radius: "Mittelpunkt antippen, dann den Rand – oder unten einen Radius wählen.",
   punkt: "Einen Punkt auf der Karte antippen.",
-  sicht: "Ein Haus antippen – dann siehst du, was man von dort oben sehen kann."
+  sicht: "Nah an eine Stadt ranzoomen und ein Haus antippen – dann siehst du, was man von dort oben sehen kann."
 };
 const SICHT_R = [300, 500, 1000, 2000], SICHT_H = [0, 10, 30, 100], STD_H = 8;
 const RANGES = [5, 10, 20, 40, 70, 150, 300];
@@ -99,6 +99,7 @@ function init(map, opts){
       if(!m.getLayer("wz-pt")) m.addLayer({id:"wz-pt", type:"circle", source:"wz", filter:["==",["get","k"],"pt"], paint:{"circle-radius":4.5,"circle-color":"#ffffff","circle-stroke-color":"#000000","circle-stroke-width":2}});
       ["wz-fill","wz-case","wz-line","wz-prev","wz-pt"].forEach(l=>{ try{ m.moveLayer(l); }catch(e){} });
       if(sichtRes && window.Sicht && !m.getLayer("sicht-flaeche")) Sicht.zeigen(m, sichtRes);
+      if(tool === "sicht") hausEbene(m);
       draw();
     }catch(e){}
   }
@@ -218,6 +219,7 @@ function init(map, opts){
     document.body.classList.add("wz-on");
     try{ map.doubleClickZoom.disable(); }catch(e){}
     opts.onStart && opts.onStart(t);
+    if(t === "sicht") hausEbene(); else hausEbeneWeg();
     refresh(true);
   }
   function finish(keepTool){
@@ -228,6 +230,7 @@ function init(map, opts){
     refresh(true);
   }
   function stop(){
+    hausEbeneWeg();
     tool = null; pts = []; hover = null; radiusKm = null; liveLabel(null);
     root.querySelectorAll("[data-t]").forEach(b=>b.classList.remove("on"));
     document.body.classList.remove("wz-on");
@@ -272,6 +275,19 @@ function init(map, opts){
     }
     pts.push(ll); hover = null; liveLabel(null); refresh(true);
   });
+  /* Häuser immer sichtbar und antippbar, solange das Sichtfeld-Werkzeug an ist – auch bei Satellit und Topo (dort gibt es sonst keine Häuser) */
+  function hausEbene(m){
+    m = m || map;
+    try{
+      const st = m.getStyle(); if(!st) return;
+      const da = st.layers.some(l=>l["source-layer"] === "building" && (l.type === "fill" || l.type === "fill-extrusion") && l.id !== "sicht-geb2d" && (!l.layout || l.layout.visibility !== "none"));
+      if(da || m.getLayer("sicht-geb2d")) return;
+      if(!m.getSource("sicht-ofm")) m.addSource("sicht-ofm", {type:"vector", url:"https://tiles.openfreemap.org/planet"});
+      const vor = (st.layers.find(l=>l.type === "symbol")||{}).id;
+      m.addLayer({id:"sicht-geb2d", type:"fill", source:"sicht-ofm", "source-layer":"building", minzoom:13, paint:{"fill-color":"#f3c35a","fill-opacity":0.8,"fill-outline-color":"#b8862a"}}, vor);
+    }catch(e){}
+  }
+  function hausEbeneWeg(){ try{ if(map.getLayer("sicht-geb2d")) map.removeLayer("sicht-geb2d"); }catch(e){} }
   /* Angetipptes Haus finden – auch bei 3D-Häusern (dort zeigt der Klick sonst auf den Boden dahinter) und mit etwas Spielraum am Handy */
   function hausAmPunkt(pt, ll){
     let F = [];
@@ -293,12 +309,8 @@ function init(map, opts){
     if(!window.Sicht) return;
     const lauf = ++sichtLauf; sichtPunkt = ll; if(haus !== undefined) sichtHaus = haus; sichtInfo = "laeuft"; readout();
     try{
-      let q = Sicht.gebaeudeQuelle(map);
-      if(!q && typeof MAPTILER_KEY !== "undefined"){
-        if(!map.getSource("sicht-geb")) map.addSource("sicht-geb", {type:"vector", url:`https://api.maptiler.com/tiles/v3/tiles.json?key=${MAPTILER_KEY}`});
-        if(!map.getLayer("sicht-geb")) map.addLayer({id:"sicht-geb", type:"fill", source:"sicht-geb", "source-layer":"building", minzoom:13, paint:{"fill-opacity":0}});
-        q = "sicht-geb";
-      }
+      hausEbene();
+      const q = Sicht.gebaeudeQuelle(map);
       const km = sichtR/1000, b = [dest(ll, km, 270)[0], dest(ll, km, 180)[1], dest(ll, km, 90)[0], dest(ll, km, 0)[1]];
       const kasten = box.getBoundingClientRect(), H = map.getContainer().clientHeight, oben = box.hidden ? 30 : (innerWidth < 700 ? H*0.5 : Math.min(kasten.bottom + 12, H*0.55));
       map.fitBounds([[b[0], b[1]], [b[2], b[3]]], {padding:{top:oben, bottom:110, left:20, right:70}, maxZoom:16, duration:700});
