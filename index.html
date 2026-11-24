@@ -17,7 +17,7 @@
 <script>/* alte geteilte Links (index.html#…) führen weiter zur Karte */
 if(location.hash.length > 1 && !/^#(lage|zeigt|arsenal)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611241202">
+<link rel="stylesheet" href="style.css?v=202611241219">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -159,26 +159,22 @@ section.blk{padding:72px 0 8px}
 .row .go{justify-self:end;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .row:hover .go{color:var(--fg)}
 .empty-l{padding:26px 0;color:var(--muted);border-bottom:1px solid var(--line)}
-/* Veränderungen wie ein Level-up: Zeilen fliegen ein, XP-Leiste füllt sich, Fläche zählt hoch und springt, „+km²“ steigt auf */
+/* Veränderungen wie ein Level-up: Zeilen fliegen ein, XP-Leiste füllt sich, Fläche zählt hoch und springt kurz auf */
 .row{position:relative}
-.row .a{position:relative}
 .row .xp{position:absolute;left:0;right:0;bottom:-1px;height:3px;background:rgba(255,255,255,.06);overflow:hidden;pointer-events:none}
 .row .xp i{position:absolute;left:0;top:0;bottom:0;width:var(--p);background:var(--col);box-shadow:0 0 14px var(--col);transform-origin:left;overflow:hidden}
 .row .xp i::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent);transform:translateX(-100%)}
-.xp-plus{position:absolute;left:0;bottom:100%;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--col);text-shadow:0 0 10px var(--col);white-space:nowrap;opacity:0;pointer-events:none}
 .tag .neu{font-family:var(--mono);font-style:normal;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:3px 7px;border-radius:999px!important;background:#fff;color:#000;box-shadow:0 0 0 0 rgba(255,255,255,.6)}
 #chg.xp-warte .row{opacity:0}
 #chg.xp-an .row{animation:xpRein .6s cubic-bezier(.2,.8,.2,1) calc(var(--n)*.14s) both}
 #chg.xp-an .row .xp i{animation:xpFill 1s cubic-bezier(.3,.8,.3,1) calc(var(--n)*.14s + .35s) both}
 #chg.xp-an .row .xp i::after{animation:xpGlanz .9s ease-out calc(var(--n)*.14s + 1.3s) both}
 #chg.xp-an .row .a{animation:xpPop .5s cubic-bezier(.3,1.7,.5,1) calc(var(--n)*.14s + 1.3s) both}
-#chg.xp-an .xp-plus{animation:xpPlus 1.3s cubic-bezier(.2,.7,.3,1) calc(var(--n)*.14s + 1.3s) both}
 #chg.xp-an .tag .neu{animation:xpNeu 1.6s ease-out calc(var(--n)*.14s + 1.5s) 3}
 @keyframes xpRein{0%{opacity:0;transform:translateX(-28px)}100%{opacity:1;transform:none}}
 @keyframes xpFill{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
 @keyframes xpGlanz{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 @keyframes xpPop{0%{transform:scale(1)}40%{transform:scale(1.32);text-shadow:0 0 18px var(--col)}100%{transform:scale(1)}}
-@keyframes xpPlus{0%{opacity:0;transform:translateY(8px) scale(.8)}20%{opacity:1;transform:translateY(0) scale(1.1)}100%{opacity:0;transform:translateY(-30px) scale(1)}}
 @keyframes xpNeu{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}100%{box-shadow:0 0 0 12px rgba(255,255,255,0)}}
 
 /* Was die Karte zeigt */
@@ -632,21 +628,22 @@ a.gate .gt b::after{content:"";width:.62em;height:.62em;flex:none;background:cur
   mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='square'%3E%3Cpath d='M3 12h17M13 5l7 7-7 7'/%3E%3C/svg%3E") center/contain no-repeat;transition:transform .45s cubic-bezier(.2,.7,.2,1)}
 a.gate:hover .gt b::after{transform:translateX(.25em)}
 .gbald{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
-/* Arsenal: ein paar Beispiele; Foto füllt den oberen Teil, der Name liegt halb darüber */
-.ars-liste{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.ars-k{position:relative;display:flex;flex-direction:column;border:1px solid var(--line-2);border-radius:18px!important;overflow:hidden;background:#070707;transition:transform .25s,border-color .25s}
-.ars-k:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.4)}
-.ars-link{position:absolute;inset:0;z-index:2}
-.ars-bild{position:relative;aspect-ratio:4/3;display:grid;place-items:center;overflow:hidden;background:radial-gradient(110% 90% at 50% 100%,rgba(255,255,255,.08),transparent 70%),#0b0c0e}
-.ars-bild img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s}
-.ars-k:hover .ars-bild img{transform:scale(1.05)}
-.ars-bild svg{width:86%;height:auto}
-.ars-text{position:relative;z-index:1;margin-top:-3.4em;padding:2.2em 16px 14px;background:linear-gradient(180deg,rgba(7,7,7,0),#070707 58%)}
-.ars-typ{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#bdbdbd;text-shadow:0 1px 6px #000}
-.ars-text h3{margin:6px 0 0;font-family:var(--korn);font-weight:400;font-size:clamp(22px,2.4vw,30px);line-height:1;text-shadow:0 2px 12px rgba(0,0,0,.7);overflow-wrap:anywhere}
-.ars-foto{display:block;margin-top:8px;font-size:10.5px;line-height:1.4;color:#7d7d7d;min-height:1.4em}
-.ars-foto a{position:relative;z-index:3;color:#9fbfdf}
-@media (max-width:900px){.ars-liste{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ars-text{padding:2em 12px 12px}}
+/* Arsenal: ein paar Beispiele im Stil der Berichte-Karten – Bild mit dünnem Rahmen, ragt über den Rand und blendet ins Schwarze aus,
+   darunter eine runde weiße Textbox mit Name und Typ */
+.ars{--ars-r:26px}
+.ars-liste{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--ars-r)*2 + 8px);padding:var(--ars-r) var(--ars-r) 0}
+.ars-k{position:relative;display:flex;flex-direction:column;color:#0a0a0a;text-decoration:none;transition:transform .3s cubic-bezier(.2,.7,.2,1)}
+.ars-k:hover{transform:translateY(-4px)}
+.ars-bildr{position:relative;aspect-ratio:1;z-index:1}
+.ars-bildr::after{content:"";position:absolute;inset:0 0 -24px 0;border:1.5px solid rgba(255,255,255,.95);border-bottom:0;border-radius:22px 22px 0 0!important;pointer-events:none;z-index:2}
+.ars-bild{position:absolute;inset:calc(var(--ars-r)*-1);overflow:hidden;border-radius:46px!important;display:grid;place-items:center;background:radial-gradient(circle at 50% 45%,#2a2a2a,#0d0d0d)}
+.ars-bild img{position:absolute;inset:3px;width:calc(100% - 6px);height:calc(100% - 6px);object-fit:cover;border-radius:43px!important}
+.ars-bild svg{width:72%;height:auto}
+.ars-bild::after{content:"";position:absolute;inset:0;border:6px solid #000;border-radius:inherit;box-shadow:inset 0 0 10px 9px #000,inset 0 0 4px 4px #000;pointer-events:none}
+.ars-txt{position:relative;z-index:3;margin-top:-24px;padding:16px 16px 18px;background:#fff;border-radius:22px!important;box-shadow:0 18px 34px -16px rgba(0,0,0,.6)}
+.ars-txt h3{margin:0 0 6px;font-family:var(--display);font-weight:700;font-size:clamp(15px,1.3vw,17px);line-height:1.08;text-transform:uppercase;overflow-wrap:anywhere}
+.ars-txt p{margin:0;color:#222;font-size:13px;line-height:1.45}
+@media (max-width:900px){.ars{--ars-r:14px}.ars-liste{grid-template-columns:repeat(2,minmax(0,1fr));gap:40px calc(var(--ars-r)*2 + 6px)}.ars-txt{padding:14px 12px 15px}}
 
 .menu-logo{display:flex;justify-content:center;align-items:center;gap:14px;padding:clamp(40px,8vh,80px) 16px 60px;animation:rise .6s .3s cubic-bezier(.2,.7,.2,1) both}
 .menu-logo img{height:clamp(30px,4vw,42px);width:auto}
@@ -856,9 +853,8 @@ html.lite .tick div{animation-duration:70s}
 .w-front{fill:none;stroke:#ff3550;stroke-width:3;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 /* Stoßpfeile wie auf der Karte: schieben die Front an einzelnen Stellen vor */
 .w-pfeile{position:absolute;left:0;right:0;top:100%;height:clamp(220px,22vw,280px);margin-top:-1px;pointer-events:none;z-index:2}
-.w-pf{position:absolute;top:52%;width:clamp(26px,4.2vw,60px);height:0;transform:translateX(-50%);filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
-.w-pf svg{display:block;width:100%;height:100%;overflow:visible}
-.w-pf path{fill:#ff3550;stroke:#2a0008;stroke-width:2.5;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.w-pfeile svg{display:block;width:100%;height:100%;overflow:visible}
+.w-pfeile path{fill:#ff3550;stroke:#5c0012;stroke-width:1.5;stroke-linejoin:round;filter:drop-shadow(0 5px 8px rgba(0,0,0,.4))}
 .weiss{padding-bottom:clamp(60px,8vw,90px)!important;margin-bottom:clamp(220px,22vw,280px)}
 .w-sozial.unten{position:absolute;left:50%;top:100%;z-index:3;margin:0;transform:translate(-50%,calc(clamp(220px,22vw,280px)*.36 - 50%));flex-direction:column;gap:12px}
 .w-sozial.unten .wb{box-shadow:0 10px 26px -8px rgba(0,0,0,.5)}
@@ -891,7 +887,7 @@ html.lite .tick div{animation-duration:70s}
 #chg .row.getroffen,#chg.xp-an .row.getroffen{animation:getroffen .7s cubic-bezier(.3,.7,.4,1)}
 @keyframes getroffen{0%{background:rgba(255,150,60,.35);transform:translateY(3px)}30%{transform:translateY(-2px)}100%{background:transparent;transform:none}}
 </style>
-<script src="lang.js?v=202611241202" defer></script>
+<script src="lang.js?v=202611241219" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -1362,7 +1358,7 @@ Promise.all([
     return '<a class="row" style="--n:'+n+';--col:'+col+'" href="karte.html#@'+lng.toFixed(4)+','+lat.toFixed(4)+',11">'
       + '<span class="d">'+(x.p.datum ? fmtD(x.p.datum) : "–")+'</span>'
       + '<span class="tag"><i style="background:'+col+'"></i>'+esc(x.p.name || txt)+(n ? '' : '<em class="neu">Neu</em>')+'</span>'
-      + '<span class="a"><b class="xp-plus">+'+nf.format(x.km2)+' km²</b><b class="xp-zahl" data-v="'+x.km2+'">'+nf.format(x.km2)+'</b><span>km²</span></span>'
+      + '<span class="a"><b class="xp-zahl" data-v="'+x.km2+'">'+nf.format(x.km2)+'</b><span>km²</span></span>'
       + '<span class="c">'+(x.p.direktion || gname(x.p.gruppe) ? esc([x.p.direktion ? (/richtung/i.test(x.p.direktion) ? x.p.direktion : x.p.direktion + "-Richtung") : "", gname(x.p.gruppe)].filter(Boolean).join(" · ")) : Math.abs(lat).toFixed(3)+'° N · '+Math.abs(lng).toFixed(3)+'° O')+'</span>'
       + '<span class="go">Auf der Karte →</span><span class="xp"><i style="--p:'+Math.max(6, x.km2/maxKm*100).toFixed(1)+'%"></i></span></a>';
   }).join("") : '<div class="empty-l">Noch keine eingetragenen Veränderungen.</div>';
@@ -1457,7 +1453,7 @@ function flimmern(root){
       else if(e < 0.25 && pf.classList.contains("los")){ pf.classList.remove("los"); jetFlug(pf, false); }
     }
   }
-  /* Jet-Flug: startet aus dem weißen Vorstoß, fliegt einen Looping und dann über die Seite zur neuesten Veränderung.
+  /* Jet-Flug: startet aus dem weißen Vorstoß und fliegt über die Seite zur neuesten Veränderung.
      Dort holt ihn eine Flugabwehrrakete von der Seite herunter. Die Bahn hängt an der Seite, nicht am Bildschirm –
      ist das Ziel nicht im Bild, fliegt er einfach hinaus. */
   const SVGNS = "http://www.w3.org/2000/svg";
@@ -1479,16 +1475,15 @@ function flimmern(root){
     sv.style.width = W + "px"; sv.style.height = DH + "px";
     document.body.appendChild(sv); pf._luft = sv;
     const el = (tag, at, in_) => { const n = document.createElementNS(SVGNS, tag); for(const k in at) n.setAttribute(k, at[k]); (in_ || sv).appendChild(n); return n; };
-    /* Bahn: hoch aus dem Vorstoß, Looping, dann im Sturzflug auf die neueste Veränderung (ohne Ziel: nach dem Looping oben hinaus) */
-    const f = n => n.toFixed(1), m = Math.min(W, H), rl = Math.max(38, m*0.1);
-    const ax = Math.min(Math.max(x0, W*0.12), W*0.88 - 2*rl), ay = sy + Math.max(H*0.22 + rl, Math.min(y0 - sy - H*0.25, H*0.5)), seite = T && T.x < ax + rl ? -1 : 1;
-    const bahn = `M${f(x0)} ${f(y0)}C${f(x0)} ${f(y0-(y0-ay)*0.5)} ${f(ax)} ${f(ay+(y0-ay)*0.4)} ${f(ax)} ${f(ay)}`
-      + `A${f(rl)} ${f(rl)} 0 1 1 ${f(ax+2*rl)} ${f(ay)}A${f(rl)} ${f(rl)} 0 1 1 ${f(ax)} ${f(ay)}`
-      + (T ? `C${f(ax)} ${f(ay - H*0.12)} ${f(T.x + seite*W*0.18)} ${f(T.y - H*0.55)} ${f(T.x)} ${f(T.y)}`
-           : `C${f(ax)} ${f(ay - H*0.3)} ${f(ax + W*0.1)} ${f(ay - H*0.6)} ${f(ax + W*0.15)} ${f(ay - H*1.2)}`);
+    /* Bahn: kurz hoch aus dem Vorstoß, Kurve zur Seite, dann im Sturzflug auf die neueste Veränderung (ohne Ziel: oben hinaus) */
+    const f = n => n.toFixed(1), seite = T && T.x < x0 ? -1 : 1, A = {x: x0 + seite*W*0.28, y: y0 - H*0.14};
+    const bahn = T
+      ? `M${f(x0)} ${f(y0)}C${f(x0)} ${f(y0 - H*0.14)} ${f(A.x - seite*W*0.14)} ${f(A.y)} ${f(A.x)} ${f(A.y)}`
+        + `C${f(A.x + seite*W*0.16)} ${f(A.y)} ${f(T.x + seite*W*0.12)} ${f(T.y - H*0.5)} ${f(T.x)} ${f(T.y)}`
+      : `M${f(x0)} ${f(y0)}C${f(x0)} ${f(y0 - H*0.4)} ${f(A.x)} ${f(A.y)} ${f(A.x + seite*W*0.1)} ${f(y0 - H*1.3)}`;
     const unter = el("path", {d:bahn, fill:"none", stroke:"rgba(0,0,0,.28)", "stroke-width":"4", "stroke-linecap":"round"});
     const sp2 = el("path", {d:bahn, fill:"none", stroke:"rgba(255,255,255,.85)", "stroke-width":"2", "stroke-linecap":"round"});
-    const L = sp2.getTotalLength(), SL = Math.min(170, L*0.12), DAUER = Math.max(3600, Math.min(6000, L*1.5)), RAK = 900;
+    const L = sp2.getTotalLength(), SL = Math.min(170, L*0.12), DAUER = Math.max(2800, Math.min(5200, L*1.5)), RAK = 900;
     [unter, sp2].forEach(p=>{ p.style.strokeDasharray = `0 ${L*3}`; });
     const jg = el("g", {}); el("path", {d:JET_D, transform:"scale(.6)", fill:"#fff", stroke:"#3a3a3a", "stroke-width":"2.4", "stroke-linejoin":"round", "paint-order":"stroke"}, jg);
     const winkel = d => { const a = sp2.getPointAtLength(Math.min(L, d + 1)), b = sp2.getPointAtLength(Math.max(0, d - 1)); return Math.atan2(a.y - b.y, a.x - b.x)*180/Math.PI + 90; };
@@ -1554,28 +1549,48 @@ function flimmern(root){
   let raf = 0; addEventListener("scroll", ()=>{ if(!raf) raf = requestAnimationFrame(()=>{ raf = 0; malen(); }); }, {passive:true});
   addEventListener("resize", malen); malen();
 })();
-/* ===== Front unter Telegram/X: schlichte Linie; drei Stoßpfeile schieben sie beim Hinscrollen vor ===== */
+/* ===== Front unter Telegram/X: schlichte Linie; drei geschwungene Stoßpfeile wie auf der Karte schieben sie beim Hinscrollen
+   in breiten Bögen vor. Die Front liegt in der gestreckten Kante (viewBox 1200 × 260), die Pfeile in einer eigenen Ebene in
+   echten Pixeln, damit sie nicht verzerren. ===== */
 (function(){
   const rot = $("wuRot"), glut = $("wuGlut"), fr = $("wuFront"), box = $("wPfeile"); if(!fr || !box) return;
-  const Y0 = 187, BREITE = 80, OBEN = 0.52, B = [{x:216, d:34}, {x:840, d:46}, {x:1068, d:26}], k = B.map(()=>0);
-  const pfeile = B.map(b=>{ const n = document.createElement("div"); n.className = "w-pf"; n.style.left = (b.x/12).toFixed(2) + "%";
-    n.innerHTML = '<svg viewBox="-30 0 60 100" preserveAspectRatio="none"><path d="M-8 0L0 9L8 0L13 64L27 64L0 100L-27 64L-13 64Z"/></svg>'; box.appendChild(n); return n; });
+  const NS = "http://www.w3.org/2000/svg", Y0 = 187, BREITE = 150;
+  const B = [{x:200, d:40, bog:1}, {x:860, d:52, bog:-1}, {x:1080, d:30, bog:1}], k = B.map(()=>0);
+  const sv = document.createElementNS(NS, "svg"); box.appendChild(sv);
+  const pfade = B.map(()=>{ const p = document.createElementNS(NS, "path"); sv.appendChild(p); return p; });
+  const welle = x=>Y0 + 5*Math.sin(x/1200*Math.PI*3);
+  const frontY = x=>B.reduce((y, b, i)=>y + b.d*k[i]*Math.exp(-Math.pow((x - b.x)/BREITE, 2)), welle(x));
+  /* Stoßpfeil entlang einer Kurve: schmaler Schwalbenschwanz, Körper wird zur Spitze breiter, große Spitze */
+  function pfeil(P0, P1, P2, w){
+    const pt = t=>[(1-t)*(1-t)*P0[0] + 2*(1-t)*t*P1[0] + t*t*P2[0], (1-t)*(1-t)*P0[1] + 2*(1-t)*t*P1[1] + t*t*P2[1]];
+    const tan = t=>{ const x = 2*(1-t)*(P1[0]-P0[0]) + 2*t*(P2[0]-P1[0]), y = 2*(1-t)*(P1[1]-P0[1]) + 2*t*(P2[1]-P1[1]), l = Math.hypot(x, y) || 1; return [x/l, y/l]; };
+    const lang = Math.hypot(P2[0]-P0[0], P2[1]-P0[1]), kopf = Math.min(0.42, w*2.2/Math.max(lang, 1)), th = 1 - kopf, N = 18, L = [], R = [];
+    for(let i = 0; i <= N; i++){ const t = th*i/N, p = pt(t), d = tan(t), h = w*(0.32 + 0.38*t/th);
+      L.push([p[0] - d[1]*h, p[1] + d[0]*h]); R.push([p[0] + d[1]*h, p[1] - d[0]*h]); }
+    const pk = pt(th), dk = tan(th), sp = P2, hk = w*1.15;
+    const k1 = [pk[0] - dk[1]*hk, pk[1] + dk[0]*hk], k2 = [pk[0] + dk[1]*hk, pk[1] - dk[0]*hk], d0 = tan(0), kerbe = [P0[0] + d0[0]*w*0.5, P0[1] + d0[1]*w*0.5];
+    const z = q=>q[0].toFixed(1) + " " + q[1].toFixed(1);
+    return "M" + z(kerbe) + "L" + L.map(z).join("L") + "L" + z(k1) + "L" + z(sp) + "L" + z(k2) + "L" + R.reverse().map(z).join("L") + "Z";
+  }
   function zeichnen(){
     let d = "";
-    for(let x = 0; x <= 1200; x += 10){ let y = Y0 + 5*Math.sin(x/1200*Math.PI*3);
-      B.forEach((b, i)=>{ y += b.d*k[i]*Math.exp(-Math.pow((x - b.x)/BREITE, 2)); });
-      d += (x ? "L" : "M") + x + " " + y.toFixed(1); }
+    for(let x = 0; x <= 1200; x += 10) d += (x ? "L" : "M") + x + " " + frontY(x).toFixed(1);
     fr.setAttribute("d", d); rot.setAttribute("d", d + "L1200 0L0 0Z"); glut.setAttribute("d", d + "L1200 260L0 260Z");
-    pfeile.forEach((n, i)=>{ const spitze = (Y0 + 5*Math.sin(B[i].x/1200*Math.PI*3) + B[i].d*k[i] + 16)/260;
-      n.style.height = (Math.max(0, spitze - OBEN)*100*Math.min(1, k[i]*3)).toFixed(2) + "%"; n.style.opacity = Math.min(1, k[i]*4).toFixed(2); });
+    const Wp = box.clientWidth, Hp = box.clientHeight; sv.setAttribute("viewBox", `0 0 ${Wp} ${Hp}`);
+    const w = Math.max(10, Math.min(20, Wp*0.015));
+    B.forEach((b, i)=>{ const q = k[i];
+      if(q <= 0.01){ pfade[i].setAttribute("d", ""); return; }
+      const ex = b.x/1200*Wp, ey = (frontY(b.x) + 12)/260*Hp, sx = ex - b.bog*Math.max(16, Wp*0.04), sy = Hp*0.52;
+      const P0 = [sx, sy], P2 = [sx + (ex - sx)*q, sy + (ey - sy)*q], P1 = [P2[0], sy + (P2[1] - sy)*0.45];
+      pfade[i].setAttribute("d", pfeil(P0, P1, P2, w)); pfade[i].style.opacity = Math.min(1, q*4).toFixed(2); });
   }
-  zeichnen();
+  zeichnen(); addEventListener("resize", zeichnen);
   if(matchMedia("(prefers-reduced-motion: reduce)").matches){ k.fill(1); zeichnen(); return; }
-  const ease = t=>1 - Math.pow(1 - t, 3);
+  const ease = t=>t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2;
   const io = new IntersectionObserver(es=>{ if(!es.some(e=>e.isIntersecting)) return; io.disconnect();
     const t0 = performance.now();
     (function schritt(now){ let fertig = true;
-      B.forEach((b, i)=>{ const t = Math.min(1, Math.max(0, (now - t0 - i*380)/1500)); k[i] = ease(t); if(t < 1) fertig = false; });
+      B.forEach((b, i)=>{ const t = Math.min(1, Math.max(0, (now - t0 - i*420)/1700)); k[i] = ease(t); if(t < 1) fertig = false; });
       zeichnen(); if(!fertig) requestAnimationFrame(schritt); })(t0);
   }, {threshold:0.5});
   io.observe(box);
@@ -1638,10 +1653,10 @@ function flimmern(root){
   document.querySelectorAll("[data-sozial]").forEach(a=>{ const u = SOZIAL[a.dataset.sozial];
     if(u){ a.href = u; } else { a.removeAttribute("href"); a.classList.add("bald"); } }); }
 </script>
-<script src="fz-bild.js?v=202611241202"></script>
+<script src="fz-bild.js?v=202611241219"></script>
 <script>
 /* Arsenal: sechs Beispiele aus der Fahrzeugliste. Erst die gezeichnete Ansicht, dann – wenn frei lizenziert vorhanden –
-   das Titelbild des Wikipedia-Artikels mit Fotograf und Lizenz. */
+   das Titelbild des Wikipedia-Artikels (Fotograf und Lizenz im Steckbrief). */
 (function(){
   const box = document.getElementById("arsListe"); if(!box) return;
   const BEISPIELE = ["Leopard 2A6", "T-90M „Proryv“", "M142 HIMARS", "PzH 2000", "TOS-1A „Solnzepjok“", "M2A2 Bradley ODS-SA"];
@@ -1661,18 +1676,18 @@ function flimmern(root){
     liste.forEach(f=>{ const ii = datei[f.n] && info[ziel(b, datei[f.n])]; if(!ii || !ii.thumburl) return;
       const k = box.querySelector(`[data-n="${CSS.escape(f.n)}"]`), m = ii.extmetadata || {}, img = new Image();
       img.alt = f.n; img.referrerPolicy = "no-referrer"; img.decoding = "async";
-      img.onload = ()=>{ k.querySelector(".ars-bild").replaceChildren(img);
-        const autor = text(m.Artist && m.Artist.value) || "unbekannt", lz = text(m.LicenseShortName && m.LicenseShortName.value) || "Lizenz";
-        k.querySelector(".ars-foto").innerHTML = `Foto: ${esc(autor)} · <a href="${esc(ii.descriptionurl)}" target="_blank" rel="noopener">${esc(lz)}, Wikimedia Commons</a>`; };
+      /* Fotograf und Lizenz stehen ausführlich im Steckbrief; hier als Hinweis beim Darüberfahren */
+      img.title = `Foto: ${text(m.Artist && m.Artist.value) || "unbekannt"} · ${text(m.LicenseShortName && m.LicenseShortName.value) || "Lizenz"} · Wikimedia Commons`;
+      img.onload = ()=>{ k.querySelector(".ars-bild").replaceChildren(img); };
       img.src = ii.thumburl; });
   }
-  fetch("daten/fahrzeuge.json?v=202611241202").then(r=>r.json()).then(D=>{
+  fetch("daten/fahrzeuge.json?v=202611241219").then(r=>r.json()).then(D=>{
     const liste = BEISPIELE.map(n=>D.fahrzeuge.find(f=>f.n === n)).filter(Boolean);
     box.innerHTML = liste.map(f=>{ const m = (f.mod || [])[0], seite = f.seite.length > 1 ? "beide" : f.seite[0];
       const bild = window.FzBild ? window.FzBild(Object.assign({}, f.b, typeof m === "object" && m.b || {}), seite) : "";
-      return `<article class="ars-k" data-n="${esc(f.n)}"><a class="ars-link" href="fahrzeug.html?n=${encodeURIComponent(f.n)}" aria-label="${esc(f.n)}"></a>
-        <div class="ars-bild">${bild}</div>
-        <div class="ars-text"><span class="ars-typ">${esc(D.typen[f.typ].l)}</span><h3 data-nolang>${esc(f.n)}</h3><small class="ars-foto"></small></div></article>`; }).join("");
+      return `<a class="ars-k" data-n="${esc(f.n)}" href="fahrzeug.html?n=${encodeURIComponent(f.n)}">
+        <div class="ars-bildr"><div class="ars-bild">${bild}</div></div>
+        <div class="ars-txt"><h3 data-nolang>${esc(f.n)}</h3><p>${esc(D.typen[f.typ].l)}</p></div></a>`; }).join("");
     fotos(liste).catch(()=>{});
   }).catch(()=>{ box.closest("section").hidden = true; });
 })();

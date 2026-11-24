@@ -8,9 +8,9 @@
 <meta name="description" content="Alle Bodenfahrzeuge im Russland-Ukraine-Krieg: Kategorien, Reichweite, Herkunft, Varianten und Geberländer der Ukraine.">
 <link rel="icon" type="image/png" href="bild/favicon.png?v=2">
 <link rel="apple-touch-icon" href="bild/icon-180.png?v=2">
-<link rel="stylesheet" href="style.css?v=202611241202">
-<link rel="stylesheet" href="seiten.css?v=202611241202">
-<script src="lang.js?v=202611241202" defer></script>
+<link rel="stylesheet" href="style.css?v=202611241219">
+<link rel="stylesheet" href="seiten.css?v=202611241219">
+<script src="lang.js?v=202611241219" defer></script>
 <style>
 .fz-leiste{position:sticky;top:0;z-index:5;display:flex;flex-direction:column;gap:12px;padding:14px 0 16px;margin-bottom:18px;background:linear-gradient(#000 80%,rgba(0,0,0,0))}
 #fzSuche{width:100%;padding:14px 18px;border:1px solid rgba(255,255,255,.18);border-radius:999px!important;background:#0b0b0b;color:#fff;font:inherit;font-size:16px;outline:none}
@@ -79,7 +79,7 @@
 </main>
 <footer class="sk-fuss"><a href="mitwirkende.html">Mitwirkende</a><a href="kontakt.html">Kontakt</a><a href="impressum.html">Impressum</a><a href="https://x.com/plyusmap" target="_blank" rel="noopener">X / Twitter</a><span class="r">© <span id="jahr">2026</span> Plyus</span></footer>
 
-<script src="fz-bild.js?v=202611241202"></script>
+<script src="fz-bild.js?v=202611241219"></script>
 <script>
 (function(){
   const nf = new Intl.NumberFormat("de-DE", {maximumFractionDigits:1});
@@ -121,7 +121,7 @@
   const sel = document.getElementById("fzGeber");
   sel.addEventListener("change", ()=>{ geber = sel.value; sel.classList.toggle("on", !!geber); zeichnen(); });
   document.getElementById("fzSuche").addEventListener("input", e=>{ q = e.target.value.trim().toLowerCase(); zeichnen(); });
-  fetch("daten/fahrzeuge.json?v=202611241202").then(r=>r.json()).then(d=>{ D = d; ALLE = d.fahrzeuge;
+  fetch("daten/fahrzeuge.json?v=202611241219").then(r=>r.json()).then(d=>{ D = d; ALLE = d.fahrzeuge;
     const z = {}; ALLE.forEach(f=>new Set((f.geber || []).map(land)).forEach(g=>z[g] = (z[g] || 0) + 1));
     sel.insertAdjacentHTML("beforeend", Object.keys(z).sort((a,b)=>a.localeCompare(b, "de")).map(g=>`<option value="${esc(g)}">${esc(g)} (${z[g]})</option>`).join(""));
     document.getElementById("fzVar").textContent = nf.format(ALLE.reduce((n, f)=>n + Math.max(1, (f.mod || []).length), 0));
@@ -129,6 +129,6 @@
     .catch(()=>{ document.getElementById("fzListe").innerHTML = '<div class="fz-leer">Liste konnte nicht geladen werden.</div>'; });
 })();
 </script>
-<script src="seiten.js?v=202611241202"></script>
+<script src="seiten.js?v=202611241219"></script>
 </body>
 </html>
