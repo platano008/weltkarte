@@ -15,9 +15,9 @@
 <link rel="icon" type="image/png" href="bild/favicon.png?v=2">
 <link rel="apple-touch-icon" href="bild/icon-180.png?v=2">
 <script>/* alte geteilte Links (index.html#…) führen weiter zur Karte */
-if(location.hash.length > 1 && !/^#(lage|zeigt|neutral)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
+if(location.hash.length > 1 && !/^#(lage|zeigt|arsenal)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611241054">
+<link rel="stylesheet" href="style.css?v=202611241202">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -159,6 +159,27 @@ section.blk{padding:72px 0 8px}
 .row .go{justify-self:end;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .row:hover .go{color:var(--fg)}
 .empty-l{padding:26px 0;color:var(--muted);border-bottom:1px solid var(--line)}
+/* Veränderungen wie ein Level-up: Zeilen fliegen ein, XP-Leiste füllt sich, Fläche zählt hoch und springt, „+km²“ steigt auf */
+.row{position:relative}
+.row .a{position:relative}
+.row .xp{position:absolute;left:0;right:0;bottom:-1px;height:3px;background:rgba(255,255,255,.06);overflow:hidden;pointer-events:none}
+.row .xp i{position:absolute;left:0;top:0;bottom:0;width:var(--p);background:var(--col);box-shadow:0 0 14px var(--col);transform-origin:left;overflow:hidden}
+.row .xp i::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent);transform:translateX(-100%)}
+.xp-plus{position:absolute;left:0;bottom:100%;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--col);text-shadow:0 0 10px var(--col);white-space:nowrap;opacity:0;pointer-events:none}
+.tag .neu{font-family:var(--mono);font-style:normal;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:3px 7px;border-radius:999px!important;background:#fff;color:#000;box-shadow:0 0 0 0 rgba(255,255,255,.6)}
+#chg.xp-warte .row{opacity:0}
+#chg.xp-an .row{animation:xpRein .6s cubic-bezier(.2,.8,.2,1) calc(var(--n)*.14s) both}
+#chg.xp-an .row .xp i{animation:xpFill 1s cubic-bezier(.3,.8,.3,1) calc(var(--n)*.14s + .35s) both}
+#chg.xp-an .row .xp i::after{animation:xpGlanz .9s ease-out calc(var(--n)*.14s + 1.3s) both}
+#chg.xp-an .row .a{animation:xpPop .5s cubic-bezier(.3,1.7,.5,1) calc(var(--n)*.14s + 1.3s) both}
+#chg.xp-an .xp-plus{animation:xpPlus 1.3s cubic-bezier(.2,.7,.3,1) calc(var(--n)*.14s + 1.3s) both}
+#chg.xp-an .tag .neu{animation:xpNeu 1.6s ease-out calc(var(--n)*.14s + 1.5s) 3}
+@keyframes xpRein{0%{opacity:0;transform:translateX(-28px)}100%{opacity:1;transform:none}}
+@keyframes xpFill{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+@keyframes xpGlanz{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes xpPop{0%{transform:scale(1)}40%{transform:scale(1.32);text-shadow:0 0 18px var(--col)}100%{transform:scale(1)}}
+@keyframes xpPlus{0%{opacity:0;transform:translateY(8px) scale(.8)}20%{opacity:1;transform:translateY(0) scale(1.1)}100%{opacity:0;transform:translateY(-30px) scale(1)}}
+@keyframes xpNeu{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}100%{box-shadow:0 0 0 12px rgba(255,255,255,0)}}
 
 /* Was die Karte zeigt */
 .feat{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
@@ -611,18 +632,21 @@ a.gate .gt b::after{content:"";width:.62em;height:.62em;flex:none;background:cur
   mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='square'%3E%3Cpath d='M3 12h17M13 5l7 7-7 7'/%3E%3C/svg%3E") center/contain no-repeat;transition:transform .45s cubic-bezier(.2,.7,.2,1)}
 a.gate:hover .gt b::after{transform:translateX(.25em)}
 .gbald{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
-.neutral{position:relative;padding:clamp(90px,12vw,170px) 0 clamp(40px,6vw,80px);text-align:center}
-.nt-text{position:relative;z-index:2;max-width:860px;margin:0 auto}
-.neutral h2{margin:14px 0 22px;font-family:var(--display);font-weight:700;font-size:clamp(46px,8.4vw,118px);line-height:.92;letter-spacing:-.005em}
-.neutral h2 i{font-style:italic}
-.neutral h2 .hl{color:#7d7d7d}
-.neutral p{margin:0 auto;max-width:34em;font-size:clamp(16px,1.6vw,20px);line-height:1.6;color:#c4c4c4}
-.welt{position:relative;width:min(900px,100%);aspect-ratio:1;margin:clamp(-30px,-2vw,-10px) auto 0}
-#welt{position:absolute;inset:0}
-#welt .maplibregl-canvas{outline:none}
-.welt-glow{position:absolute;inset:9%;border-radius:50%!important;background:radial-gradient(circle,rgba(110,170,255,.0) 58%,rgba(110,170,255,.16) 66%,rgba(110,170,255,0) 72%);pointer-events:none}
-.welt .maplibregl-ctrl-attrib{background:rgba(0,0,0,.6)!important;font-family:var(--mono);font-size:10px}
-.welt .maplibregl-ctrl-attrib a{color:#8d8d8d}
+/* Arsenal: ein paar Beispiele; Foto füllt den oberen Teil, der Name liegt halb darüber */
+.ars-liste{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.ars-k{position:relative;display:flex;flex-direction:column;border:1px solid var(--line-2);border-radius:18px!important;overflow:hidden;background:#070707;transition:transform .25s,border-color .25s}
+.ars-k:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.4)}
+.ars-link{position:absolute;inset:0;z-index:2}
+.ars-bild{position:relative;aspect-ratio:4/3;display:grid;place-items:center;overflow:hidden;background:radial-gradient(110% 90% at 50% 100%,rgba(255,255,255,.08),transparent 70%),#0b0c0e}
+.ars-bild img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.ars-k:hover .ars-bild img{transform:scale(1.05)}
+.ars-bild svg{width:86%;height:auto}
+.ars-text{position:relative;z-index:1;margin-top:-3.4em;padding:2.2em 16px 14px;background:linear-gradient(180deg,rgba(7,7,7,0),#070707 58%)}
+.ars-typ{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#bdbdbd;text-shadow:0 1px 6px #000}
+.ars-text h3{margin:6px 0 0;font-family:var(--korn);font-weight:400;font-size:clamp(22px,2.4vw,30px);line-height:1;text-shadow:0 2px 12px rgba(0,0,0,.7);overflow-wrap:anywhere}
+.ars-foto{display:block;margin-top:8px;font-size:10.5px;line-height:1.4;color:#7d7d7d;min-height:1.4em}
+.ars-foto a{position:relative;z-index:3;color:#9fbfdf}
+@media (max-width:900px){.ars-liste{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ars-text{padding:2em 12px 12px}}
 
 .menu-logo{display:flex;justify-content:center;align-items:center;gap:14px;padding:clamp(40px,8vh,80px) 16px 60px;animation:rise .6s .3s cubic-bezier(.2,.7,.2,1) both}
 .menu-logo img{height:clamp(30px,4vw,42px);width:auto}
@@ -830,6 +854,11 @@ html.lite .tick div{animation-duration:70s}
 /* Ende der weißen Fläche: Front, dahinter rote Zone; Telegram/X untereinander auf der Front */
 .w-kante.unten{height:clamp(220px,22vw,280px)!important}
 .w-front{fill:none;stroke:#ff3550;stroke-width:3;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+/* Stoßpfeile wie auf der Karte: schieben die Front an einzelnen Stellen vor */
+.w-pfeile{position:absolute;left:0;right:0;top:100%;height:clamp(220px,22vw,280px);margin-top:-1px;pointer-events:none;z-index:2}
+.w-pf{position:absolute;top:52%;width:clamp(26px,4.2vw,60px);height:0;transform:translateX(-50%);filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
+.w-pf svg{display:block;width:100%;height:100%;overflow:visible}
+.w-pf path{fill:#ff3550;stroke:#2a0008;stroke-width:2.5;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 .weiss{padding-bottom:clamp(60px,8vw,90px)!important;margin-bottom:clamp(220px,22vw,280px)}
 .w-sozial.unten{position:absolute;left:50%;top:100%;z-index:3;margin:0;transform:translate(-50%,calc(clamp(220px,22vw,280px)*.36 - 50%));flex-direction:column;gap:12px}
 .w-sozial.unten .wb{box-shadow:0 10px 26px -8px rgba(0,0,0,.5)}
@@ -859,10 +888,10 @@ html.lite .tick div{animation-duration:70s}
 @keyframes wLoopFarbe{0%,4%{fill:#8f8f8f}10%,35%{fill:#fff}40%,100%{fill:#6f6f6f}}
 @keyframes wLoopSpur{0%{stroke-dashoffset:.16;stroke:rgba(255,255,255,.75)}35%{stroke:rgba(255,255,255,.75)}40%{stroke:rgba(140,140,140,.6)}100%{stroke-dashoffset:-.84;stroke:rgba(140,140,140,0)}}
 .w-luft{position:absolute;left:0;top:0;z-index:900;pointer-events:none;overflow:visible}
-.chg .row.getroffen{animation:getroffen .7s cubic-bezier(.3,.7,.4,1)}
+#chg .row.getroffen,#chg.xp-an .row.getroffen{animation:getroffen .7s cubic-bezier(.3,.7,.4,1)}
 @keyframes getroffen{0%{background:rgba(255,150,60,.35);transform:translateY(3px)}30%{transform:translateY(-2px)}100%{background:transparent;transform:none}}
 </style>
-<script src="lang.js?v=202611241054" defer></script>
+<script src="lang.js?v=202611241202" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -927,10 +956,9 @@ html.lite .tick div{animation-duration:70s}
     <svg class="w-kante unten" viewBox="0 0 1200 260" preserveAspectRatio="none" aria-hidden="true">
       <defs><linearGradient id="wRot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".06" stop-color="#fbe3e6"/><stop offset=".36" stop-color="#e64a5c"/><stop offset=".7" stop-color="#c8102e"/><stop offset="1" stop-color="#a50e26"/></linearGradient>
       <linearGradient id="wGlut" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c8102e" stop-opacity=".45"/><stop offset="1" stop-color="#c8102e" stop-opacity="0"/></linearGradient></defs>
-      <path d="M0 0H1200V188.5C1175 188.5 1175 195.7 1150 195.7C1125 195.7 1125 202.3 1100 202.3C1075 202.3 1075 184.1 1050 184.1C1025 184.1 1025 189.9 1000 189.9C975 189.9 975 179.7 950 179.7C925 179.7 925 186.8 900 186.8C875 186.8 875 199.8 850 199.8C825 199.8 825 200.5 800 200.5C775 200.5 775 193.4 750 193.4C725 193.4 725 185.0 700 185.0C675 185.0 675 187.7 650 187.7C625 187.7 625 180.1 600 180.1C575 180.1 575 180.2 550 180.2C525 180.2 525 187.7 500 187.7C475 187.7 475 197.8 450 197.8C425 197.8 425 190.7 400 190.7C375 190.7 375 190.3 350 190.3C325 190.3 325 176.9 300 176.9C275 176.9 275 179.3 250 179.3C225 179.3 225 186.5 200 186.5C175 186.5 175 187.9 150 187.9C125 187.9 125 200.9 100 200.9C75 200.9 75 192.2 50 192.2C25 192.2 25 187.5 0 187.5Z" fill="url(#wRot)"/>
-      <path d="M0 187.5C25 187.5 25 192.2 50 192.2C75 192.2 75 200.9 100 200.9C125 200.9 125 187.9 150 187.9C175 187.9 175 186.5 200 186.5C225 186.5 225 179.3 250 179.3C275 179.3 275 176.9 300 176.9C325 176.9 325 190.3 350 190.3C375 190.3 375 190.7 400 190.7C425 190.7 425 197.8 450 197.8C475 197.8 475 187.7 500 187.7C525 187.7 525 180.2 550 180.2C575 180.2 575 180.1 600 180.1C625 180.1 625 187.7 650 187.7C675 187.7 675 185.0 700 185.0C725 185.0 725 193.4 750 193.4C775 193.4 775 200.5 800 200.5C825 200.5 825 199.8 850 199.8C875 199.8 875 186.8 900 186.8C925 186.8 925 179.7 950 179.7C975 179.7 975 189.9 1000 189.9C1025 189.9 1025 184.1 1050 184.1C1075 184.1 1075 202.3 1100 202.3C1125 202.3 1125 195.7 1150 195.7C1175 195.7 1175 188.5 1200 188.5L1200 260L0 260Z" fill="url(#wGlut)"/>
-      <path d="M0 187.5C25 187.5 25 192.2 50 192.2C75 192.2 75 200.9 100 200.9C125 200.9 125 187.9 150 187.9C175 187.9 175 186.5 200 186.5C225 186.5 225 179.3 250 179.3C275 179.3 275 176.9 300 176.9C325 176.9 325 190.3 350 190.3C375 190.3 375 190.7 400 190.7C425 190.7 425 197.8 450 197.8C475 197.8 475 187.7 500 187.7C525 187.7 525 180.2 550 180.2C575 180.2 575 180.1 600 180.1C625 180.1 625 187.7 650 187.7C675 187.7 675 185.0 700 185.0C725 185.0 725 193.4 750 193.4C775 193.4 775 200.5 800 200.5C825 200.5 825 199.8 850 199.8C875 199.8 875 186.8 900 186.8C925 186.8 925 179.7 950 179.7C975 179.7 975 189.9 1000 189.9C1025 189.9 1025 184.1 1050 184.1C1075 184.1 1075 202.3 1100 202.3C1125 202.3 1125 195.7 1150 195.7C1175 195.7 1175 188.5 1200 188.5" class="w-front"/>
+      <path id="wuRot" fill="url(#wRot)"/><path id="wuGlut" fill="url(#wGlut)"/><path id="wuFront" class="w-front"/>
     </svg>
+    <div class="w-pfeile" id="wPfeile" aria-hidden="true"></div>
       <div class="w-sozial unten">
         <a class="wb" data-sozial="telegram" href="#" target="_blank" rel="noopener" aria-label="Telegram"><svg viewBox="0 0 24 24"><path d="M21.5 4.2L2.9 11.4c-.9.4-.9 1.6.1 1.9l4.6 1.4 1.8 5.6c.3.8 1.3 1 1.9.4l2.6-2.5 4.7 3.5c.7.5 1.7.1 1.9-.7L23 5.4c.2-.9-.7-1.6-1.5-1.2zM9.8 14.6l-.4 3.6-1.3-4.3 9.6-6.3-7.9 7z"/></svg></a>
         <a class="wb" data-sozial="twitter" href="#" target="_blank" rel="noopener" aria-label="X / Twitter"><svg viewBox="0 0 24 24"><path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.9 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg></a>
@@ -950,13 +978,9 @@ html.lite .tick div{animation-duration:70s}
     <div class="chg rv" id="chg"><div class="empty-l">Lädt …</div></div>
   </section>
 
-  <section class="neutral" id="neutral">
-    <div class="nt-text rv">
-      <span class="eyebrow">Haltung</span>
-      <h2><i>Keine Seite.</i><br><i class="hl">Nur die Lage.</i></h2>
-      <p><i>Plyus ergreift keine Partei. Jede Veränderung wird nach denselben Regeln erfasst, egal auf welcher Seite der Front sie passiert. Was nicht sicher belegt ist, bleibt Grauzone.</i></p>
-    </div>
-    <div class="welt rv" id="weltBox"><div id="welt"></div></div>
+  <section class="blk ars" id="arsenal">
+    <div class="blk-h rv"><div><span class="eyebrow">Fahrzeuge</span><h2>Arsenal</h2></div><a href="fahrzeuge.html">Alle Fahrzeuge →</a></div>
+    <div class="ars-liste" id="arsListe"></div>
   </section>
 </div>
 
@@ -977,6 +1001,19 @@ const nf = new Intl.NumberFormat("de-DE",{maximumFractionDigits:1});
 
 
 
+/* Neueste Veränderungen: Level-up-Animation, sobald die Liste ins Bild kommt; die Flächen zählen dabei hoch */
+function levelUp(box){
+  const zahlen = [...box.querySelectorAll(".xp-zahl")];
+  if(!zahlen.length || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  box.classList.add("xp-warte");
+  const io = new IntersectionObserver(es=>{ if(!es.some(e=>e.isIntersecting)) return; io.disconnect();
+    box.classList.remove("xp-warte"); box.classList.add("xp-an");
+    zahlen.forEach((z, n)=>{ const v = +z.dataset.v, start = performance.now() + n*140 + 350; z.textContent = nf.format(0);
+      (function zaehl(now){ const t = Math.min(1, Math.max(0, (now - start)/950));
+        z.textContent = nf.format(v*(1 - Math.pow(1 - t, 3))); if(t < 1) requestAnimationFrame(zaehl); })(performance.now()); });
+  }, {threshold:0.25});
+  io.observe(box);
+}
 /* ===== Lagegrafik im Kopfbereich (SVG aus den Lagedaten, ohne Kartenbibliothek) ===== */
 const NS = "http://www.w3.org/2000/svg";
 function el(tag, attrs, parent){ const e = document.createElementNS(NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); if(parent) parent.appendChild(e); return e; }
@@ -1319,15 +1356,17 @@ Promise.all([
   if(recent.length) $("sAreaS").textContent = "km² · " + nf.format(ru) + " ru / " + nf.format(ua) + " ua";
   const list = ch.slice(0,8), grp = (imp && imp.meta && imp.meta.gruppen) || [], gname = id=>{ const g = grp.find(z=>z.id===id); return g ? g.name : ""; };
   const esc = t=>String(t).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-  $("chg").innerHTML = list.length ? list.map(x=>{
+  const maxKm = Math.max(...list.map(x=>x.km2), 0.1);
+  $("chg").innerHTML = list.length ? list.map((x, n)=>{
     const [txt,col] = LBL[x.p.richtung] || LBL.grau, [lng,lat] = x.c;
-    return '<a class="row" href="karte.html#@'+lng.toFixed(4)+','+lat.toFixed(4)+',11">'
+    return '<a class="row" style="--n:'+n+';--col:'+col+'" href="karte.html#@'+lng.toFixed(4)+','+lat.toFixed(4)+',11">'
       + '<span class="d">'+(x.p.datum ? fmtD(x.p.datum) : "–")+'</span>'
-      + '<span class="tag"><i style="background:'+col+'"></i>'+esc(x.p.name || txt)+'</span>'
-      + '<span class="a">'+nf.format(x.km2)+'<span>km²</span></span>'
+      + '<span class="tag"><i style="background:'+col+'"></i>'+esc(x.p.name || txt)+(n ? '' : '<em class="neu">Neu</em>')+'</span>'
+      + '<span class="a"><b class="xp-plus">+'+nf.format(x.km2)+' km²</b><b class="xp-zahl" data-v="'+x.km2+'">'+nf.format(x.km2)+'</b><span>km²</span></span>'
       + '<span class="c">'+(x.p.direktion || gname(x.p.gruppe) ? esc([x.p.direktion ? (/richtung/i.test(x.p.direktion) ? x.p.direktion : x.p.direktion + "-Richtung") : "", gname(x.p.gruppe)].filter(Boolean).join(" · ")) : Math.abs(lat).toFixed(3)+'° N · '+Math.abs(lng).toFixed(3)+'° O')+'</span>'
-      + '<span class="go">Auf der Karte →</span></a>';
+      + '<span class="go">Auf der Karte →</span><span class="xp"><i style="--p:'+Math.max(6, x.km2/maxKm*100).toFixed(1)+'%"></i></span></a>';
   }).join("") : '<div class="empty-l">Noch keine eingetragenen Veränderungen.</div>';
+  levelUp($("chg"));
 });
 })();
 
@@ -1418,8 +1457,9 @@ function flimmern(root){
       else if(e < 0.25 && pf.classList.contains("los")){ pf.classList.remove("los"); jetFlug(pf, false); }
     }
   }
-  /* Jet-Flug: startet aus dem weißen Vorstoß, fliegt über die Seite zur neuesten Veränderung und explodiert dort.
-     Die Bahn hängt an der Seite, nicht am Bildschirm – ist das Ziel nicht im Bild, fliegt er einfach hinaus. */
+  /* Jet-Flug: startet aus dem weißen Vorstoß, fliegt einen Looping und dann über die Seite zur neuesten Veränderung.
+     Dort holt ihn eine Flugabwehrrakete von der Seite herunter. Die Bahn hängt an der Seite, nicht am Bildschirm –
+     ist das Ziel nicht im Bild, fliegt er einfach hinaus. */
   const SVGNS = "http://www.w3.org/2000/svg";
   const JET_D = "M0 -32L4 -20L5 -8L28 8L28 13L5 6L4 20L12 27L12 31L2 28L0 31L-2 28L-12 31L-12 27L-4 20L-5 6L-28 13L-28 8L-5 -8L-4 -20Z";
   function jetFlug(pf, an){
@@ -1439,19 +1479,29 @@ function flimmern(root){
     sv.style.width = W + "px"; sv.style.height = DH + "px";
     document.body.appendChild(sv); pf._luft = sv;
     const el = (tag, at, in_) => { const n = document.createElementNS(SVGNS, tag); for(const k in at) n.setAttribute(k, at[k]); (in_ || sv).appendChild(n); return n; };
-    /* Bahn: kurz hoch aus dem Vorstoß, Kurve zur Seite, dann im Sturzflug auf die neueste Veränderung (ohne Ziel: oben hinaus) */
-    const f = n => n.toFixed(1), seite = T && T.x < x0 ? -1 : 1, A = {x: x0 + seite*W*0.28, y: y0 - H*0.14};
-    const bahn = T
-      ? `M${f(x0)} ${f(y0)}C${f(x0)} ${f(y0 - H*0.14)} ${f(A.x - seite*W*0.14)} ${f(A.y)} ${f(A.x)} ${f(A.y)}`
-        + `C${f(A.x + seite*W*0.16)} ${f(A.y)} ${f(T.x + seite*W*0.12)} ${f(T.y - H*0.5)} ${f(T.x)} ${f(T.y)}`
-      : `M${f(x0)} ${f(y0)}C${f(x0)} ${f(y0 - H*0.4)} ${f(A.x)} ${f(A.y)} ${f(A.x + seite*W*0.1)} ${f(y0 - H*1.3)}`;
+    /* Bahn: hoch aus dem Vorstoß, Looping, dann im Sturzflug auf die neueste Veränderung (ohne Ziel: nach dem Looping oben hinaus) */
+    const f = n => n.toFixed(1), m = Math.min(W, H), rl = Math.max(38, m*0.1);
+    const ax = Math.min(Math.max(x0, W*0.12), W*0.88 - 2*rl), ay = sy + Math.max(H*0.22 + rl, Math.min(y0 - sy - H*0.25, H*0.5)), seite = T && T.x < ax + rl ? -1 : 1;
+    const bahn = `M${f(x0)} ${f(y0)}C${f(x0)} ${f(y0-(y0-ay)*0.5)} ${f(ax)} ${f(ay+(y0-ay)*0.4)} ${f(ax)} ${f(ay)}`
+      + `A${f(rl)} ${f(rl)} 0 1 1 ${f(ax+2*rl)} ${f(ay)}A${f(rl)} ${f(rl)} 0 1 1 ${f(ax)} ${f(ay)}`
+      + (T ? `C${f(ax)} ${f(ay - H*0.12)} ${f(T.x + seite*W*0.18)} ${f(T.y - H*0.55)} ${f(T.x)} ${f(T.y)}`
+           : `C${f(ax)} ${f(ay - H*0.3)} ${f(ax + W*0.1)} ${f(ay - H*0.6)} ${f(ax + W*0.15)} ${f(ay - H*1.2)}`);
     const unter = el("path", {d:bahn, fill:"none", stroke:"rgba(0,0,0,.28)", "stroke-width":"4", "stroke-linecap":"round"});
     const sp2 = el("path", {d:bahn, fill:"none", stroke:"rgba(255,255,255,.85)", "stroke-width":"2", "stroke-linecap":"round"});
-    const L = sp2.getTotalLength(), SL = Math.min(170, L*0.12), DAUER = Math.max(2600, Math.min(5200, L*1.5));
+    const L = sp2.getTotalLength(), SL = Math.min(170, L*0.12), DAUER = Math.max(3600, Math.min(6000, L*1.5)), RAK = 900;
     [unter, sp2].forEach(p=>{ p.style.strokeDasharray = `0 ${L*3}`; });
     const jg = el("g", {}); el("path", {d:JET_D, transform:"scale(.6)", fill:"#fff", stroke:"#3a3a3a", "stroke-width":"2.4", "stroke-linejoin":"round", "paint-order":"stroke"}, jg);
     const winkel = d => { const a = sp2.getPointAtLength(Math.min(L, d + 1)), b = sp2.getPointAtLength(Math.max(0, d - 1)); return Math.atan2(a.y - b.y, a.x - b.x)*180/Math.PI + 90; };
-    let treffer = null, t0 = performance.now(), tl = t0;
+    let rak = null, treffer = null, t0 = performance.now(), tl = t0;
+    /* Flugabwehrrakete: steigt seitlich unter dem Ziel auf und trifft den Jet genau über der neuesten Veränderung */
+    function rakete(){
+      const links = T.x < W/2, S = {x: links ? -40 : W + 40, y: T.y + H*0.45}, K = {x: links ? W*0.1 : W*0.9, y: T.y + H*0.1};
+      const rs = el("path", {d:`M${f(S.x)} ${f(S.y)}Q${f(K.x)} ${f(K.y)} ${f(T.x)} ${f(T.y)}`, fill:"none", stroke:"rgba(190,190,190,.65)", "stroke-width":"3", "stroke-linecap":"round"});
+      const RL = rs.getTotalLength(); rs.style.strokeDasharray = `0 ${RL*2}`;
+      const rk = el("g", {});
+      rk.innerHTML = '<circle cx="0" cy="11" r="4" fill="#ffb347"/><circle cx="0" cy="12" r="2.2" fill="#fff"/><path d="M0 -12L2.4 -7L2.4 8L5 11L-5 11L-2.4 8L-2.4 -7Z" fill="#e8e8e8" stroke="#555" stroke-width=".6"/>';
+      return {rs, rk, RL, t: 0};
+    }
     function boom(P){
       jg.style.opacity = 0;
       const fx = el("g", {transform:`translate(${P.x.toFixed(1)} ${P.y.toFixed(1)})`});
@@ -1483,11 +1533,18 @@ function flimmern(root){
         const d = Math.min(L, L*ms/DAUER), a = sp2.getPointAtLength(d);
         jg.setAttribute("transform", `translate(${f(a.x)} ${f(a.y)}) rotate(${winkel(d).toFixed(1)})`);
         const lang = Math.min(SL, d); [unter, sp2].forEach(p=>{ p.style.strokeDasharray = `${lang.toFixed(1)} ${(L*3).toFixed(0)}`; p.style.strokeDashoffset = (lang - d).toFixed(1); });
-        if(ms >= DAUER){ if(!T){ pf._fliegt = false; sv.remove(); if(pf._luft === sv) pf._luft = null; return; }
+        if(T && !rak && ms >= DAUER - RAK) rak = rakete();
+        if(rak){
+          rak.t += dt; const q = Math.min(1, rak.t/(RAK/1000)), dd = (q*q*(3 - 2*q)*0.4 + q*0.6)*rak.RL;
+          const p = rak.rs.getPointAtLength(dd), p2 = rak.rs.getPointAtLength(Math.min(rak.RL, dd + 1)), p1 = rak.rs.getPointAtLength(Math.max(0, dd - 1));
+          rak.rk.setAttribute("transform", `translate(${f(p.x)} ${f(p.y)}) rotate(${(Math.atan2(p2.y - p1.y, p2.x - p1.x)*180/Math.PI + 90).toFixed(1)})`);
+          const rr = Math.min(dd, 260); rak.rs.style.strokeDasharray = `${rr.toFixed(1)} ${(rak.RL*2).toFixed(0)}`; rak.rs.style.strokeDashoffset = (rr - dd).toFixed(1);
+        }
+        if(ms >= DAUER){ if(rak) rak.rk.remove(); if(!T){ pf._fliegt = false; sv.remove(); if(pf._luft === sv) pf._luft = null; return; }
           treffer = boom(a); const row = ziel.closest(".row"); if(row){ row.classList.remove("getroffen"); void row.offsetWidth; row.classList.add("getroffen"); } }
       } else {
         const weiter = boomSchritt(treffer, dt), o = Math.max(0, 1 - treffer.t/1.2);
-        unter.style.opacity = sp2.style.opacity = o;
+        unter.style.opacity = sp2.style.opacity = o; if(rak) rak.rs.style.opacity = o*0.9;
         if(!weiter){ pf._fliegt = false; sv.remove(); if(pf._luft === sv) pf._luft = null; return; }
       }
       pf._raf = requestAnimationFrame(schritt);
@@ -1496,6 +1553,32 @@ function flimmern(root){
   }
   let raf = 0; addEventListener("scroll", ()=>{ if(!raf) raf = requestAnimationFrame(()=>{ raf = 0; malen(); }); }, {passive:true});
   addEventListener("resize", malen); malen();
+})();
+/* ===== Front unter Telegram/X: schlichte Linie; drei Stoßpfeile schieben sie beim Hinscrollen vor ===== */
+(function(){
+  const rot = $("wuRot"), glut = $("wuGlut"), fr = $("wuFront"), box = $("wPfeile"); if(!fr || !box) return;
+  const Y0 = 187, BREITE = 80, OBEN = 0.52, B = [{x:216, d:34}, {x:840, d:46}, {x:1068, d:26}], k = B.map(()=>0);
+  const pfeile = B.map(b=>{ const n = document.createElement("div"); n.className = "w-pf"; n.style.left = (b.x/12).toFixed(2) + "%";
+    n.innerHTML = '<svg viewBox="-30 0 60 100" preserveAspectRatio="none"><path d="M-8 0L0 9L8 0L13 64L27 64L0 100L-27 64L-13 64Z"/></svg>'; box.appendChild(n); return n; });
+  function zeichnen(){
+    let d = "";
+    for(let x = 0; x <= 1200; x += 10){ let y = Y0 + 5*Math.sin(x/1200*Math.PI*3);
+      B.forEach((b, i)=>{ y += b.d*k[i]*Math.exp(-Math.pow((x - b.x)/BREITE, 2)); });
+      d += (x ? "L" : "M") + x + " " + y.toFixed(1); }
+    fr.setAttribute("d", d); rot.setAttribute("d", d + "L1200 0L0 0Z"); glut.setAttribute("d", d + "L1200 260L0 260Z");
+    pfeile.forEach((n, i)=>{ const spitze = (Y0 + 5*Math.sin(B[i].x/1200*Math.PI*3) + B[i].d*k[i] + 16)/260;
+      n.style.height = (Math.max(0, spitze - OBEN)*100*Math.min(1, k[i]*3)).toFixed(2) + "%"; n.style.opacity = Math.min(1, k[i]*4).toFixed(2); });
+  }
+  zeichnen();
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches){ k.fill(1); zeichnen(); return; }
+  const ease = t=>1 - Math.pow(1 - t, 3);
+  const io = new IntersectionObserver(es=>{ if(!es.some(e=>e.isIntersecting)) return; io.disconnect();
+    const t0 = performance.now();
+    (function schritt(now){ let fertig = true;
+      B.forEach((b, i)=>{ const t = Math.min(1, Math.max(0, (now - t0 - i*380)/1500)); k[i] = ease(t); if(t < 1) fertig = false; });
+      zeichnen(); if(!fertig) requestAnimationFrame(schritt); })(t0);
+  }, {threshold:0.5});
+  io.observe(box);
 })();
 /* ===== Berichte: die neuesten Beiträge, sonst gesperrte Akten ===== */
 (function(){
@@ -1555,60 +1638,43 @@ function flimmern(root){
   document.querySelectorAll("[data-sozial]").forEach(a=>{ const u = SOZIAL[a.dataset.sozial];
     if(u){ a.href = u; } else { a.removeAttribute("href"); a.classList.add("bald"); } }); }
 </script>
+<script src="fz-bild.js?v=202611241202"></script>
 <script>
-/* Weltkugel: echtes Satellitenbild (MapTiler) auf MapLibre-Globus, dreht sich langsam, nur wenn sichtbar */
+/* Arsenal: sechs Beispiele aus der Fahrzeugliste. Erst die gezeichnete Ansicht, dann – wenn frei lizenziert vorhanden –
+   das Titelbild des Wikipedia-Artikels mit Fotograf und Lizenz. */
 (function(){
-  const box = document.getElementById("weltBox"), el = document.getElementById("welt"); if(!box || !el) return;
-  const KEY = "4TDQhzPsZwABTFDNshhB", V = "5.0.0";
-  let map = null, lng = 18, lauf = false, zuletzt = 0, sichtbar = false, bauend = false, wegT = 0;
-  const TOUCH = matchMedia("(hover:none),(pointer:coarse)").matches;
-  function laden(src, css){ return new Promise((ok, nein)=>{ const e = document.createElement(css ? "link" : "script");
-    if(css){ e.rel = "stylesheet"; e.href = src; } else { e.src = src; } e.onload = ok; e.onerror = nein; document.head.appendChild(e); }); }
-  function zoomFuer(){ const w = el.clientWidth || 600; return Math.log2(w*0.43*2*Math.PI/512); }
-  function dreh(t){
-    if(!map || !sichtbar){ lauf = false; return; }
-    if(TOUCH && zuletzt && t - zuletzt < 30){ requestAnimationFrame(dreh); return; }   // Tablet: ~30 Bilder/s reichen
-    const dt = zuletzt ? Math.min(t - zuletzt, 80) : 16; zuletzt = t;
-    lng = (lng - dt*0.0035 + 540) % 360 - 180;
-    map.jumpTo({center:[lng, 22]});
-    requestAnimationFrame(dreh);
+  const box = document.getElementById("arsListe"); if(!box) return;
+  const BEISPIELE = ["Leopard 2A6", "T-90M „Proryv“", "M142 HIMARS", "PzH 2000", "TOS-1A „Solnzepjok“", "M2A2 Bradley ODS-SA"];
+  const API = "https://en.wikipedia.org/w/api.php?format=json&formatversion=2&origin=*&action=query";
+  const esc = s=>String(s == null ? "" : s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const text = html=>(new DOMParser().parseFromString(String(html || ""), "text/html").body.textContent || "").replace(/\s+/g, " ").trim();
+  const holen = q=>fetch(API + q).then(r=>r.ok ? r.json() : Promise.reject(r.status));
+  const ziel = (q, t)=>{ const m = {}; [...(q.normalized || []), ...(q.redirects || [])].forEach(n=>{ m[n.from] = n.to; }); for(let i = 0; i < 3 && m[t]; i++) t = m[t]; return t; };
+  async function fotos(liste){
+    const titel = liste.map(f=>f.wiki).filter(Boolean); if(!titel.length) return;
+    const a = (await holen("&redirects=1&prop=pageimages&piprop=name&titles=" + encodeURIComponent(titel.join("|")))).query || {};
+    const name = {}; (a.pages || []).forEach(p=>{ if(p.pageimage) name[p.title] = p.pageimage; });
+    const datei = {}; liste.forEach(f=>{ const n = f.wiki && name[ziel(a, f.wiki)]; if(n) datei[f.n] = "File:" + n.replace(/_/g, " "); });
+    const dateien = [...new Set(Object.values(datei))]; if(!dateien.length) return;
+    const b = (await holen("&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=800&titles=" + encodeURIComponent(dateien.join("|")))).query || {};
+    const info = {}; (b.pages || []).forEach(p=>{ const ii = p.imageinfo && p.imageinfo[0]; if(ii) info[p.title] = ii; });
+    liste.forEach(f=>{ const ii = datei[f.n] && info[ziel(b, datei[f.n])]; if(!ii || !ii.thumburl) return;
+      const k = box.querySelector(`[data-n="${CSS.escape(f.n)}"]`), m = ii.extmetadata || {}, img = new Image();
+      img.alt = f.n; img.referrerPolicy = "no-referrer"; img.decoding = "async";
+      img.onload = ()=>{ k.querySelector(".ars-bild").replaceChildren(img);
+        const autor = text(m.Artist && m.Artist.value) || "unbekannt", lz = text(m.LicenseShortName && m.LicenseShortName.value) || "Lizenz";
+        k.querySelector(".ars-foto").innerHTML = `Foto: ${esc(autor)} · <a href="${esc(ii.descriptionurl)}" target="_blank" rel="noopener">${esc(lz)}, Wikimedia Commons</a>`; };
+      img.src = ii.thumburl; });
   }
-  function start(){ if(lauf || !map) return; lauf = true; zuletzt = 0; requestAnimationFrame(dreh); }
-  async function bauen(){
-    if(document.documentElement.classList.contains("lite")){ if(!el.firstChild) el.innerHTML = '<img src="bild/g-globus.png" alt="" style="width:100%;height:100%;object-fit:contain">'; return; }
-    if(bauend) return; bauend = true;
-    try{
-      if(!window.maplibregl){
-        await Promise.all([laden(`https://cdn.jsdelivr.net/npm/maplibre-gl@${V}/dist/maplibre-gl.css`, true), laden(`https://cdn.jsdelivr.net/npm/maplibre-gl@${V}/dist/maplibre-gl.js`)]);
-      }
-      map = new maplibregl.Map({
-        container: el, interactive: false, attributionControl: {compact: true},
-        center: [lng, 22], zoom: zoomFuer(), renderWorldCopies: false, fadeDuration: 0,
-        pixelRatio: TOUCH ? 1 : Math.min(window.devicePixelRatio || 1, 2),
-        style: {
-          version: 8, projection: {type: "globe"},
-          sky: {"atmosphere-blend": 1},
-          sources: {sat: {type: "raster", tileSize: 256, maxzoom: TOUCH ? 3 : 4,
-            tiles: [`https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=${KEY}`],
-            attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank" rel="noopener">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a>'}},
-          layers: [{id: "sat", type: "raster", source: "sat", paint: {"raster-saturation": -0.08, "raster-contrast": 0.08, "raster-fade-duration": 0}}]
-        }
-      });
-      map.on("load", ()=>{ box.classList.add("an"); start(); });
-      let breite = el.clientWidth; window.addEventListener("resize", ()=>{ if(map && el.clientWidth !== breite){ breite = el.clientWidth; map.setZoom(zoomFuer()); } });
-    }catch(e){
-      el.innerHTML = '<img src="bild/g-globus.png" alt="" style="width:100%;height:100%;object-fit:contain">';
-    }
-    bauend = false;
-  }
-  /* weit weg gescrollt: Globus ganz abbauen, damit der Grafikspeicher frei wird (wichtig fürs iPad) */
-  function abbauen(){ if(!map) return; try{ map.remove(); }catch(e){} map = null; lauf = false; box.classList.remove("an"); }
-  new IntersectionObserver(es=>{ es.forEach(e=>{
-    sichtbar = e.isIntersecting; clearTimeout(wegT);
-    if(sichtbar){ if(!map) bauen(); else start(); }
-    else wegT = setTimeout(abbauen, 4000);
-  }); }, {rootMargin: "400px 0px"}).observe(box);
-  document.addEventListener("visibilitychange", ()=>{ if(document.hidden) abbauen(); });
+  fetch("daten/fahrzeuge.json?v=202611241202").then(r=>r.json()).then(D=>{
+    const liste = BEISPIELE.map(n=>D.fahrzeuge.find(f=>f.n === n)).filter(Boolean);
+    box.innerHTML = liste.map(f=>{ const m = (f.mod || [])[0], seite = f.seite.length > 1 ? "beide" : f.seite[0];
+      const bild = window.FzBild ? window.FzBild(Object.assign({}, f.b, typeof m === "object" && m.b || {}), seite) : "";
+      return `<article class="ars-k" data-n="${esc(f.n)}"><a class="ars-link" href="fahrzeug.html?n=${encodeURIComponent(f.n)}" aria-label="${esc(f.n)}"></a>
+        <div class="ars-bild">${bild}</div>
+        <div class="ars-text"><span class="ars-typ">${esc(D.typen[f.typ].l)}</span><h3 data-nolang>${esc(f.n)}</h3><small class="ars-foto"></small></div></article>`; }).join("");
+    fotos(liste).catch(()=>{});
+  }).catch(()=>{ box.closest("section").hidden = true; });
 })();
 </script>
 </body>

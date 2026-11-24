@@ -18,8 +18,7 @@
     "Stand":"As of", "letzte 14 Tage":"last 14 days", "Fläche verändert":"Area changed", "Erfasste Verbände":"Units tracked", "auf der Karte":"on the map",
     "Frontverlauf":"Front line", "Neueste Veränderungen":"Latest changes", "Alle auf der Karte →":"All on the map →", "Auf der Karte →":"On the map →",
     "Russischer Geländegewinn":"Russian territorial gain", "Ukrainischer Geländegewinn":"Ukrainian territorial gain", "Neue Grauzone":"New grey zone",
-    "Haltung":"Our stance", "Keine Seite.":"No side.", "Nur die Lage.":"Just the situation.",
-    "Plyus ergreift keine Partei. Jede Veränderung wird nach denselben Regeln erfasst, egal auf welcher Seite der Front sie passiert. Was nicht sicher belegt ist, bleibt Grauzone.":"Plyus takes no side. Every change is recorded by the same rules, no matter which side of the front it happens on. Anything not reliably confirmed stays grey zone.",
+    "Alle Fahrzeuge →":"All vehicles →", "unbekannt":"unknown",
     "Lagekarte Ukraine. Alle Angaben ohne Gewähr, Darstellung kann von der tatsächlichen Lage abweichen.":"Ukraine situation map. All information without guarantee; the map may differ from the actual situation.",
     "Quellen":"Sources", "Lagedaten:":"Map data:", "· Karten: ©":"· Maps: ©", "OpenStreetMap-Mitwirkende":"OpenStreetMap contributors",
     "· NATO-Symbole: milsymbol":"· NATO symbols: milsymbol", "Lagegrafik:":"Map graphic:",
@@ -304,6 +303,7 @@
     [/^(Russischer|Ukrainischer) Gewinn (.*)$/, (m, a, b)=>(a === "Russischer" ? "Russian" : "Ukrainian") + " gain " + b],
     [/^([^()]+) \((\d+|finanziert)\)$/, (m, a, b)=>(W[a] || a) + " (" + (b === "finanziert" ? "funded" : b) + ")"],
     [/^(Wikipedia – .+) \(Beispielfoto\)$/, "$1 (example photo)"],
+    [/^Foto: (.+)$/, "Photo: $1"],
     [/^(.+ km) zeigen$/, "show $1"], [/^Modelle \((\d+)\)$/, "Models ($1)"],
     [/^vor (\d+) Tagen$/, "$1 days ago"], [/^vor (\d+) Stunden$/, "$1 hours ago"], [/^gestern$/, "yesterday"], [/^heute$/, "today"]
   ];
