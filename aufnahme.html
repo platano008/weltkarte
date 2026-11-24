@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Plyus · Aufnahme</title>
+<link rel="icon" type="image/png" href="bild/favicon.png?v=2">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#000}
+#map{position:absolute;inset:0}
+.hinweis{position:fixed;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:#ddd;font:15px/1.5 system-ui,sans-serif}
+.hinweis[hidden]{display:none}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="hinweis" id="hinweis" hidden></div>
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
+<script>
+/* Aufnahmefenster: zeigt nur die Karte aus dem Hauptfenster – ohne Leisten und Werkzeuge.
+   Alles, was im Hauptfenster auf der Karte passiert (Ausschnitt, Ansicht, Zeichen, Messungen), wird live übernommen. */
+(function(){
+  const O = window.opener, hinweis = document.getElementById("hinweis");
+  const zeig = t=>{ hinweis.textContent = t; hinweis.hidden = false; };
+  let M = null; try{ M = O && O.plyusMap; }catch(e){}
+  if(!M || !M.getStyle()){ zeig("Dieses Fenster bitte über den Aufnahme-Knopf auf der Karte öffnen."); return; }
+
+  /* Gleiche Darstellung wie im Hauptfenster: dessen Stylesheets übernehmen (Zeichen, Beschriftungen, Ringe) */
+  O.document.querySelectorAll('link[rel="stylesheet"], style').forEach(n=>{
+    if(n.href && /maplibre-gl\.css/.test(n.href)) return;
+    const k = n.tagName === "LINK" ? Object.assign(document.createElement("link"), {rel:"stylesheet", href:n.href}) : Object.assign(document.createElement("style"), {textContent:n.textContent});
+    document.head.insertBefore(k, document.head.querySelector("style"));
+  });
+
+  const kopie = o=>JSON.parse(JSON.stringify(o));
+  const kamera = ()=>({center:M.getCenter().toArray(), zoom:M.getZoom(), bearing:M.getBearing(), pitch:M.getPitch()});
+  const map = new maplibregl.Map(Object.assign({container:"map", style:kopie(M.getStyle()), interactive:false, attributionControl:false,
+    fadeDuration:120, pixelRatio:Math.min(window.devicePixelRatio || 1, 2)}, kamera()));
+  map.addControl(new maplibregl.AttributionControl({compact:true}), "bottom-left");
+  const logo = O.document.getElementById("mtLogo");
+  if(logo){ const l = document.importNode(logo, true); l.removeAttribute("id"); document.body.appendChild(l);
+    setInterval(()=>{ l.hidden = logo.hidden; }, 1000); }
+
+  /* Bilder, die das Hauptfenster selbst erzeugt hat (Lage-Zeichen), übernehmen */
+  map.on("styleimagemissing", e=>{
+    const im = M.getImage && M.getImage(e.id); if(!im || map.hasImage(e.id)) return;
+    try{ map.addImage(e.id, {width:im.data.width, height:im.data.height, data:new Uint8Array(im.data.data)}, {pixelRatio:im.pixelRatio, sdf:im.sdf}); }catch(err){}
+  });
+
+  /* Ausschnitt live mitführen; --nz steuert die Größe der NATO-Zeichen je Zoomstufe */
+  let kT = 0;
+  const ausschnitt = ()=>{ if(kT) return; kT = requestAnimationFrame(()=>{ kT = 0; map.jumpTo(kamera());
+    map.getContainer().style.setProperty("--nz", M.getContainer().style.getPropertyValue("--nz")); }); };
+  M.on("move", ausschnitt); ausschnitt();
+
+  /* Kartenstil (Ansicht, Ebenen, 3D, Auswahl): nur die Unterschiede übernehmen */
+  let sT = 0;
+  M.on("styledata", ()=>{ clearTimeout(sT); sT = setTimeout(()=>{ try{ const s = M.getStyle(); if(s) map.setStyle(kopie(s), {diff:true}); }catch(err){} }, 120); });
+  /* Geänderte Daten (Messungen, Fahrzeugkreise, Verlauf) sofort übernehmen */
+  const offen = new Set(); let dT = 0;
+  M.on("sourcedata", e=>{
+    if(e.tile || e.sourceDataType !== "content" || !e.sourceId) return;
+    offen.add(e.sourceId); if(dT) return;
+    dT = requestAnimationFrame(()=>{ dT = 0;
+      offen.forEach(id=>{ const a = M.getSource(id), b = map.getSource(id);
+        if(a && b && a.type === "geojson" && b.setData){ try{ b.setData(kopie(a.serialize().data)); }catch(err){} } });
+      offen.clear(); });
+  });
+
+  /* HTML-Marker (NATO-Zeichen, Beschriftungen der Werkzeuge) spiegeln */
+  const spiegel = [];
+  const gleich = (m, s)=>s._anchor === m._anchor && s._offset.equals(m._offset);
+  function marker(){
+    const quelle = [...(M._plyusMarker || [])];
+    quelle.forEach((m, i)=>{
+      const el = m.getElement(); let s = spiegel[i];
+      if(s && !gleich(m, s)){ s.remove(); s = null; }
+      if(!s){ const k = document.importNode(el, true); k.style.transform = "";
+        s = spiegel[i] = new maplibregl.Marker({element:k, anchor:m._anchor, offset:[m._offset.x, m._offset.y]}).setLngLat(m.getLngLat()).addTo(map); }
+      const k = s.getElement();
+      if(k.innerHTML !== el.innerHTML) k.innerHTML = el.innerHTML;
+      if(k.className !== el.className) k.className = el.className;
+      ["width","height","display"].forEach(p=>{ if(k.style[p] !== el.style[p]) k.style[p] = el.style[p]; });
+      const a = m.getLngLat(), b = s.getLngLat(); if(a.lng !== b.lng || a.lat !== b.lat) s.setLngLat(a);
+    });
+    spiegel.splice(quelle.length).forEach(s=>s.remove());
+  }
+  let mT = 0;
+  const markerBald = ()=>{ if(!mT) mT = requestAnimationFrame(()=>{ mT = 0; marker(); }); };
+  new O.MutationObserver(markerBald).observe(M.getContainer(), {childList:true, subtree:true, characterData:true, attributes:true, attributeFilter:["class"]});
+  M.on("mousemove", markerBald); M.on("zoom", markerBald); marker();
+
+  /* Body-Klassen (z. B. helle Ansicht) übernehmen; Hinweis, wenn das Hauptfenster geschlossen wird */
+  const iv = setInterval(()=>{
+    if(O.closed){ clearInterval(iv); zeig("Das Hauptfenster wurde geschlossen. Bitte die Karte neu öffnen und den Aufnahme-Knopf drücken."); return; }
+    if(document.body.className !== O.document.body.className) document.body.className = O.document.body.className;
+  }, 500);
+})();
+</script>
+</body>
+</html>

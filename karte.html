@@ -16,12 +16,12 @@
 <link rel="preconnect" href="https://api.maptiler.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=202611240915">
+<link rel="stylesheet" href="style.css?v=202611240926">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611240915"></script>
-<script src="sicht.js?v=202611240915"></script>
-<script src="werkzeuge.js?v=202611240915"></script>
+<script src="karte.js?v=202611240926"></script>
+<script src="sicht.js?v=202611240926"></script>
+<script src="werkzeuge.js?v=202611240926"></script>
 <style>
 .item.chg .ic{width:22px}
 .card{right:calc(max(16px,env(safe-area-inset-right)) + 56px)!important}
@@ -38,9 +38,11 @@
 .dock svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:square}
 .dock .dot{position:absolute;right:7px;top:7px;width:7px;height:7px;background:#ffb800;display:none}
 body.tl-old .dock .dot{display:block}
+@media (max-width:720px),(hover:none){.dock [data-aufnahme]{display:none}}
 .switches{display:none!important;left:auto!important;right:calc(max(16px,env(safe-area-inset-right)) + 54px)!important;top:max(16px,env(safe-area-inset-top))!important;flex-direction:column!important;align-items:flex-end!important;gap:8px!important;justify-content:flex-start!important}
 body.d-ansicht .switches{display:flex!important}
 .maplibregl-ctrl-top-right{top:calc(max(16px,env(safe-area-inset-top)) + 190px)!important}
+@media (min-width:721px) and (hover:hover){.maplibregl-ctrl-top-right{top:calc(max(16px,env(safe-area-inset-top)) + 236px)!important}}
 /* Touch: Zoomen geht mit zwei Fingern – Zoom-Knöpfe weg, weniger auf dem Bildschirm */
 @media (hover:none),(pointer:coarse){.maplibregl-ctrl-top-right .maplibregl-ctrl-group{display:none}}
 .wz-rail{display:none!important;flex-direction:row!important;top:calc(max(16px,env(safe-area-inset-top)) + 45px)!important;bottom:auto!important;right:calc(max(16px,env(safe-area-inset-right)) + 54px)!important}
@@ -234,7 +236,7 @@ body.k-auf .tl{opacity:0;pointer-events:none}
 .wz-lbl.ring b{font-size:11px}
 .wz-lbl.ring.fahr{border-style:dashed}
 </style>
-<script src="lang.js?v=202611240915" defer></script>
+<script src="lang.js?v=202611240926" defer></script>
 </head>
 <body>
 <div id="map"></div>
@@ -248,6 +250,7 @@ body.k-auf .tl{opacity:0;pointer-events:none}
   <button data-d="wz" title="Werkzeuge: Lineal, Fläche, Radius, Koordinate" aria-label="Werkzeuge"><svg viewBox="0 0 24 24"><path d="M2.5 15.5L15.5 2.5l6 6-13 13z"/><path d="M6.5 11.5l2 2M9.5 8.5l2 2M12.5 5.5l2 2"/></svg></button>
   <button data-link="fahrzeuge.html" title="Fahrzeuge: Panzer, Artillerie, Flugabwehr" aria-label="Fahrzeuge"><svg viewBox="0 0 24 24"><path d="M3 15h18l-2 4H5z"/><path d="M6 15v-3h9l2 3"/><path d="M9 12V9h5v3"/><path d="M14 10.5h7"/></svg></button>
   <button data-d="tl" title="Verlauf: zwischen Updates spulen" aria-label="Verlauf" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg><i class="dot"></i></button>
+  <button data-aufnahme title="Aufnahmefenster: nur die Karte, ohne Leisten – zum Aufnehmen" aria-label="Aufnahmefenster öffnen"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2"/><circle cx="12" cy="12" r="3"/></svg></button>
 </div>
 <div class="switches">
   <div class="seg" id="base"></div>
@@ -304,7 +307,14 @@ function setDock(name){
   if(name !== "wz" && window.WZ && WZ.active()) WZ.stop();
   if(name){ select(null); document.body.classList.remove("k-auf"); }
 }
-$("dock").querySelectorAll("button").forEach(b=>b.onclick=()=>b.dataset.link ? (location.href = b.dataset.link) : setDock(document.body.classList.contains("d-"+b.dataset.d) ? null : b.dataset.d));
+$("dock").querySelectorAll("button[data-d],button[data-link]").forEach(b=>b.onclick=()=>b.dataset.link ? (location.href = b.dataset.link) : setDock(document.body.classList.contains("d-"+b.dataset.d) ? null : b.dataset.d));
+/* Aufnahmefenster: zeigt nur die Karte (ohne Leisten und Werkzeuge) und folgt allem, was hier passiert */
+let aufnahme = null;
+$("dock").querySelector("[data-aufnahme]").onclick = ()=>{
+  if(aufnahme && !aufnahme.closed){ aufnahme.focus(); return; }
+  aufnahme = window.open("aufnahme.html", "plyus-aufnahme", "popup,width=1280,height=720");
+  toast(aufnahme ? "Aufnahmefenster offen – im Aufnahmeprogramm das Fenster „Plyus · Aufnahme“ wählen" : "Das Fenster wurde blockiert – bitte Pop-ups für diese Seite erlauben");
+};
 /* switches */
 $("base").innerHTML = Object.entries(K.STYLES).map(([k,s])=>`<button data-b="${k}" class="${k==="sat"?"on":""}">${s.name}</button>`).join("");
 $("base").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("base").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setBase(b.dataset.b); document.body.classList.toggle("hell", b.dataset.b !== "sat"); $("deck").hidden = $("mixfarbe").hidden = b.dataset.b !== "mix"; if(b.dataset.b === "mix") document.body.classList.toggle("hell", !$("mixfarbe").querySelector("[data-f=dunkel]").classList.contains("on")); });

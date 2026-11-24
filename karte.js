@@ -1,6 +1,11 @@
 /* Gemeinsamer Kartencode für index.html (Ansicht) und editor.html (Bearbeiten). */
 (function(){
 "use strict";
+/* Alle Marker je Karte merken, damit das Aufnahmefenster sie spiegeln kann (MapLibre führt selbst keine Liste) */
+(function(P){ const an = P.addTo, weg = P.remove;
+  P.addTo = function(m){ const r = an.call(this, m); (m._plyusMarker || (m._plyusMarker = new Set())).add(this); return r; };
+  P.remove = function(){ if(this._map && this._map._plyusMarker) this._map._plyusMarker.delete(this); return weg.call(this); };
+})(maplibregl.Marker.prototype);
 
 const MAPTILER_KEY = "4TDQhzPsZwABTFDNshhB";
 const MT = n => `https://api.maptiler.com/maps/${n}/style.json?key=${MAPTILER_KEY}`;
