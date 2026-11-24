@@ -119,7 +119,7 @@
     "Foto wird geladen …":"Loading photo …",
     "Fahrzeug · Plyus":"Vehicle · Plyus",
     "Ukraine":"Ukraine",
-    "Kein frei lizenziertes Foto gefunden – oben die gezeichnete Ansicht.":"No freely licensed photo found – see the drawing above.",
+    "Kein frei lizenziertes Foto gefunden – unten die gezeichnete Ansicht.":"No freely licensed photo found – see the drawing below.",
     "Foto konnte nicht geladen werden.":"Photo could not be loaded.",
     "Beispielfoto":"Example photo",
     "– zeigt ein verwandtes Fahrzeug, nicht genau diesen Eintrag.":"– shows a related vehicle, not exactly this entry.",
