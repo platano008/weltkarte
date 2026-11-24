@@ -18,7 +18,7 @@
     "Stand":"As of", "letzte 14 Tage":"last 14 days", "Fläche verändert":"Area changed", "Erfasste Verbände":"Units tracked", "auf der Karte":"on the map",
     "Frontverlauf":"Front line", "Neueste Veränderungen":"Latest changes", "Alle auf der Karte →":"All on the map →", "Auf der Karte →":"On the map →",
     "Russischer Geländegewinn":"Russian territorial gain", "Ukrainischer Geländegewinn":"Ukrainian territorial gain", "Neue Grauzone":"New grey zone",
-    "Alle Fahrzeuge →":"All vehicles →", "Bild":"Photo", "Foto: Wikimedia Commons – Fotograf und Lizenz im Steckbrief":"Photo: Wikimedia Commons – photographer and licence on the profile page", "unbekannt":"unknown",
+    "Alle Fahrzeuge →":"All vehicles →", "Satellitenbild: Esri, Maxar, Earthstar Geographics":"Satellite imagery: Esri, Maxar, Earthstar Geographics", "Bild":"Photo", "Foto: Wikimedia Commons – Fotograf und Lizenz im Steckbrief":"Photo: Wikimedia Commons – photographer and licence on the profile page", "unbekannt":"unknown",
     "Lagekarte Ukraine. Alle Angaben ohne Gewähr, Darstellung kann von der tatsächlichen Lage abweichen.":"Ukraine situation map. All information without guarantee; the map may differ from the actual situation.",
     "Quellen":"Sources", "Lagedaten:":"Map data:", "· Karten: ©":"· Maps: ©", "OpenStreetMap-Mitwirkende":"OpenStreetMap contributors",
     "· NATO-Symbole: milsymbol":"· NATO symbols: milsymbol", "Lagegrafik:":"Map graphic:",

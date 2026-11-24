@@ -17,7 +17,7 @@
 <script>/* alte geteilte Links (index.html#…) führen weiter zur Karte */
 if(location.hash.length > 1 && !/^#(lage|zeigt|arsenal)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611241442">
+<link rel="stylesheet" href="style.css?v=202611241741">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -149,6 +149,9 @@ section.blk{padding:72px 0 8px}
 .row .d{font-family:var(--mono);font-size:13px;color:var(--muted)}
 .tag{display:inline-flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
 .tag i{width:14px;height:14px;display:inline-block;flex:none}
+/* kleine Flaggen statt Farbquadrat: Russland weiß-blau-rot, Ukraine blau-gelb */
+.tag i.fl-ru{background:linear-gradient(#fff 0 33.4%,#0039a6 0 66.7%,#d52b1e 0)!important;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
+.tag i.fl-ua{background:linear-gradient(#0057b7 0 50%,#ffd700 0)!important}
 .row .a{font-family:var(--display);font-size:24px}
 .row .a span{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:4px}
 .row .c{font-family:var(--mono);font-size:12px;color:var(--faint)}
@@ -162,8 +165,16 @@ section.blk{padding:72px 0 8px}
 .k-kopf .w-titel svg{display:inline-block;width:.85em;height:.85em;margin-left:.2em;vertical-align:-.08em}
 /* jede Veränderung in einem runden Rahmen wie die Berichte-Karten */
 .chg{display:grid;gap:12px}
-.chg .row{padding:18px 22px;border:1.5px solid rgba(255,255,255,.9);border-radius:22px!important;overflow:hidden}
-.chg .row:hover{background:rgba(255,255,255,.05)}
+.chg .row{padding:18px 22px;border:1px solid rgba(255,255,255,.75);border-radius:22px!important;overflow:hidden;background:rgba(0,0,0,.62);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.chg .row:hover{background:rgba(20,20,20,.72)}
+/* Satellitenbild (Esri) unter den neuesten Veränderungen, über die ganze Breite, zu den Rändern ins Schwarze verblendet */
+#lage{position:relative;isolation:isolate}
+#lage .chg{margin-bottom:34px}
+.sat-bg{position:absolute;top:0;bottom:0;left:calc(50% - 50vw);width:100vw;z-index:-1;overflow:hidden;pointer-events:none}
+.sat-bg .kacheln{position:absolute;left:50%;top:50%;display:grid;grid-template-columns:repeat(6,256px);transform:translate(-50%,-50%) scale(var(--sat-s,1.25))}
+.sat-bg img{display:block;width:256px;height:256px}
+.sat-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(#000,rgba(0,0,0,.45) 22%,rgba(0,0,0,.45) 78%,#000)}
+.sat-quelle{position:absolute;right:16px;bottom:8px;font-size:10px;color:rgba(255,255,255,.45)}
 /* Veränderungen wie ein Level-up: Zeilen fliegen ein, XP-Leiste füllt sich, Fläche zählt hoch und springt kurz auf */
 .row{position:relative}
 .row .xp{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.06);overflow:hidden;pointer-events:none}
@@ -208,7 +219,9 @@ footer a{color:var(--muted)}
   .feat{grid-template-columns:1fr}
   .row{grid-template-columns:72px minmax(0,1fr) auto;row-gap:4px;column-gap:12px}
   .chg .row{padding:14px 16px}
-  .chg .tag{flex-wrap:wrap;row-gap:6px}
+  .chg .tag{display:block;line-height:1.35}
+  .chg .tag i{vertical-align:-2px;margin-right:8px}
+  .chg .tag .neu{display:inline-block;margin-left:6px;vertical-align:1px}
   .row .c{grid-column:2/4}
   .row .go{display:none}
 }
@@ -634,8 +647,8 @@ a.gate .gt b::after{content:"";width:.62em;height:.62em;flex:none;background:cur
 a.gate:hover .gt b::after{transform:translateX(.25em)}
 .gbald{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
 /* Arsenal-Hintergrund färbt sich je nach gewählter Seite: Ukraine blau, Russland rot */
-.ars{--ars-bg:#0d2f66;position:relative;isolation:isolate;padding-top:clamp(60px,8vw,110px);padding-bottom:clamp(60px,8vw,110px)}
-.ars.ru{--ars-bg:#6a0f1d}
+.ars{--ars-bg:#2463c4;position:relative;isolation:isolate;padding-top:clamp(60px,8vw,110px);padding-bottom:clamp(60px,8vw,110px)}
+.ars.ru{--ars-bg:#c42a40}
 .ars::before{content:"";position:absolute;inset:0 calc(50% - 50vw);z-index:-1;background:var(--ars-bg);transition:background .5s ease}
 .ars-seite{position:relative;display:flex;width:max-content;margin:0 auto clamp(30px,4vw,52px);padding:5px;border-radius:999px!important;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.25)}
 .ars-seite button{position:relative;z-index:1;min-width:128px;padding:11px 22px;border:0;background:none;color:#fff;font:600 13px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border-radius:999px!important;transition:color .3s}
@@ -643,6 +656,11 @@ a.gate:hover .gt b::after{transform:translateX(.25em)}
 .ars-seite i{position:absolute;top:5px;bottom:5px;left:5px;width:calc(50% - 5px);border-radius:999px!important;background:#fff;transition:transform .35s cubic-bezier(.3,.8,.3,1)}
 .ars.ru .ars-seite i{transform:translateX(100%)}
 .ars-liste{transition:opacity .25s}
+/* Einblenden: Karten steigen nacheinander auf, wenn das Arsenal ins Bild kommt und nach jedem Seitenwechsel */
+.ars-liste:not(.an) .ars-k{opacity:0}
+.ars-liste.an .ars-k{animation:arsRein .7s cubic-bezier(.2,.8,.2,1) calc(var(--i)*90ms) backwards}
+@keyframes arsRein{0%{opacity:0;transform:translateY(34px) scale(.95)}100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.ars-liste .ars-k{animation:none!important;opacity:1!important}}
 .ars-liste.wechsel{opacity:0}
 /* Arsenal: ein paar Beispiele im Stil der Berichte-Karten – Bild mit dünnem Rahmen, ragt über den Rand und blendet ins Schwarze aus,
    darunter eine runde weiße Textbox mit Name und Typ */
@@ -652,7 +670,7 @@ a.gate:hover .gt b::after{transform:translateX(.25em)}
 .ars-k:hover{transform:translateY(-4px)}
 .ars-bildr{position:relative;aspect-ratio:1;z-index:1}
 .ars-bildr::after{content:"";position:absolute;inset:0 0 -24px 0;border:1.5px solid rgba(255,255,255,.95);border-bottom:0;border-radius:22px 22px 0 0!important;pointer-events:none;z-index:2}
-.ars-bild{position:absolute;inset:calc(var(--ars-r)*-1);overflow:hidden;border-radius:46px!important;display:grid;place-items:center;background:radial-gradient(circle at 50% 45%,#2a2a2a,#0d0d0d)}
+.ars-bild{position:absolute;inset:calc(var(--ars-r)*-1);overflow:hidden;border-radius:46px!important;display:grid;place-items:center;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.16),transparent 68%)}
 .ars-bild img{position:absolute;inset:3px;width:calc(100% - 6px);height:calc(100% - 6px);object-fit:cover;border-radius:43px!important}
 .ars-bild svg{width:72%;height:auto}
 .ars-bild::after{content:"";position:absolute;inset:0;border:6px solid var(--ars-bg);border-radius:inherit;box-shadow:inset 0 0 10px 9px var(--ars-bg),inset 0 0 4px 4px var(--ars-bg);pointer-events:none;transition:border-color .5s,box-shadow .5s}
@@ -853,7 +871,10 @@ html.lite .tick div{animation-duration:70s}
 .wb{width:54px;height:54px;display:grid;place-items:center;border-radius:50%!important;background:#0a0a0a;color:#fff;text-decoration:none;transition:transform .3s cubic-bezier(.2,.7,.2,1),background .3s}
 .wb svg{width:22px;height:22px;fill:currentColor}
 .wb:hover{transform:translateY(-3px)}
-.wb[data-sozial=telegram]:hover{background:#2a9df4}
+.w-sozial.unten .wb{border:1px solid rgba(255,255,255,.55);background:linear-gradient(rgba(0,0,0,.28),rgba(0,0,0,.28)),var(--sat) center/cover}
+.w-sozial.unten .wb[data-sozial=telegram]{--sat:url("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/2827/4961")}
+.w-sozial.unten .wb[data-sozial=twitter]{--sat:url("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/2830/4966")}
+.w-sozial.unten .wb svg{filter:drop-shadow(0 1px 3px rgba(0,0,0,.7))}
 .wb.bald{cursor:default}
 .weiss{padding-bottom:clamp(90px,12vw,150px)!important}
 .w-pfeil{position:absolute;z-index:200;left:50%;top:-38px;width:34px;height:38px;pointer-events:none;opacity:0}
@@ -903,7 +924,7 @@ html.lite .tick div{animation-duration:70s}
 #chg .row.getroffen,#chg.xp-an .row.getroffen{animation:getroffen .7s cubic-bezier(.3,.7,.4,1)}
 @keyframes getroffen{0%{background:rgba(255,150,60,.35);transform:translateY(3px)}30%{transform:translateY(-2px)}100%{background:transparent;transform:none}}
 </style>
-<script src="lang.js?v=202611241442" defer></script>
+<script src="lang.js?v=202611241741" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -988,6 +1009,8 @@ html.lite .tick div{animation-duration:70s}
   <section class="blk" id="lage">
     <div class="k-kopf rv"><a class="w-titel" href="karte.html"><h2>Neueste Veränderungen</h2><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a></div>
     <div class="chg rv" id="chg"><div class="empty-l">Lädt …</div></div>
+    <div class="sat-bg" id="satBg" aria-hidden="true"><div class="kacheln"></div></div>
+    <small class="sat-quelle">Satellitenbild: Esri, Maxar, Earthstar Geographics</small>
   </section>
 
   <section class="blk ars" id="arsenal">
@@ -1376,7 +1399,7 @@ Promise.all([
     const [txt,col] = LBL[x.p.richtung] || LBL.grau, [lng,lat] = x.c;
     return '<a class="row" style="--n:'+n+';--col:'+col+'" href="karte.html#@'+lng.toFixed(4)+','+lat.toFixed(4)+',11">'
       + '<span class="d">'+(x.p.datum ? fmtD(x.p.datum) : "–")+'</span>'
-      + '<span class="tag"><i style="background:'+col+'"></i>'+esc(x.p.name || txt)+(n ? '' : '<em class="neu">Neu</em>')+'</span>'
+      + '<span class="tag"><i class="fl-'+(x.p.richtung || "grau")+'" style="background:'+col+'"></i>'+esc(x.p.name || txt)+(n ? '' : '<em class="neu">Neu</em>')+'</span>'
       + '<span class="a"><b class="xp-zahl" data-v="'+x.km2+'">'+nf.format(x.km2)+'</b><span>km²</span></span>'
       + '<span class="c">'+(x.p.direktion || gname(x.p.gruppe) ? esc([x.p.direktion ? (/richtung/i.test(x.p.direktion) ? x.p.direktion : x.p.direktion + "-Richtung") : "", gname(x.p.gruppe)].filter(Boolean).join(" · ")) : Math.abs(lat).toFixed(3)+'° N · '+Math.abs(lng).toFixed(3)+'° O')+'</span>'
       + '<span class="go">Auf der Karte →</span><span class="xp"><i style="--p:'+Math.max(6, x.km2/maxKm*100).toFixed(1)+'%"></i></span></a>';
@@ -1622,6 +1645,14 @@ function flimmern(root){
   }, {threshold:0.5});
   io.observe(box);
 })();
+/* ===== Satellitenbild unter den neuesten Veränderungen: 6 × 4 Esri-Kacheln (Donbas, Zoom 12) ===== */
+(function(){
+  const k = document.querySelector("#satBg .kacheln"); if(!k) return;
+  let h = "";
+  for(let y = 1412; y < 1416; y++) for(let x = 2478; x < 2484; x++)
+    h += `<img src="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/12/${y}/${x}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">`;
+  k.innerHTML = h;
+})();
 /* ===== Berichte: die neuesten Beiträge, sonst gesperrte Akten ===== */
 (function(){
   const box = $("beListe"); if(!box) return;
@@ -1680,7 +1711,7 @@ function flimmern(root){
   document.querySelectorAll("[data-sozial]").forEach(a=>{ const u = SOZIAL[a.dataset.sozial];
     if(u){ a.href = u; } else { a.removeAttribute("href"); a.classList.add("bald"); } }); }
 </script>
-<script src="fz-bild.js?v=202611241442"></script>
+<script src="fz-bild.js?v=202611241741"></script>
 <script>
 /* Arsenal: je sechs Beispiele für die Ukraine und Russland, umschaltbar. Erst die gezeichnete Ansicht, dann – wenn frei lizenziert vorhanden –
    das Titelbild des Wikipedia-Artikels (Fotograf und Lizenz im Steckbrief). */
@@ -1715,9 +1746,9 @@ function flimmern(root){
   let D = null, seite = "ua";
   function zeigen(){
     const liste = BEISPIELE[seite].map(n=>D.fahrzeuge.find(f=>f.n === n)).filter(Boolean);
-    box.innerHTML = liste.map(f=>{ const m = (f.mod || [])[0], s = f.seite.length > 1 ? "beide" : f.seite[0];
+    box.innerHTML = liste.map((f, i)=>{ const m = (f.mod || [])[0], s = f.seite.length > 1 ? "beide" : f.seite[0];
       const bild = window.FzBild ? window.FzBild(Object.assign({}, f.b, typeof m === "object" && m.b || {}), s) : "";
-      return `<a class="ars-k" data-n="${esc(f.n)}" href="fahrzeug.html?n=${encodeURIComponent(f.n)}">
+      return `<a class="ars-k" style="--i:${i}" data-n="${esc(f.n)}" href="fahrzeug.html?n=${encodeURIComponent(f.n)}">
         <div class="ars-bildr"><div class="ars-bild">${bild}</div></div>
         <div class="ars-txt"><h3 data-nolang>${esc(f.n)}</h3><p>${esc(D.typen[f.typ].l)}</p></div></a>`; }).join("");
     fotos(liste).catch(()=>{});
@@ -1727,7 +1758,9 @@ function flimmern(root){
     sek.classList.toggle("ru", seite === "ru"); knoepfe.forEach(k=>k.setAttribute("aria-checked", String(k === b)));
     box.classList.add("wechsel"); setTimeout(()=>{ zeigen(); box.classList.remove("wechsel"); }, 250);
   }));
-  fetch("daten/fahrzeuge.json?v=202611241442").then(r=>r.json()).then(d=>{ D = d; zeigen(); })
+  const io = new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ box.classList.add("an"); io.disconnect(); } }, {threshold:0.15});
+  io.observe(box);
+  fetch("daten/fahrzeuge.json?v=202611241741").then(r=>r.json()).then(d=>{ D = d; zeigen(); })
     .catch(()=>{ sek.hidden = true; });
 })();
 </script>
