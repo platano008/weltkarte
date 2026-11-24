@@ -17,7 +17,7 @@
 <script>/* alte geteilte Links (index.html#…) führen weiter zur Karte */
 if(location.hash.length > 1 && !/^#(lage|zeigt|arsenal)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611241357">
+<link rel="stylesheet" href="style.css?v=202611241442">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -141,10 +141,6 @@ a{color:inherit}
 .stat small{display:block;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--faint)}
 
 section.blk{padding:72px 0 8px}
-.blk-h{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:26px}
-.blk-h h2{margin:8px 0 0;font-family:var(--display);font-weight:400;font-size:clamp(34px,4.4vw,56px);line-height:.95}
-.blk-h a{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;white-space:nowrap}
-.blk-h a:hover{color:var(--fg)}
 
 /* Veränderungen */
 .chg{border-top:1px solid var(--line-2)}
@@ -159,9 +155,18 @@ section.blk{padding:72px 0 8px}
 .row .go{justify-self:end;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .row:hover .go{color:var(--fg)}
 .empty-l{padding:26px 0;color:var(--muted);border-bottom:1px solid var(--line)}
+/* Überschrift mittig mit Pfeil – wie bei den Berichten, nur hell auf dunkel */
+.k-kopf{display:flex;justify-content:center;text-align:center;margin-bottom:clamp(26px,3.6vw,48px)}
+.k-kopf .w-titel{display:inline-block;color:var(--fg);font-family:var(--display);font-weight:700;font-size:clamp(34px,5.6vw,84px);line-height:.95}
+.k-kopf h2{display:inline;margin:0;font:inherit}
+.k-kopf .w-titel svg{display:inline-block;width:.85em;height:.85em;margin-left:.2em;vertical-align:-.08em}
+/* jede Veränderung in einem runden Rahmen wie die Berichte-Karten */
+.chg{display:grid;gap:12px}
+.chg .row{padding:18px 22px;border:1.5px solid rgba(255,255,255,.9);border-radius:22px!important;overflow:hidden}
+.chg .row:hover{background:rgba(255,255,255,.05)}
 /* Veränderungen wie ein Level-up: Zeilen fliegen ein, XP-Leiste füllt sich, Fläche zählt hoch und springt kurz auf */
 .row{position:relative}
-.row .xp{position:absolute;left:0;right:0;bottom:-1px;height:3px;background:rgba(255,255,255,.06);overflow:hidden;pointer-events:none}
+.row .xp{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.06);overflow:hidden;pointer-events:none}
 .row .xp i{position:absolute;left:0;top:0;bottom:0;width:var(--p);background:var(--col);box-shadow:0 0 14px var(--col);transform-origin:left;overflow:hidden}
 .row .xp i::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent);transform:translateX(-100%)}
 .tag .neu{font-family:var(--mono);font-style:normal;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:3px 7px;border-radius:999px!important;background:#fff;color:#000;box-shadow:0 0 0 0 rgba(255,255,255,.6)}
@@ -201,7 +206,9 @@ footer a{color:var(--muted)}
   .stat:nth-child(3){border-left:0;padding-left:0}
   .stat:nth-child(n+3){border-top:1px solid var(--line)}
   .feat{grid-template-columns:1fr}
-  .row{grid-template-columns:96px 1fr auto;row-gap:4px}
+  .row{grid-template-columns:72px minmax(0,1fr) auto;row-gap:4px;column-gap:12px}
+  .chg .row{padding:14px 16px}
+  .chg .tag{flex-wrap:wrap;row-gap:6px}
   .row .c{grid-column:2/4}
   .row .go{display:none}
 }
@@ -220,13 +227,12 @@ footer a{color:var(--muted)}
   .radar::before{background:none;-webkit-mask:none;mask:none;inset:32%;border:1px solid rgba(255,96,116,.6);animation:ping 3.4s ease-out 3.2s infinite backwards}
   .radar::after{display:none}
   .hud{display:none}
-  .blk-h{flex-direction:column;align-items:flex-start;gap:10px}
   .band .wrap{flex-direction:column;align-items:flex-start}
   section.blk{padding-top:56px}
 }
 
 /* ===== Stil: schwarz-weiss, gekörnt ===== */
-.hero h1,.blk-h h2,.band h2,.stat b,.f h3,.row .a{font-family:var(--korn)}
+.hero h1,.band h2,.stat b,.f h3,.row .a{font-family:var(--korn)}
 .hero h1{font-family:"Plyus Korn Gross",var(--korn)}
 .wm{display:flex;align-items:flex-start;gap:clamp(10px,2vw,28px)}
 .wm-plus{flex:none;width:auto;height:clamp(72px,14.5vw,188px);margin-top:calc(18px - .02em);font-size:clamp(84px,17vw,220px);animation:plusin 1.3s cubic-bezier(.2,.8,.2,1) .7s both}
@@ -388,7 +394,6 @@ a.gate:hover{border:0}
 .zeug img{min-width:0;height:auto;opacity:.92;animation:wipp 9s ease-in-out infinite alternate}
 .zeug img:nth-child(1){width:15%}.zeug img:nth-child(2){width:29%;animation-delay:-3s}.zeug img:nth-child(3){width:24%;animation-delay:-5s;align-self:flex-start}.zeug img:nth-child(4){width:24%;animation-delay:-7s}
 @keyframes wipp{from{transform:translateY(0)}to{transform:translateY(-12px)}}
-.blk-h{position:relative}
 .deko{position:absolute;right:0;bottom:-10px;width:clamp(90px,13vw,170px);height:auto;opacity:.9;pointer-events:none}
 @media (max-width:640px){.zeug{flex-wrap:wrap;justify-content:center;row-gap:26px}.zeug img:nth-child(n){width:42%}.zeug img:nth-child(1){width:26%}.deko{display:none}.gv{height:62vw}}
 
@@ -628,6 +633,17 @@ a.gate .gt b::after{content:"";width:.62em;height:.62em;flex:none;background:cur
   mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='square'%3E%3Cpath d='M3 12h17M13 5l7 7-7 7'/%3E%3C/svg%3E") center/contain no-repeat;transition:transform .45s cubic-bezier(.2,.7,.2,1)}
 a.gate:hover .gt b::after{transform:translateX(.25em)}
 .gbald{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+/* Arsenal-Hintergrund färbt sich je nach gewählter Seite: Ukraine blau, Russland rot */
+.ars{--ars-bg:#0d2f66;position:relative;isolation:isolate;padding-top:clamp(60px,8vw,110px);padding-bottom:clamp(60px,8vw,110px)}
+.ars.ru{--ars-bg:#6a0f1d}
+.ars::before{content:"";position:absolute;inset:0 calc(50% - 50vw);z-index:-1;background:var(--ars-bg);transition:background .5s ease}
+.ars-seite{position:relative;display:flex;width:max-content;margin:0 auto clamp(30px,4vw,52px);padding:5px;border-radius:999px!important;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.25)}
+.ars-seite button{position:relative;z-index:1;min-width:128px;padding:11px 22px;border:0;background:none;color:#fff;font:600 13px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border-radius:999px!important;transition:color .3s}
+.ars-seite button[aria-checked="true"]{color:#0a0a0a}
+.ars-seite i{position:absolute;top:5px;bottom:5px;left:5px;width:calc(50% - 5px);border-radius:999px!important;background:#fff;transition:transform .35s cubic-bezier(.3,.8,.3,1)}
+.ars.ru .ars-seite i{transform:translateX(100%)}
+.ars-liste{transition:opacity .25s}
+.ars-liste.wechsel{opacity:0}
 /* Arsenal: ein paar Beispiele im Stil der Berichte-Karten – Bild mit dünnem Rahmen, ragt über den Rand und blendet ins Schwarze aus,
    darunter eine runde weiße Textbox mit Name und Typ */
 .ars{--ars-r:26px}
@@ -639,7 +655,7 @@ a.gate:hover .gt b::after{transform:translateX(.25em)}
 .ars-bild{position:absolute;inset:calc(var(--ars-r)*-1);overflow:hidden;border-radius:46px!important;display:grid;place-items:center;background:radial-gradient(circle at 50% 45%,#2a2a2a,#0d0d0d)}
 .ars-bild img{position:absolute;inset:3px;width:calc(100% - 6px);height:calc(100% - 6px);object-fit:cover;border-radius:43px!important}
 .ars-bild svg{width:72%;height:auto}
-.ars-bild::after{content:"";position:absolute;inset:0;border:6px solid #000;border-radius:inherit;box-shadow:inset 0 0 10px 9px #000,inset 0 0 4px 4px #000;pointer-events:none}
+.ars-bild::after{content:"";position:absolute;inset:0;border:6px solid var(--ars-bg);border-radius:inherit;box-shadow:inset 0 0 10px 9px var(--ars-bg),inset 0 0 4px 4px var(--ars-bg);pointer-events:none;transition:border-color .5s,box-shadow .5s}
 .ars-txt{position:relative;z-index:3;margin-top:-24px;padding:16px 16px 18px;background:#fff;border-radius:22px!important;box-shadow:0 18px 34px -16px rgba(0,0,0,.6)}
 .ars-txt h3{margin:0 0 6px;font-family:var(--display);font-weight:700;font-size:clamp(15px,1.3vw,17px);line-height:1.08;text-transform:uppercase;overflow-wrap:anywhere}
 .ars-txt p{margin:0;color:#222;font-size:13px;line-height:1.45}
@@ -887,7 +903,7 @@ html.lite .tick div{animation-duration:70s}
 #chg .row.getroffen,#chg.xp-an .row.getroffen{animation:getroffen .7s cubic-bezier(.3,.7,.4,1)}
 @keyframes getroffen{0%{background:rgba(255,150,60,.35);transform:translateY(3px)}30%{transform:translateY(-2px)}100%{background:transparent;transform:none}}
 </style>
-<script src="lang.js?v=202611241357" defer></script>
+<script src="lang.js?v=202611241442" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -970,12 +986,15 @@ html.lite .tick div{animation-duration:70s}
   </div>
 
   <section class="blk" id="lage">
-    <div class="blk-h rv"><div><span class="eyebrow">Frontverlauf</span><h2>Neueste Veränderungen</h2></div><a href="karte.html">Alle auf der Karte →</a></div>
+    <div class="k-kopf rv"><a class="w-titel" href="karte.html"><h2>Neueste Veränderungen</h2><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a></div>
     <div class="chg rv" id="chg"><div class="empty-l">Lädt …</div></div>
   </section>
 
   <section class="blk ars" id="arsenal">
-    <div class="blk-h rv"><div><span class="eyebrow">Fahrzeuge</span><h2>Arsenal</h2></div><a href="fahrzeuge.html">Alle Fahrzeuge →</a></div>
+    <div class="k-kopf rv"><a class="w-titel" href="fahrzeuge.html"><h2>Arsenal</h2><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a></div>
+    <div class="ars-seite" role="radiogroup" aria-label="Seite">
+      <button role="radio" aria-checked="true" data-seite="ua">Ukraine</button><button role="radio" aria-checked="false" data-seite="ru">Russland</button><i aria-hidden="true"></i>
+    </div>
     <div class="ars-liste" id="arsListe"></div>
   </section>
 </div>
@@ -1661,13 +1680,16 @@ function flimmern(root){
   document.querySelectorAll("[data-sozial]").forEach(a=>{ const u = SOZIAL[a.dataset.sozial];
     if(u){ a.href = u; } else { a.removeAttribute("href"); a.classList.add("bald"); } }); }
 </script>
-<script src="fz-bild.js?v=202611241357"></script>
+<script src="fz-bild.js?v=202611241442"></script>
 <script>
-/* Arsenal: sechs Beispiele aus der Fahrzeugliste. Erst die gezeichnete Ansicht, dann – wenn frei lizenziert vorhanden –
+/* Arsenal: je sechs Beispiele für die Ukraine und Russland, umschaltbar. Erst die gezeichnete Ansicht, dann – wenn frei lizenziert vorhanden –
    das Titelbild des Wikipedia-Artikels (Fotograf und Lizenz im Steckbrief). */
 (function(){
   const box = document.getElementById("arsListe"); if(!box) return;
-  const BEISPIELE = ["Leopard 2A6", "T-90M „Proryv“", "M142 HIMARS", "PzH 2000", "TOS-1A „Solnzepjok“", "M2A2 Bradley ODS-SA"];
+  const BEISPIELE = {
+    ua: ["Leopard 2A6", "M142 HIMARS", "PzH 2000", "M2A2 Bradley ODS-SA", "Patriot", "CV90"],
+    ru: ["T-90M „Proryv“", "TOS-1A „Solnzepjok“", "9K720 Iskander-M", "Pantsir-S1 / S1M", "BMPT „Terminator“", "2S19 Msta-S"]
+  };
   const API = "https://en.wikipedia.org/w/api.php?format=json&formatversion=2&origin=*&action=query";
   const esc = s=>String(s == null ? "" : s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const text = html=>(new DOMParser().parseFromString(String(html || ""), "text/html").body.textContent || "").replace(/\s+/g, " ").trim();
@@ -1689,15 +1711,24 @@ function flimmern(root){
       img.onload = ()=>{ k.querySelector(".ars-bild").replaceChildren(img); };
       img.src = ii.thumburl; });
   }
-  fetch("daten/fahrzeuge.json?v=202611241357").then(r=>r.json()).then(D=>{
-    const liste = BEISPIELE.map(n=>D.fahrzeuge.find(f=>f.n === n)).filter(Boolean);
-    box.innerHTML = liste.map(f=>{ const m = (f.mod || [])[0], seite = f.seite.length > 1 ? "beide" : f.seite[0];
-      const bild = window.FzBild ? window.FzBild(Object.assign({}, f.b, typeof m === "object" && m.b || {}), seite) : "";
+  const sek = box.closest("section"), knoepfe = [...sek.querySelectorAll("[data-seite]")];
+  let D = null, seite = "ua";
+  function zeigen(){
+    const liste = BEISPIELE[seite].map(n=>D.fahrzeuge.find(f=>f.n === n)).filter(Boolean);
+    box.innerHTML = liste.map(f=>{ const m = (f.mod || [])[0], s = f.seite.length > 1 ? "beide" : f.seite[0];
+      const bild = window.FzBild ? window.FzBild(Object.assign({}, f.b, typeof m === "object" && m.b || {}), s) : "";
       return `<a class="ars-k" data-n="${esc(f.n)}" href="fahrzeug.html?n=${encodeURIComponent(f.n)}">
         <div class="ars-bildr"><div class="ars-bild">${bild}</div></div>
         <div class="ars-txt"><h3 data-nolang>${esc(f.n)}</h3><p>${esc(D.typen[f.typ].l)}</p></div></a>`; }).join("");
     fotos(liste).catch(()=>{});
-  }).catch(()=>{ box.closest("section").hidden = true; });
+  }
+  knoepfe.forEach(b=>b.addEventListener("click", ()=>{
+    if(!D || b.dataset.seite === seite) return; seite = b.dataset.seite;
+    sek.classList.toggle("ru", seite === "ru"); knoepfe.forEach(k=>k.setAttribute("aria-checked", String(k === b)));
+    box.classList.add("wechsel"); setTimeout(()=>{ zeigen(); box.classList.remove("wechsel"); }, 250);
+  }));
+  fetch("daten/fahrzeuge.json?v=202611241442").then(r=>r.json()).then(d=>{ D = d; zeigen(); })
+    .catch(()=>{ sek.hidden = true; });
 })();
 </script>
 </body>

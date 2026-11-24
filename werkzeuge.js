@@ -204,13 +204,20 @@ function init(map, opts){
     src.setData({type:"FeatureCollection", features:F});
     fzMarker.forEach(x=>x.remove()); fzMarker = [];
     fzGesetzt.forEach(g=>{ const s = fzSeite(g.f);
-      fzMarker.push(label(g.ll, `<b>${fzEsc(g.f.n)}</b>`, "fz " + s));
+      fzMarker.push(fzSymbol(g, s));
       if(g.f.km) fzMarker.push(label(dest(g.ll, g.f.km, 0), `Hauptwaffe · <b>${fzKm(g.f.km)}</b>`, "fz ring " + s, null, g.f.km));
       if(g.z) fzMarker.push(label(dest(g.ll, g.z.km, 180), `${fzEsc(g.z.n.replace(/ \(.*\)$/, ""))} · <b>${fzKm(g.z.km)}</b>`, "fz ring zw " + s, "top", g.z.km));
       if(g.fahr && g.f.fbkm) fzMarker.push(label(dest(g.ll, g.f.fbkm, 90), `Fahrbereich · <b>${fzKm(g.f.fbkm)}</b>`, "fz ring fahr", "left", g.f.fbkm)); });
     fzRingSicht();
   }
   /* Ring-Beschriftungen ausblenden, solange der Kreis zu klein ist und sie die Mitte verdecken würden */
+  /* Gesetztes Fahrzeug: gezeichnetes Symbol (wie in der Fahrzeugliste) mit Namen, schwebt über dem Standortpunkt */
+  function fzSymbol(g, s){
+    const el = document.createElement("div"), m = (g.f.mod || [])[0];
+    el.className = "wz-fzsym " + s;
+    el.innerHTML = (window.FzBild ? window.FzBild(Object.assign({}, g.f.b, typeof m === "object" && m.b || {}), s) : "") + `<b>${fzEsc(g.f.n)}</b>`;
+    return new maplibregl.Marker({element:el, anchor:"bottom", offset:[0, -9]}).setLngLat(g.ll).addTo(map);
+  }
   function fzRingSicht(){ const z = map.getZoom();
     fzMarker.forEach(mk=>{ if(!mk._ring) return; const ll = mk.getLngLat(), el = mk.getElement();
       const mpp = 78271.517*Math.cos(rad(ll.lat))/Math.pow(2, z), km = parseFloat(el.dataset.km);
