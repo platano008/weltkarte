@@ -502,6 +502,10 @@ MOD = {
 # Englischer Wikipedia-Artikel je Eintrag: Die Fahrzeugseite zeigt dessen Titelbild (freie Lizenz, Angaben von Wikimedia Commons).
 # Bei Sammeleinträgen steht ein typischer Vertreter; Einträge ohne passenden Artikel bekommen kein Foto.
 WIKI = {
+  "Ground Master 200": "Ground Master 200",
+  "9K337 Sosna": "9M337 Sosna-R",
+  "Bogdan Bars-6 / Bars-8": "Bogdan Bars-8",
+  "Bars-8MMK": "Bogdan Bars-8",
 "T-90M „Proryv“": "T-90", "T-90A / T-90S": "T-90", "T-80BVM": "T-80", "T-72B3 / B3M": "T-72", "T-64BM „Bulat“ / BM2": "T-64",
 "T-72AMT": "T-72", "PT-91 Twardy": "PT-91 Twardy", "Leopard 2A6": "Leopard 2", "Stridsvagn 122": "Stridsvagn 122", "M1A1 Abrams": "M1 Abrams",
 "Challenger 2": "Challenger 2", "T-72B / B1 / B Obr. 1989": "T-72", "T-72A / T-72AV": "T-72", "T-72M / T-72M1": "T-72", "T-72EA": "T-72",
