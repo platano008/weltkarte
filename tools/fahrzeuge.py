@@ -3,7 +3,7 @@
 # der Wikipedia-Liste der Militärhilfe und der Lieferliste der Bundesregierung; ergänzt um Ausrüstungslisten (Wikipedia).
 import json, pathlib, re, sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from fahrzeuge_daten import D as DATEN, MOD, WIKI
+from fahrzeuge_daten import D as DATEN, MOD, WIKI, BSP
 
 GRUPPEN = {
   "panzer": "Panzer",
@@ -1099,7 +1099,9 @@ for e in L:
   zahlen = [float(z.replace(".", "").replace(",", ".")) for z in re.findall(r"[0-9][0-9.]*(?:,[0-9]+)?", e["d"]["fb"])] if "km" in e["d"]["fb"] else []
   if zahlen: e["fbkm"] = max(zahlen)
   if e["n"] in WIKI: e["wiki"] = WIKI.pop(e["n"])
+  elif e["n"] in BSP: e["bsp"] = BSP.pop(e["n"])
 assert not WIKI, WIKI
+assert not BSP, BSP
 
 # Englische Schreibweisen, damit die Suche auch sie findet (Feld „a“, wird nicht angezeigt)
 ALIAS = {

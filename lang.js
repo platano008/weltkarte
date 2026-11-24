@@ -121,6 +121,8 @@
     "Ukraine":"Ukraine",
     "Kein frei lizenziertes Foto gefunden – oben die gezeichnete Ansicht.":"No freely licensed photo found – see the drawing above.",
     "Foto konnte nicht geladen werden.":"Photo could not be loaded.",
+    "Beispielfoto":"Example photo",
+    "– zeigt ein verwandtes Fahrzeug, nicht genau diesen Eintrag.":"– shows a related vehicle, not exactly this entry.",
     "Fahrzeug nicht gefunden.":"Vehicle not found.",
     "Zur Liste →":"To the list →",
     "Daten konnten nicht geladen werden.":"Data could not be loaded.",
@@ -298,6 +300,7 @@
     [/^(.*) · MilX-Import (.*)$/, "$1 · MilX import $2"], [/^(.*) · Frontlinie angepasst$/, "$1 · front line adjusted"],
     [/^(Russischer|Ukrainischer) Gewinn (.*)$/, (m, a, b)=>(a === "Russischer" ? "Russian" : "Ukrainian") + " gain " + b],
     [/^([^()]+) \((\d+|finanziert)\)$/, (m, a, b)=>(W[a] || a) + " (" + (b === "finanziert" ? "funded" : b) + ")"],
+    [/^(Wikipedia – .+) \(Beispielfoto\)$/, "$1 (example photo)"],
     [/^(.+ km) zeigen$/, "show $1"], [/^Modelle \((\d+)\)$/, "Models ($1)"],
     [/^vor (\d+) Tagen$/, "$1 days ago"], [/^vor (\d+) Stunden$/, "$1 hours ago"], [/^gestern$/, "yesterday"], [/^heute$/, "today"]
   ];
