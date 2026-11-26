@@ -6,7 +6,7 @@
   const W = {
     // Menü, Kopf, allgemein
     "Karte":"Map", "Drohnenkarte":"Drone map", "in Arbeit":"in progress", "In Arbeit":"In progress", "folgt":"soon",
-    "Mitwirkende":"Contributors", "Kontakt":"Contact", "Impressum":"Legal notice", "Menü öffnen":"Open menu", "Menü schließen":"Close menu",
+    "Plyus – Startseite":"Plyus – home", "Mitwirkende":"Contributors", "Kontakt":"Contact", "Impressum":"Legal notice", "Menü öffnen":"Open menu", "Menü schließen":"Close menu",
     "Nach unten":"Scroll down", "Sprache":"Language", "Zur Startseite":"Back to home", "Schließen":"Close",
     // Startseite
     "Sektor":"Sector", "Russo-Ukrainian War":"Russo-Ukrainian War", "Lagedaten":"Map data", "Veränderungen":"Changes", "Lagekarte Ukraine":"Ukraine situation map",

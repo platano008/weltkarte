@@ -14,8 +14,12 @@ html,body{height:auto;overflow:auto;overflow-x:hidden;background:#000}
 .menu{position:fixed;inset:0;z-index:60;background:#000;overflow-y:auto;animation:fadeIn .25s both}
 .menu-x{border:0;background:none;color:var(--fg);position:fixed;z-index:61;right:max(16px,calc((100vw - 1200px)/2 + 16px));top:max(18px,env(safe-area-inset-top));width:46px;height:46px;display:grid;place-items:center;cursor:pointer}
 .menu-x svg{width:28px;height:28px;stroke:currentColor;stroke-width:2.3;stroke-linecap:butt;fill:none;overflow:visible}
-.menu-logo{display:flex;justify-content:center;align-items:center;gap:14px;padding:clamp(40px,8vh,80px) 16px 60px;animation:rise .6s .3s cubic-bezier(.2,.7,.2,1) both}
-.menu-logo img{height:clamp(30px,4vw,42px);width:auto}
+.menu-logo{display:flex;flex-direction:column;align-items:center;gap:22px;padding:clamp(40px,8vh,80px) 16px 60px;animation:rise .6s .3s cubic-bezier(.2,.7,.2,1) both}
+.menu-heim{display:block;color:var(--fg);transition:opacity .2s}
+.menu-heim:hover{opacity:.75}
+.menu-klein{display:flex;gap:22px;margin:0;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.menu-klein a{color:var(--faint);text-decoration:none}
+.menu-klein a:hover{color:var(--fg)}
 .menu-logo .szug-k{height:clamp(22px,3vw,32px);width:auto}
 .menu:not([hidden]){display:flex;flex-direction:column}
 .menu-logo{padding:clamp(22px,4.5vh,56px) 16px calc(30px + env(safe-area-inset-bottom))!important}
