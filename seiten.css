@@ -12,21 +12,24 @@ html,body{height:auto;overflow:auto;overflow-x:hidden;background:#000}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes rise{from{opacity:0;transform:translateY(24px)}}
 .menu{position:fixed;inset:0;z-index:60;background:#000;overflow-y:auto;animation:fadeIn .25s both}
-.menu nav{width:min(1200px,100%);margin:0 auto;padding:max(86px,12vh) max(16px,env(safe-area-inset-left)) 0;display:flex;flex-direction:column}
-.menu nav > *{display:flex;align-items:baseline;gap:18px;padding:12px 0;border-bottom:1px solid var(--line);font-family:var(--korn);font-size:clamp(34px,6.4vw,76px);line-height:1;text-decoration:none;color:var(--fg);animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
-.menu nav > *:nth-child(2){animation-delay:.04s}.menu nav > *:nth-child(3){animation-delay:.08s}.menu nav > *:nth-child(4){animation-delay:.12s}.menu nav > *:nth-child(5){animation-delay:.16s}.menu nav > *:nth-child(6){animation-delay:.2s}.menu nav > *:nth-child(7){animation-delay:.24s}.menu nav > *:nth-child(8){animation-delay:.28s}
-.menu nav .aus{color:#6f6f6f}
-.menu nav em{margin-left:auto;font-family:var(--mono);font-style:normal;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
-.menu nav a:hover{padding-left:14px;transition:padding .25s}
 .menu-x{border:0;background:none;color:var(--fg);position:fixed;z-index:61;right:max(16px,calc((100vw - 1200px)/2 + 16px));top:max(18px,env(safe-area-inset-top));width:46px;height:46px;display:grid;place-items:center;cursor:pointer}
 .menu-x svg{width:28px;height:28px;stroke:currentColor;stroke-width:2.3;stroke-linecap:butt;fill:none;overflow:visible}
 .menu-logo{display:flex;justify-content:center;align-items:center;gap:14px;padding:clamp(40px,8vh,80px) 16px 60px;animation:rise .6s .3s cubic-bezier(.2,.7,.2,1) both}
 .menu-logo img{height:clamp(30px,4vw,42px);width:auto}
 .menu-logo .szug-k{height:clamp(22px,3vw,32px);width:auto}
 .menu:not([hidden]){display:flex;flex-direction:column}
-.menu nav{padding-top:max(78px,9vh)!important}
-.menu nav > *{font-size:min(clamp(34px,6.4vw,76px),5vh)!important;padding:min(12px,1.05vh) 0!important}
 .menu-logo{padding:clamp(22px,4.5vh,56px) 16px calc(30px + env(safe-area-inset-bottom))!important}
+/* Menü als Boxen nebeneinander, jede mit Symbol */
+.menu nav{width:min(1200px,100%);margin:0 auto;padding:max(86px,12vh) max(16px,env(safe-area-inset-left)) 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.menu nav > *{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:16px;min-height:clamp(118px,15vh,150px);padding:18px 20px;border:1px solid rgba(255,255,255,.28);border-radius:22px!important;color:var(--fg);text-decoration:none;transition:border-color .25s,background .25s,transform .25s;animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.menu nav > *:nth-child(2){animation-delay:.03s}.menu nav > *:nth-child(3){animation-delay:.06s}.menu nav > *:nth-child(4){animation-delay:.09s}.menu nav > *:nth-child(5){animation-delay:.12s}.menu nav > *:nth-child(6){animation-delay:.15s}.menu nav > *:nth-child(7){animation-delay:.18s}.menu nav > *:nth-child(8){animation-delay:.21s}.menu nav > *:nth-child(9){animation-delay:.24s}
+.menu nav a:hover{border-color:#fff;background:rgba(255,255,255,.06);transform:translateY(-2px)}
+.menu nav svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.menu nav svg.f{fill:currentColor;stroke:none}
+.menu nav b{margin-top:auto;font-family:var(--korn);font-weight:400;font-size:clamp(22px,2.4vw,30px);line-height:1}
+.menu nav em{position:absolute;top:20px;right:20px;font-family:var(--mono);font-style:normal;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.menu nav .aus{color:#6f6f6f;border-style:dashed}
+@media (max-width:720px){.menu nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.menu nav > *{min-height:104px;padding:14px 16px}.menu nav em{top:15px;right:14px;font-size:9.5px}.menu nav b{font-size:clamp(18px,5vw,22px)}}
 .sprachwahl{position:fixed;z-index:61;left:max(16px,calc((100vw - 1200px)/2 + 16px));top:max(22px,env(safe-area-inset-top));display:flex;padding:3px;border:1px solid rgba(255,255,255,.18);border-radius:999px!important;background:rgba(255,255,255,.04)}
 .sprachwahl button{border:0;background:none;color:#8d8d8d;font-family:var(--mono);font-size:12px;letter-spacing:.14em;padding:9px 14px;border-radius:999px!important;cursor:pointer;transition:background .3s,color .3s}
 .sprachwahl button.an{background:#fff;color:#000}

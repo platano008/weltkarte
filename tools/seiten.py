@@ -8,15 +8,15 @@ menu = menu[:menu.index('<div class="menu-logo">')]
 logo = blog[blog.index('<div class="menu-logo">'):]
 logo = logo[:logo.index('</div>')+6]
 NAV = '''  <nav>
-    <a href="karte.html">Karte</a>
-    <span class="aus">Drohnenkarte<em>in Arbeit</em></span>
-    <a href="blog.html">Blog</a>
-    <span class="aus">Telegram<em>folgt</em></span>
-    <a href="https://x.com/plyusmap" target="_blank" rel="noopener">Twitter<em data-nolang>@plyusmap</em></a>
-    <a href="fahrzeuge.html">Fahrzeuge</a>
-    <a href="mitwirkende.html">Mitwirkende</a>
-    <a href="kontakt.html">Kontakt</a>
-    <a href="impressum.html">Impressum</a>
+    <a href="karte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg><b>Karte</b></a>
+    <span class="aus"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="5.5" r="2.5"/><circle cx="18.5" cy="5.5" r="2.5"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/><path d="M7.5 7.5l2.5 2.5M16.5 7.5L14 10M7.5 16.5l2.5-2.5M16.5 16.5L14 14"/><rect x="10" y="10" width="4" height="4" rx="1"/></svg><b>Drohnenkarte</b><em>in Arbeit</em></span>
+    <a href="blog.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8.5 11h7M8.5 14.5h7M8.5 18h4"/></svg><b>Blog</b></a>
+    <span class="aus"><svg viewBox="0 0 24 24" aria-hidden="true" class="f"><path d="M21.5 4.2L2.9 11.4c-.9.4-.9 1.6.1 1.9l4.6 1.4 1.8 5.6c.3.8 1.3 1 1.9.4l2.6-2.5 4.7 3.5c.7.5 1.7.1 1.9-.7L23 5.4c.2-.9-.7-1.6-1.5-1.2zM9.8 14.6l-.4 3.6-1.3-4.3 9.6-6.3-7.9 7z"/></svg><b>Telegram</b><em>folgt</em></span>
+    <a href="https://x.com/plyusmap" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true" class="f"><path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.9 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg><b>Twitter</b><em data-nolang>@plyusmap</em></a>
+    <a href="fahrzeuge.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 15.5h19l-2 3.5h-15z"/><path d="M5 15.5V12h11l2.5 3.5M9 12V9h5.5v3M14.5 10h7"/></svg><b>Fahrzeuge</b></a>
+    <a href="mitwirkende.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.4 2.7-6 6-6s6 2.6 6 6"/><circle cx="17.2" cy="9" r="2.4"/><path d="M16 14.2c2.8.3 5 2.6 5 5.8"/></svg><b>Mitwirkende</b></a>
+    <a href="kontakt.html"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg><b>Kontakt</b></a>
+    <a href="impressum.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.6v.2"/></svg><b>Impressum</b></a>
   </nav>
 '''
 menu = re.sub(r'  <nav>.*?</nav>\n', NAV, menu, flags=re.S)
