@@ -17,7 +17,7 @@
 <script>/* alte geteilte Links (index.html#…) führen weiter zur Karte */
 if(location.hash.length > 1 && !/^#(lage|zeigt|arsenal)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611241741">
+<link rel="stylesheet" href="style.css?v=202611261343">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -167,6 +167,16 @@ section.blk{padding:72px 0 8px}
 .chg{display:grid;gap:12px}
 .chg .row{padding:18px 22px;border:1px solid rgba(255,255,255,.75);border-radius:22px!important;overflow:hidden;background:rgba(0,0,0,.62);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .chg .row:hover{background:rgba(20,20,20,.72)}
+/* Veränderungen als Boxen nebeneinander: oben die Flagge als Symbol, darunter Name, Fläche, Ort */
+.chg{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px}
+.chg .row{display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-height:100%}
+.chg .row .d{order:2}
+.chg .tag{order:1;flex-direction:column;align-items:flex-start;gap:14px;font-size:16px;line-height:1.25}
+.chg .tag i{width:42px;height:28px;border-radius:5px!important}
+.chg .tag .neu{position:absolute;top:18px;right:18px}
+.chg .row .a{order:3;font-size:34px;margin-top:auto}
+.chg .row .c{order:4}
+.chg .row .go{order:5;justify-self:auto;margin-top:4px}
 /* Satellitenbild (Esri) unter den neuesten Veränderungen, über die ganze Breite, zu den Rändern ins Schwarze verblendet */
 #lage{position:relative;isolation:isolate}
 #lage .chg{margin-bottom:34px}
@@ -219,9 +229,11 @@ footer a{color:var(--muted)}
   .feat{grid-template-columns:1fr}
   .row{grid-template-columns:72px minmax(0,1fr) auto;row-gap:4px;column-gap:12px}
   .chg .row{padding:14px 16px}
-  .chg .tag{display:block;line-height:1.35}
-  .chg .tag i{vertical-align:-2px;margin-right:8px}
-  .chg .tag .neu{display:inline-block;margin-left:6px;vertical-align:1px}
+  .chg{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .chg .tag{font-size:14px;gap:10px}
+  .chg .tag i{width:34px;height:23px}
+  .chg .tag .neu{top:14px;right:14px}
+  .chg .row .a{font-size:26px}
   .row .c{grid-column:2/4}
   .row .go{display:none}
 }
@@ -924,7 +936,7 @@ html.lite .tick div{animation-duration:70s}
 #chg .row.getroffen,#chg.xp-an .row.getroffen{animation:getroffen .7s cubic-bezier(.3,.7,.4,1)}
 @keyframes getroffen{0%{background:rgba(255,150,60,.35);transform:translateY(3px)}30%{transform:translateY(-2px)}100%{background:transparent;transform:none}}
 </style>
-<script src="lang.js?v=202611241741" defer></script>
+<script src="lang.js?v=202611261343" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -1711,7 +1723,7 @@ function flimmern(root){
   document.querySelectorAll("[data-sozial]").forEach(a=>{ const u = SOZIAL[a.dataset.sozial];
     if(u){ a.href = u; } else { a.removeAttribute("href"); a.classList.add("bald"); } }); }
 </script>
-<script src="fz-bild.js?v=202611241741"></script>
+<script src="fz-bild.js?v=202611261343"></script>
 <script>
 /* Arsenal: je sechs Beispiele für die Ukraine und Russland, umschaltbar. Erst die gezeichnete Ansicht, dann – wenn frei lizenziert vorhanden –
    das Titelbild des Wikipedia-Artikels (Fotograf und Lizenz im Steckbrief). */
@@ -1760,7 +1772,7 @@ function flimmern(root){
   }));
   const io = new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ box.classList.add("an"); io.disconnect(); } }, {threshold:0.15});
   io.observe(box);
-  fetch("daten/fahrzeuge.json?v=202611241741").then(r=>r.json()).then(d=>{ D = d; zeigen(); })
+  fetch("daten/fahrzeuge.json?v=202611261343").then(r=>r.json()).then(d=>{ D = d; zeigen(); })
     .catch(()=>{ sek.hidden = true; });
 })();
 </script>
