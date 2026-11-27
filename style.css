@@ -23,7 +23,8 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 input,textarea,select{font:inherit;color:var(--fg)}
 :focus-visible{outline:2px solid var(--volt);outline-offset:2px}
 [hidden]{display:none!important}
-#map{position:fixed;inset:0}
+/* Karte bis unter die Leisten des Browsers (iPhone: Statusleiste oben, Adressleiste unten) */
+#map{position:fixed;left:0;top:0;width:100%;height:100vh;height:100lvh}
 
 .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 h1{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-height:1;letter-spacing:.02em}
