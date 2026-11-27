@@ -1,28 +1,32 @@
-/* Beta-Hinweis: gelbes Warnschild unten links, wegklickbar (bleibt danach weg).
-   Beta.zeigen(schluessel, text, {unten}) · Beta.verstecken() */
+/* Beta-Hinweis: großes Baustellen-Warnschild unten links, ohne Rahmen; oben rechts schwebt ein halb durchsichtiges ×.
+   Weggeklickt bleibt es weg. Beta.zeigen(schluessel, text, {unten}) · Beta.verstecken() */
 window.Beta = (function(){
   const CSS = `
-.beta{position:fixed;z-index:60;left:max(16px,env(safe-area-inset-left));bottom:calc(max(16px,env(safe-area-inset-bottom)) + var(--beta-unten,0px));
-  display:flex;align-items:center;gap:12px;max-width:min(330px,calc(100vw - 32px));padding:10px 10px 10px 12px;border:1px solid rgba(255,255,255,.16);border-radius:16px!important;
-  background:rgba(14,15,18,.88);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:#fff;box-shadow:0 14px 34px -14px rgba(0,0,0,.9);
-  animation:betaEin .5s cubic-bezier(.2,.8,.2,1) both}
+.beta{position:fixed;z-index:60;left:max(12px,env(safe-area-inset-left));bottom:calc(max(12px,env(safe-area-inset-bottom)) + var(--beta-unten,0px));
+  width:clamp(128px,34vw,156px);padding:0;border:0;background:none;animation:betaEin .55s cubic-bezier(.2,.8,.2,1) both}
 .beta.weg{animation:betaWeg .3s ease-in both}
-.beta svg.beta-schild{width:44px;height:40px;flex:none;overflow:visible}
-.beta p{margin:0;display:flex;flex-direction:column;gap:3px;font-size:13.5px;line-height:1.3}
-.beta p b{font-family:var(--mono,monospace);font-size:10.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#f5c400}
-.beta button{flex:none;width:32px;height:32px;display:grid;place-items:center;margin-left:2px;padding:0;border:0;border-radius:999px!important;background:none;color:#9a9a9a;cursor:pointer}
-.beta button:hover{color:#fff;background:rgba(255,255,255,.08)}
-.beta button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
-@keyframes betaEin{from{opacity:0;transform:translateX(-24px)}}
-@keyframes betaWeg{to{opacity:0;transform:translateX(-24px)}}
+.beta svg.beta-schild{display:block;width:100%;height:auto;overflow:visible;filter:drop-shadow(0 10px 18px rgba(0,0,0,.45))}
+.beta button{position:absolute;right:-12px;top:-4px;width:30px;height:30px;display:grid;place-items:center;padding:0;border:0;border-radius:999px!important;
+  background:rgba(20,20,22,.42);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:rgba(255,255,255,.88);cursor:pointer;transition:background .2s}
+.beta button:hover{background:rgba(20,20,22,.7)}
+.beta button svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.beta .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@keyframes betaEin{from{opacity:0;transform:translateY(18px) scale(.9)}}
+@keyframes betaWeg{to{opacity:0;transform:translateY(18px) scale(.9)}}
 @media (prefers-reduced-motion:reduce){.beta,.beta.weg{animation:none}}`;
-  /* Warnschild wie auf Baustellen: gelbes Dreieck mit schwarzem Rand, darin Hammer und Schraubenschlüssel */
-  const SCHILD = `<svg class="beta-schild" viewBox="0 0 48 44" aria-hidden="true">
-    <path d="M24 4L45.5 40.5H2.5Z" fill="#f5c400" stroke="#111" stroke-width="3.4" stroke-linejoin="round"/>
-    <g fill="#111" stroke="#111" stroke-linecap="round">
-      <path d="M31.6 36.2L22 26.6" stroke-width="3.2"/><rect x="-5.6" y="-2.5" width="11.2" height="5" rx=".8" stroke="none" transform="translate(20.4 24.9) rotate(-45)"/>
-      <path d="M16.4 36.2L27 25.6" stroke-width="3.2"/><circle cx="29.2" cy="23.4" r="4.6" stroke="none"/><rect x="-1.6" y="-6.4" width="3.2" height="5.2" fill="#f5c400" stroke="none" transform="translate(29.2 23.4) rotate(45)"/>
-    </g></svg>`;
+  /* Gelbes Dreieck mit abgerundeten Ecken, darin ein Bauarbeiter mit Schaufel und klein „UNDER CONSTRUCTION“ */
+  const SCHILD = `<svg class="beta-schild" viewBox="0 0 120 106" aria-hidden="true">
+    <path d="M60 9L112.5 97.5H7.5Z" fill="#f5c400" stroke="#111" stroke-width="7" stroke-linejoin="round"/>
+    <g fill="#111" stroke="#111" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="57" cy="36" r="5.2" stroke="none"/>
+      <path d="M55 45L62 62" stroke-width="7.5" fill="none"/>
+      <path d="M62 62L55 76M62 62L71 74L71 77" stroke-width="5" fill="none"/>
+      <path d="M56 49L46 56L42 52" stroke-width="4" fill="none"/>
+      <path d="M36 45L46 70" stroke-width="2.6" fill="none"/>
+      <path d="M41.5 68l8 -3.2 3 7.4 -5.4 3z" stroke-width="1.5"/>
+      <path d="M68 80q8-11 17 0z" stroke-width="1.5"/>
+    </g>
+    <text x="60" y="89.5" text-anchor="middle" font-family="Arial Black,Arial,Helvetica,sans-serif" font-weight="900" font-size="6.4" letter-spacing=".25" fill="#111">UNDER CONSTRUCTION</text></svg>`;
   let box = null;
   const gemerkt = k=>{ try{ return !!localStorage.getItem("plyus-beta-" + k); }catch(e){ return false; } };
   function verstecken(){ if(!box) return; const b = box; box = null; b.classList.add("weg"); setTimeout(()=>b.remove(), 300); }
@@ -32,8 +36,8 @@ window.Beta = (function(){
     if(!document.getElementById("betaCss")){ const s = document.createElement("style"); s.id = "betaCss"; s.textContent = CSS; document.head.appendChild(s); }
     box = document.createElement("aside"); box.className = "beta"; box.dataset.k = k; box.setAttribute("role", "status");
     if(o && o.unten) box.style.setProperty("--beta-unten", o.unten + "px");
-    box.innerHTML = SCHILD + `<p><b>Beta</b><span></span></p><button type="button" aria-label="Hinweis schließen" title="Hinweis schließen"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
-    box.querySelector("span").textContent = text;
+    box.innerHTML = SCHILD + `<span class="sr"></span><button type="button" aria-label="Hinweis schließen" title="Hinweis schließen"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
+    box.querySelector(".sr").textContent = text;
     box.querySelector("button").onclick = ()=>{ try{ localStorage.setItem("plyus-beta-" + k, "1"); }catch(e){} verstecken(); };
     document.body.appendChild(box);
   }
