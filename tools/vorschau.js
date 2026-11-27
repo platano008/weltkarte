@@ -11,8 +11,9 @@ const ORTE = {
   mix:   {center:[30.53, 50.45], zoom:10.6}    // Kiew: Satellitenbild mit Kartenschicht darüber
 };
 (async()=>{
-  const b = await chromium.launch({args:["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]});
+  const b = await chromium.launch({args:["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]});
   const p = await (await b.newContext({viewport:{width:1280, height:800}})).newPage();
+  p.on("console", m=>{ if(m.type() === "error") console.log("Seite:", m.text().slice(0, 160)); });
   await p.goto("https://platano008.github.io/weltkarte/karte.html", {waitUntil:"load"});
   await p.waitForFunction(()=>window.Karte && window.maplibregl, null, {timeout:60000});
   fs.mkdirSync("bild/ansicht", {recursive:true});
@@ -21,10 +22,11 @@ const ORTE = {
       const box = document.createElement("div"); box.style.cssText = "position:fixed;left:0;top:0;width:192px;height:128px;z-index:99";
       document.body.appendChild(box);
       const s = Karte.STYLES[k], stil = typeof s.url === "function" ? s.url() : s.url;
-      const m = new maplibregl.Map({container:box, style:stil, center:o.center, zoom:o.zoom, interactive:false, attributionControl:false, preserveDrawingBuffer:true, fadeDuration:0, pixelRatio:2});
+      const m = new maplibregl.Map({container:box, style:stil, center:o.center, zoom:o.zoom, interactive:false, attributionControl:false, canvasContextAttributes:{preserveDrawingBuffer:true}, fadeDuration:0, pixelRatio:2});
       let fertigt = false;
       const ab = ()=>{ if(fertigt) return; fertigt = true; const u = m.getCanvas().toDataURL("image/jpeg", .84); m.remove(); box.remove(); fertig(u); };
-      m.on("idle", ()=>setTimeout(ab, 1500)); setTimeout(ab, 45000);
+      m.on("error", e=>console.error("Karte", k, e.error && e.error.message));
+      m.on("idle", ()=>{ if(m.areTilesLoaded()) setTimeout(ab, 1500); }); setTimeout(ab, 60000);
     }), {k, o});
     fs.writeFileSync(`bild/ansicht/${k}.jpg`, Buffer.from(d.split(",")[1], "base64"));
     console.log(k, Math.round(d.length*0.75/1024) + " KB");
