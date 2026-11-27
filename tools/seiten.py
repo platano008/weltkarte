@@ -32,8 +32,8 @@ def seite(datei, titel, beschr, eyebrow, h1, intro, hud, boden, inhalt, rz="-12d
 <meta name="theme-color" content="#000000">
 <title>{titel} · Plyus</title>
 <meta name="description" content="{beschr}">
-<link rel="icon" type="image/png" href="bild/favicon.png?v=2">
-<link rel="apple-touch-icon" href="bild/icon-180.png?v=2">
+<link rel="icon" type="image/png" href="bild/favicon.png?v=3">
+<link rel="apple-touch-icon" href="bild/icon-180.png?v=3">
 <link rel="stylesheet" href="style.css?v={V}">
 <link rel="stylesheet" href="seiten.css?v={V}">
 <script src="lang.js?v={V}" defer></script>

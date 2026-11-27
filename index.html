@@ -12,12 +12,12 @@
 <meta property="og:url" content="https://platano008.github.io/weltkarte/">
 <meta property="og:image" content="https://platano008.github.io/weltkarte/bild/icon-512.png">
 <meta name="twitter:card" content="summary">
-<link rel="icon" type="image/png" href="bild/favicon.png?v=2">
-<link rel="apple-touch-icon" href="bild/icon-180.png?v=2">
+<link rel="icon" type="image/png" href="bild/favicon.png?v=3">
+<link rel="apple-touch-icon" href="bild/icon-180.png?v=3">
 <script>/* alte geteilte Links (index.html#…) führen weiter zur Karte */
 if(location.hash.length > 1 && !/^#(lage|zeigt|arsenal)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611271427">
+<link rel="stylesheet" href="style.css?v=202611271511">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -350,8 +350,8 @@ a.gate:hover .gv svg{transform:scale(1.035)}
 .gd-ru{fill:rgba(194,29,46,.13);stroke:#b23a47;stroke-width:1.6;stroke-linejoin:round}
 .gd-n{font:400 34px "Plyus Korn","Plyus",sans-serif;letter-spacing:.06em;fill:#f2f2f2}
 .gd-n.ru{fill:#d06a75}
-.gd-b{fill:none;stroke-width:1.6;stroke-linecap:round;stroke-dasharray:1;opacity:.9;animation:gdb 15s linear var(--w) infinite both}
-.gd-start{fill:#ffd23a;stroke:#1a1a1a;stroke-width:1.2;stroke-linejoin:round}
+.gd-b{fill:none;stroke-width:1.6;stroke-linecap:round;stroke-dasharray:1;opacity:.9;animation:gdb 24s linear var(--w) infinite both}
+
 @keyframes gdb{0%{stroke-dashoffset:1;opacity:1}22%{stroke-dashoffset:0;opacity:1}42%{stroke-dashoffset:0;opacity:.7}55%,100%{stroke-dashoffset:0;opacity:0}}
 .gd-z{fill:none;stroke-width:2;transform-box:fill-box;transform-origin:center;animation:gdz 12s ease-out var(--w) infinite both}
 @keyframes gdz{0%,21%{opacity:0;transform:scale(.2)}23%{opacity:1}36%,100%{opacity:0;transform:scale(1.6)}}
@@ -719,7 +719,7 @@ a.gate.breit:hover .gt-sub::after{transform:translateX(5px)}
 
 /* Einschläge der Drohnen (Zyklus 15 s, Ankunft bei 22 %) */
 .gd-z{display:none}
-.gx-brand,.gx-blitz,.gx-feuer,.gx-ring,.gx-funken,.gx-glut{transform-box:fill-box;transform-origin:center;animation:15s linear var(--w) infinite both;opacity:0}
+.gx-brand,.gx-blitz,.gx-feuer,.gx-ring,.gx-funken,.gx-glut{transform-box:fill-box;transform-origin:center;animation:24s linear var(--w) infinite both;opacity:0}
 .gx-brand{fill:rgba(255,120,60,.35);animation-name:gxbrand}
 @keyframes gxbrand{0%,21.6%{opacity:0;transform:scale(.3)}23%{opacity:1;transform:scale(1)}40%{opacity:.7;transform:scale(1.25)}75%,100%{opacity:0;transform:scale(1.3)}}
 .gx-blitz{fill:#fff;animation-name:gxblitz}
@@ -901,14 +901,14 @@ html.lite .tick div{animation-duration:70s}
 #chg .row.getroffen,#chg.xp-an .row.getroffen{animation:getroffen .7s cubic-bezier(.3,.7,.4,1)}
 @keyframes getroffen{0%{background:rgba(255,150,60,.35);transform:translateY(3px)}30%{transform:translateY(-2px)}100%{background:transparent;transform:none}}
 </style>
-<script src="lang.js?v=202611271427" defer></script>
+<script src="lang.js?v=202611271511" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
 (function(){ try{ const c = navigator.hardwareConcurrency || 8, m = navigator.deviceMemory || 8; if(c <= 4 || m <= 4 || matchMedia("(hover:none),(pointer:coarse)").matches) document.documentElement.classList.add("lite"); }catch(e){} })();</script>
 
 <header class="top"><div class="wrap">
-  <a class="logo" href="./" aria-label="Plyus"><img class="mark" src="bild/logo.svg" alt=""></a>
+  <a class="logo" href="./" aria-label="Plyus"><img class="mark" src="bild/logo.svg?v=3" alt=""></a>
   <button class="burger" id="burger" aria-label="Menü öffnen" aria-expanded="false"><i></i><i></i><i></i></button>
 </div></header>
 
@@ -991,7 +991,7 @@ html.lite .tick div{animation-duration:70s}
 </div>
 
 <footer><div class="wrap">
-  <div><a class="logo" href="./" style="text-decoration:none"><img class="mark" src="bild/logo.svg" alt=""><svg class="szug-k" viewBox="0 0 558.8 100" fill="currentColor" fill-rule="evenodd" role="img" aria-label="Plyus"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z"/></g></svg></a>
+  <div><a class="logo" href="./" style="text-decoration:none"><img class="mark" src="bild/logo.svg?v=3" alt=""><svg class="szug-k" viewBox="0 0 558.8 100" fill="currentColor" fill-rule="evenodd" role="img" aria-label="Plyus"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z"/></g></svg></a>
   <p>Lagekarte Ukraine. Alle Angaben ohne Gewähr, Darstellung kann von der tatsächlichen Lage abweichen.</p></div>
   <div><span class="eyebrow">Quellen</span>
   <p>Lagedaten: <span id="src">ukv3</span> · Karten: © <a href="https://www.maptiler.com/copyright/" target="_blank" rel="noopener">MapTiler</a>, © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap-Mitwirkende</a>, Powered by <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a> · NATO-Symbole: milsymbol</p></div>
@@ -1256,44 +1256,63 @@ function drawViz(imp, recent){
       const d = j.linien.map(r=>{ let s = ""; for(let i=0;i<r.length;i+=2) s += (i?"L":"M") + X(r[i]).toFixed(0) + " " + Y(r[i+1]).toFixed(0); return s; }).join("");
       el("path", {class:"gd-nb", d}, g);
     }).catch(()=>{});
-    /* Russische Drohnenwellen wie auf den Lagekarten der ukrainischen Luftverteidigung: Startplätze in Russland,
-       Bündel aus mehreren Bahnen, Einschläge in ukrainischen Städten. Frei zusammengestellt, nur zur Veranschaulichung. */
-    const START = {millerowo:[40.4,48.9], primorsko:[38.17,46.05], chalino:[36.3,51.75], navlja:[34.5,52.8], orjol:[36.06,52.97], jeisk:[38.28,46.68]};
-    const ZIEL = {kyiv:[30.52,50.45], charkiw:[36.23,49.99], dnipro:[35.05,48.46], odesa:[30.73,46.48], saporischschja:[35.14,47.84], mykolajiw:[31.99,46.97], krywyjrih:[33.39,47.91], poltawa:[34.55,49.59]};
-    const GELB = "#ffd23a", ORANGE = "#ff8a2a", PINK = "#ff45b5", ROT = "#ff3a4c";
-    // [Start, Ziel, Farbe, Bahnen im Bündel, Bogen (+ links, − rechts)]
-    const W = [["navlja","kyiv",PINK,6,-1], ["chalino","kyiv",ROT,6,1], ["millerowo","dnipro",GELB,4,1], ["primorsko","odesa",GELB,6,-1],
-      ["orjol","kyiv",ORANGE,5,-1], ["chalino","charkiw",GELB,4,1], ["jeisk","saporischschja",GELB,4,-1], ["navlja","krywyjrih",PINK,4,1],
-      ["millerowo","poltawa",GELB,4,-1], ["primorsko","mykolajiw",GELB,4,1]];
+    /* Drohnenlage in drei Wellen je 24 s: russische Schwärme starten gleichzeitig von mehreren Plätzen in Russland,
+       fliegen Umwege und treffen ukrainische Städte; dazwischen einzelne ukrainische Drohnen nach Russland.
+       Wegpunkte (lon, lat) werden zu weichen Kurven verbunden. Frei zusammengestellt, nur zur Veranschaulichung. */
+    const GELB = "#ffd23a", ORANGE = "#ff8a2a", PINK = "#ff45b5", ROT = "#ff3a4c", BLAU = "#3ea0ff";
+    // [Start in s, Farbe, Bahnen, Wegpunkte …]
+    const F = [
+      // Welle 1: aus Nordosten auf Kiew, über Umwege
+      [0,   PINK,   5, [34.5,52.8], [33.2,52.1], [31.6,51.6], [30.9,51.0], [30.52,50.45]],
+      [0.3, ROT,    4, [36.3,51.75], [35.0,51.0], [33.6,50.95], [32.0,50.2], [30.52,50.45]],
+      [0.6, ORANGE, 4, [36.06,52.97], [34.2,52.5], [32.4,52.3], [31.2,51.4], [30.52,50.45]],
+      [0.4, GELB,   3, [36.3,51.75], [36.8,50.8], [36.23,49.99]],
+      [3,   BLAU,   1, [34.8,50.91], [35.6,51.5], [36.19,51.73]],
+      [5.5, BLAU,   1, [31.29,51.5], [32.8,52.6], [34.36,53.25]],
+      // Welle 2: aus Osten und Süden auf Dnipro, Saporischschja und Odesa
+      [8,   GELB,   4, [40.4,48.9], [38.6,49.4], [36.6,49.0], [35.05,48.46]],
+      [8.2, GELB,   4, [38.17,46.05], [36.8,46.4], [35.6,46.9], [35.14,47.84]],
+      [8.4, GELB,   5, [38.17,46.05], [35.5,45.6], [32.9,45.6], [31.4,46.0], [30.73,46.48]],
+      [8.6, PINK,   3, [36.3,51.75], [35.6,50.6], [34.55,49.59], [33.39,47.91]],
+      [11,  BLAU,   1, [36.23,49.99], [37.2,50.4], [36.59,50.6]],
+      [13.5,BLAU,   1, [35.05,48.46], [37.6,47.9], [39.7,47.23]],
+      // Welle 3: noch einmal von allen Seiten, Kiew und Süden
+      [16,  ORANGE, 4, [34.5,52.8], [32.2,52.0], [30.4,51.3], [30.0,50.8], [30.52,50.45]],
+      [16.2,GELB,   4, [38.28,46.68], [36.4,46.2], [33.6,46.4], [31.99,46.97]],
+      [16.4,ROT,    3, [40.4,48.9], [37.8,49.9], [35.4,50.2], [34.55,49.59]],
+      [19,  BLAU,   1, [34.55,49.59], [37.4,50.6], [39.2,51.66]],
+      [21,  BLAU,   1, [35.14,47.84], [37.0,46.6], [37.77,44.72]]
+    ];
     const lite = document.documentElement.classList.contains("lite"), touch = matchMedia("(hover:none),(pointer:coarse)").matches;
-    if(lite) W.splice(6); else if(touch) W.splice(8);
-    const N = W.length, T = 15, t0 = gF.getCurrentTime ? gF.getCurrentTime() : 0;        // SVG-Uhr läuft seit dem Laden: Drohnen zeitgleich mit ihren Bahnen starten
-    /* Startplätze: kleine gelbe Stecknadeln */
-    [...new Set(W.map(w=>w[0]))].forEach(k=>{ const x = X(START[k][0]), y = Y(START[k][1]);
-      el("path", {class:"gd-start", d:`M${x.toFixed(1)} ${y.toFixed(1)}l-6 -12h12z`}, gF); });
-    W.forEach(([sa, za, c, n, bog], i)=>{
-      const a = START[sa], z = ZIEL[za], x0 = X(a[0]), y0 = Y(a[1]), x1 = X(z[0]), y1 = Y(z[1]);
-      const dx = x1 - x0, dy = y1 - y0, l = Math.hypot(dx, dy), nx = -dy/l, ny = dx/l;
-      const beg = t0 + i*T/N, w = `--w:${(i*T/N).toFixed(2)}s`;
-      if(lite || touch) n = Math.min(n, 3);
+    const T = 24, t0 = gF.getCurrentTime ? gF.getCurrentTime() : 0;        // SVG-Uhr läuft seit dem Laden: Drohnen zeitgleich mit ihren Bahnen starten
+    /* Wegpunkte als weiche Kurve (Catmull-Rom → kubische Bézier) */
+    const kurve = P=>{ let d = `M${P[0][0].toFixed(1)} ${P[0][1].toFixed(1)}`;
+      for(let i = 0; i < P.length - 1; i++){ const a = P[i - 1] || P[i], b = P[i], c = P[i + 1], e = P[i + 2] || c;
+        d += `C${(b[0] + (c[0] - a[0])/6).toFixed(1)} ${(b[1] + (c[1] - a[1])/6).toFixed(1)} ${(c[0] - (e[0] - b[0])/6).toFixed(1)} ${(c[1] - (e[1] - b[1])/6).toFixed(1)} ${c[0].toFixed(1)} ${c[1].toFixed(1)}`; }
+      return d; };
+    F.forEach(([ab, c, n, ...wp], i)=>{
+      if(lite && i % 2) return;
+      const P = wp.map(p=>[X(p[0]), Y(p[1])]), Z = P[P.length - 1], w = `--w:${ab}s`;
+      if(touch || lite) n = Math.min(n, 3);
       for(let k = 0; k < n; k++){
-        /* jede Bahn des Bündels biegt etwas anders und trifft leicht versetzt */
-        const s = k - (n - 1)/2, b = bog*(l*0.2 + s*7), mx = (x0 + x1)/2 + nx*b, my = (y0 + y1)/2 + ny*b;
-        const ex = x1 + nx*s*2.5, ey = y1 + ny*s*2.5;
-        const d = `M${x0.toFixed(1)} ${y0.toFixed(1)}Q${mx.toFixed(1)} ${my.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}`;
-        const wk = `--w:${(i*T/N + k*0.12).toFixed(2)}s`, bk = (beg + k*0.12).toFixed(2) + "s";
-        el("path", {class:"gd-b", d, pathLength:1, stroke:c, style:wk}, gF);
+        /* jede Bahn des Bündels liegt etwas versetzt: gleicher Start, auseinander auf dem Weg, dicht beisammen am Ziel */
+        const s = k - (n - 1)/2;
+        const Q = P.map((p, j)=>{ if(!j) return p; const q = P[j - 1], l = Math.hypot(p[0] - q[0], p[1] - q[1]) || 1, v = j === P.length - 1 ? 2.5 : 7;
+          return [p[0] - (p[1] - q[1])/l*s*v, p[1] + (p[0] - q[0])/l*s*v]; });
+        const d = kurve(Q), b = (t0 + ab + k*0.15).toFixed(2) + "s";
+        el("path", {class:"gd-b", d, pathLength:1, stroke:c, style:`--w:${(ab + k*0.15).toFixed(2)}s`}, gF);
         const kopf = el("g", {opacity:0}, gF);
-        el("circle", {r:2.6, fill:"#fff"}, kopf);
-        el("animateMotion", {path:d, dur:T + "s", begin:bk, repeatCount:"indefinite", calcMode:"linear", keyPoints:"0;1;1", keyTimes:"0;.22;1"}, kopf);
-        el("animate", {attributeName:"opacity", values:"1;1;0;0", keyTimes:"0;.22;.24;1", dur:T + "s", begin:bk, repeatCount:"indefinite"}, kopf);
+        el("circle", {r:c === BLAU ? 3.2 : 2.6, fill:"#fff"}, kopf);
+        el("animateMotion", {path:d, dur:T + "s", begin:b, repeatCount:"indefinite", calcMode:"linear", keyPoints:"0;1;1", keyTimes:"0;.22;1"}, kopf);
+        el("animate", {attributeName:"opacity", values:"1;1;0;0", keyTimes:"0;.22;.24;1", dur:T + "s", begin:b, repeatCount:"indefinite"}, kopf);
       }
       // Einschlag: Blitz, Feuerball, Druckring, Funken
-      el("circle", {class:"gx-blitz", cx:x1, cy:y1, r:16, style:w}, gF);
-      el("circle", {class:"gx-feuer", cx:x1, cy:y1, r:11, fill:c, style:w}, gF);
-      el("circle", {class:"gx-ring", cx:x1, cy:y1, r:20, stroke:c, style:w}, gF);
+      const [x1, y1] = Z, gr = n > 1 ? 1 : 0.7;
+      el("circle", {class:"gx-blitz", cx:x1, cy:y1, r:16*gr, style:w}, gF);
+      el("circle", {class:"gx-feuer", cx:x1, cy:y1, r:11*gr, fill:c, style:w}, gF);
+      el("circle", {class:"gx-ring", cx:x1, cy:y1, r:20*gr, stroke:c, style:w}, gF);
       const f = el("g", {class:"gx-funken", style:w}, gF);
-      for(let m = 0; m < 10; m++){ const wi = m/10*Math.PI*2 + i, r0 = 6, r1 = 14 + (m%3)*6;
+      for(let m = 0; m < 10; m++){ const wi = m/10*Math.PI*2 + i, r0 = 6*gr, r1 = (14 + (m%3)*6)*gr;
         el("path", {d:`M${(x1 + Math.cos(wi)*r0).toFixed(1)} ${(y1 + Math.sin(wi)*r0).toFixed(1)}L${(x1 + Math.cos(wi)*r1).toFixed(1)} ${(y1 + Math.sin(wi)*r1).toFixed(1)}`, stroke: m%2 ? "#fff" : c}, f); }
     });
   }
@@ -1607,7 +1626,7 @@ function flimmern(root){
     /* Karussell im Kreis: mittlere Karte groß, links ältere, rechts neuere Berichte; endlos */
     box.className = "be-kreis";
     const karteHTML = b=>{ const bild = sicher(b.cover || b.bild);
-      return `<a class="be-karte" href="blog.html#${encodeURIComponent(b.id)}" draggable="false"><div class="be-bildr">${bild ? `<div class="be-bild"><i style="background-image:url('${esc2(bild)}')"></i></div>` : '<div class="be-bild leer"><img src="bild/logo.svg" alt=""></div>'}</div><div class="be-txt"><h3>${esc2(b.titel)}</h3><p>${esc2(String(b.kurz || "").replace(/\{\/?(rot|blau|grau|gelb)\}/g, "").replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1"))}</p></div></a>`; };
+      return `<a class="be-karte" href="blog.html#${encodeURIComponent(b.id)}" draggable="false"><div class="be-bildr">${bild ? `<div class="be-bild"><i style="background-image:url('${esc2(bild)}')"></i></div>` : '<div class="be-bild leer"><img src="bild/logo.svg?v=3" alt=""></div>'}</div><div class="be-txt"><h3>${esc2(b.titel)}</h3><p>${esc2(String(b.kurz || "").replace(/\{\/?(rot|blau|grau|gelb)\}/g, "").replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1"))}</p></div></a>`; };
     const n = L.length, wdh = Math.max(1, Math.ceil(5/n)), M = n*wdh;            // wenige Berichte: so oft wiederholen, dass der Kreis voll ist
     box.innerHTML = '<div class="be-spur">' + Array.from({length:M}, (_, k)=>karteHTML(L[k % n])).join("") + '</div>';
     const karten = [...box.querySelectorAll(".be-karte")];
@@ -1652,7 +1671,7 @@ function flimmern(root){
   document.querySelectorAll("[data-sozial]").forEach(a=>{ const u = SOZIAL[a.dataset.sozial];
     if(u){ a.href = u; } else { a.removeAttribute("href"); a.classList.add("bald"); } }); }
 </script>
-<script src="fz-bild.js?v=202611271427"></script>
+<script src="fz-bild.js?v=202611271511"></script>
 <script>
 /* Arsenal: je sechs Beispiele für die Ukraine und Russland, umschaltbar. Erst die gezeichnete Ansicht, dann – wenn frei lizenziert vorhanden –
    das Titelbild des Wikipedia-Artikels (Fotograf und Lizenz im Steckbrief). */
@@ -1701,7 +1720,7 @@ function flimmern(root){
   }));
   const io = new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ box.classList.add("an"); io.disconnect(); } }, {threshold:0.15});
   io.observe(box);
-  fetch("daten/fahrzeuge.json?v=202611271427").then(r=>r.json()).then(d=>{ D = d; zeigen(); })
+  fetch("daten/fahrzeuge.json?v=202611271511").then(r=>r.json()).then(d=>{ D = d; zeigen(); })
     .catch(()=>{ sek.hidden = true; });
 })();
 </script>
