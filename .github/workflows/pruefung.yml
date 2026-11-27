@@ -1,0 +1,20 @@
+name: Pruefung
+on: push
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm i --no-save playwright@1.48.2 >/dev/null && npx playwright install chromium >/dev/null
+      - run: |
+          cat > t.js <<'J'
+          const {chromium}=require('playwright');
+          (async()=>{const b=await chromium.launch({args:['--disable-blink-features=AutomationControlled']});const p=await b.newPage();
+          const hits=[];p.on('response',r=>{if(/abacus/.test(r.url()))hits.push(r.status()+' '+r.url());});
+          await p.goto('https://platano008.github.io/weltkarte/gewinne.html',{waitUntil:'load'});await p.waitForTimeout(4000);
+          console.log('webdriver',await p.evaluate(()=>navigator.webdriver));console.log(hits.join('\n'));await b.close();})();
+          J
+          node t.js
+          for k in aufrufe besuche; do curl -s "https://abacus.jasoncameron.dev/get/plyus-weltkarte/$k-$(TZ=Europe/Berlin date +%F)"; echo; done
