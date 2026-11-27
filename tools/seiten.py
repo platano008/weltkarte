@@ -54,6 +54,7 @@ def seite(datei, titel, beschr, eyebrow, h1, intro, hud, boden, inhalt, rz="-12d
 </main>
 <footer class="sk-fuss">{fuss}<a href="https://x.com/plyusmap" target="_blank" rel="noopener">X / Twitter</a><span class="r">© <span id="jahr">2026</span> Plyus</span></footer>
 <script src="seiten.js?v={V}"></script>
+<script src="zaehler.js?v={V}" defer></script>
 </body>
 </html>
 '''
@@ -134,7 +135,8 @@ seite("impressum.html", "Impressum", "Impressum und rechtliche Hinweise von Plyu
     block("04", "Datenschutz in Kürze", '''<div class="sk-text recht">
 <p>Diese Website wird über GitHub Pages bereitgestellt. Beim Aufruf verarbeitet der Anbieter technisch notwendige Daten wie deine IP-Adresse.</p>
 <p>Für Karten und Programmbibliotheken werden Inhalte von MapTiler, Esri, OpenFreeMap, OpenTopoMap, Amazon Web Services (Höhendaten) und jsDelivr geladen; die Fahrzeug-Steckbriefe laden Fotos und Lizenzangaben von Wikipedia und Wikimedia Commons (Wikimedia Foundation). Dabei wird deine IP-Adresse an diese Anbieter übertragen.</p>
-<p>Wir setzen keine Cookies und keine Tracking-Werkzeuge ein. Deine Sprachwahl wird nur lokal in deinem Browser gespeichert.</p>
+<p>Wir setzen keine Cookies und keine Tracking-Werkzeuge ein, die dich wiedererkennen. Deine Sprachwahl wird nur lokal in deinem Browser gespeichert.</p>
+<p>Für eine Besucherstatistik meldet jede Seite beim Aufruf einen Zählerstand an den freien Zähldienst Abacus (abacus.jasoncameron.dev). Gezählt werden nur Seitenaufrufe und Besuche pro Tag; dabei wird deine IP-Adresse an den Anbieter übertragen, es wird aber nichts in deinem Browser gespeichert.</p>
 <p>Eine ausführliche Datenschutzerklärung folgt.</p>
 </div>'''),
     rz="-18deg")

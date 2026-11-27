@@ -7,8 +7,8 @@
 <title>Plyus · Dashboard</title>
 <link rel="icon" type="image/png" href="bild/favicon.png?v=3">
 <link rel="apple-touch-icon" href="bild/icon-180.png?v=3">
-<link rel="stylesheet" href="style.css?v=202611271830">
-<link rel="stylesheet" href="verwaltung.css?v=202611271830">
+<link rel="stylesheet" href="style.css?v=202611271837">
+<link rel="stylesheet" href="verwaltung.css?v=202611271837">
 <style>
 /* Dashboard: Glas-Kacheln (verwaltung.css) über einem unscharfen Satellitenbild */
 html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
@@ -60,6 +60,23 @@ html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
 .kachel:nth-child(2){animation-delay:.05s}.kachel:nth-child(3){animation-delay:.1s}.kachel:nth-child(4){animation-delay:.15s}
 .kachel-k{display:flex;align-items:center;gap:10px}
 .kachel-k h2{flex:1;margin:0;font-family:var(--korn);font-size:22px;line-height:1}
+.k-stat{grid-column:1/-1}
+.st-kopf{flex-wrap:wrap}
+.st-zahlen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.st-zahlen div{padding:12px 14px;border-radius:14px!important;background:var(--glas-2)}
+.st-zahlen b{display:block;font-family:var(--korn);font-size:24px;line-height:1.1}
+.st-zahlen span{font-size:11.5px;color:#9a9a9a}
+.diagramm{width:100%;height:170px;display:block}
+.diagramm text{fill:#8d8d8d;font:10px var(--mono)}
+.diagramm .a{fill:rgba(255,255,255,.16)}
+.diagramm .b{fill:#fff}
+.legende{display:flex;gap:16px;font-size:12px;color:#a8a8a8}
+.legende i{display:inline-block;width:10px;height:10px;margin-right:6px;border-radius:3px!important;vertical-align:-1px}
+.eintragen{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;align-items:end}
+.eintragen label{display:grid;gap:4px;font-size:11.5px;color:#9a9a9a}
+.eintragen .f{min-height:40px;padding:0 12px;font-size:14px}
+.st-hinweis{margin:0;color:#9a9a9a;font-size:12.5px}
+@media (max-width:620px){.st-zahlen{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .k-karte{grid-column:span 5}.k-blog{grid-column:span 7}.k-chg{grid-column:span 6}.k-log{grid-column:span 6}
 .vorschau{position:relative;display:block;aspect-ratio:16/9;border-radius:16px!important;overflow:hidden;background:#111 url(bild/ansicht/sat.jpg) center/cover;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
 .vorschau span{position:absolute;left:12px;bottom:12px;padding:6px 11px;border-radius:999px!important;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#fff}
@@ -136,6 +153,15 @@ html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
   </header>
 
   <main class="inhalt">
+    <section class="kachel glas k-stat">
+      <div class="kachel-k st-kopf"><h2>Statistik</h2>
+        <div class="reiter" id="stReiter" role="tablist"><button data-s="web" class="on" role="tab" aria-selected="true">Website</button><button data-s="x" role="tab" aria-selected="false">X</button><button data-s="tg" role="tab" aria-selected="false">Telegram</button></div></div>
+      <div class="st-zahlen" id="stZahlen"></div>
+      <svg class="diagramm" id="stDia" role="img" aria-label="Verlauf der letzten 14 Tage"></svg>
+      <div class="legende" id="stLeg"></div>
+      <form class="eintragen" id="stForm" hidden></form>
+      <p class="st-hinweis" id="stHinweis"></p>
+    </section>
     <section class="kachel glas k-karte">
       <div class="kachel-k"><h2>Karte</h2><span class="augen" id="kStand"></span></div>
       <a class="vorschau" href="karte.html" target="_blank" rel="noopener"><span>Karte öffnen ↗</span></a>
@@ -191,14 +217,15 @@ html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
     const r = await fetch(`${API}/contents/${path}`, {method, headers:Object.assign({"Content-Type":"application/json"}, hdr()), body:JSON.stringify(Object.assign({branch:GH.branch}, body))});
     if(!r.ok && !(method === "DELETE" && r.status === 404)) throw {status:r.status};
   }
-  /* Liste lesen, ändern, schreiben; bei gleichzeitiger Änderung einmal neu versuchen (wie im Blog-Editor) */
-  async function listeAendern(path, fn, msg){
+  /* JSON-Datei lesen, ändern, schreiben; bei gleichzeitiger Änderung einmal neu versuchen (wie im Blog-Editor) */
+  async function jsonAendern(path, leer, fn, msg){
     for(let v = 0; v < 2; v++){
-      const r = await ghGet(path), d = r.text ? JSON.parse(r.text) : {beitraege:[]}; d.beitraege = fn(d.beitraege || []);
-      try{ await ghSchreib(path, "PUT", {message:msg, content:textToB64(JSON.stringify(d, null, 1) + "\n"), sha:r.sha || undefined}); return; }
+      const r = await ghGet(path), d = r.text ? JSON.parse(r.text) : leer; fn(d);
+      try{ await ghSchreib(path, "PUT", {message:msg, content:textToB64(JSON.stringify(d, null, 1) + "\n"), sha:r.sha || undefined}); return d; }
       catch(e){ if(v || (e.status !== 409 && e.status !== 422)) throw e; }
     }
   }
+  const listeAendern = (path, fn, msg)=>jsonAendern(path, {beitraege:[]}, d=>{ d.beitraege = fn(d.beitraege || []); }, msg);
   const fehler = e=>e && e.status === 401 ? "Schlüssel ungültig oder abgelaufen." : e && (e.status === 403 || e.status === 404) ? "Der Schlüssel hat keinen Zugriff auf weltkarte." : "Hat nicht geklappt. Internet prüfen und noch einmal versuchen.";
 
   /* ---------- Schlüssel ---------- */
@@ -291,7 +318,82 @@ html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
       <span class="txt"><b>${esc(c.commit.message.split("\n")[0])}</b><small>${esc(wann(c.commit.author.date))} · ${esc(c.author ? c.author.login : c.commit.author.name)}</small></span></a>`).join("") : '<div class="leer">Keine Einträge.</div>';
   }
 
+  /* ---------- Statistik: Website live aus dem Zähler, X und Telegram aus daten/statistik.json ---------- */
+  const ZAEHLER = "https://abacus.jasoncameron.dev/get/plyus-weltkarte/";
+  const tage = n=>{ const L = [], f = new Intl.DateTimeFormat("sv-SE", {timeZone:"Europe/Berlin"});
+    for(let i = n - 1; i >= 0; i--) L.push(f.format(new Date(Date.now() - i*864e5))); return L; };
+  const kurz = d=>d.slice(8) + "." + d.slice(5, 7) + ".";
+  let stat = {website:{}, telegram:{}, x:{}}, kanaele = {telegram:"", x:"plyusmap"}, web = null, stTab = "web";
+  /* Balken für 14 Tage: a = hell im Hintergrund, b = weiß davor */
+  function diagramm(L, a, b){
+    const svg = $("stDia"), W = svg.clientWidth || 800, H = 170, u = 18, max = Math.max(1, ...L.map(x=>Math.max(x[a] || 0, x[b] || 0)));
+    const bw = W/L.length, h = v=>Math.max(0, v || 0)/max*(H - u - 14);
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    svg.innerHTML = L.map((x, i)=>{ const xa = i*bw + bw*.18, w = bw*.64;
+      return (a ? `<rect class="a" x="${xa}" y="${H - u - h(x[a])}" width="${w}" height="${h(x[a])}" rx="3"/>` : "")
+        + `<rect class="b" x="${xa + w*.2}" y="${H - u - h(x[b])}" width="${w*.6}" height="${h(x[b])}" rx="3"/>`
+        + (i % 2 === (L.length - 1) % 2 ? `<text x="${i*bw + bw/2}" y="${H - 4}" text-anchor="middle">${kurz(x.d)}</text>` : ""); }).join("");
+    if(!L.some(x=>(x[a] || 0) + (x[b] || 0) > 0)) svg.innerHTML += `<text x="${W/2}" y="${H/2}" text-anchor="middle">Noch keine Zahlen</text>`;
+  }
+  const kachelZahlen = Z=>{ $("stZahlen").innerHTML = Z.map(([w, t])=>`<div><b>${w == null ? "–" : typeof w === "number" ? nf.format(w) : esc(w)}</b><span>${esc(t)}</span></div>`).join(""); };
+  const legende = (a, b)=>{ $("stLeg").innerHTML = (a ? `<span><i style="background:rgba(255,255,255,.16)"></i>${a}</span>` : "") + `<span><i style="background:#fff"></i>${b}</span>`; };
+  /* Formular zum Eintragen (X immer, Telegram wenn kein Kanal automatisch gelesen wird) */
+  function formular(k, felder){
+    const f = $("stForm"); f.hidden = false;
+    f.innerHTML = `<label>Tag<input class="f" type="date" name="tag" value="${tage(1)[0]}" required></label>`
+      + felder.map(([n, t])=>`<label>${t}<input class="f" type="number" min="0" inputmode="numeric" name="${n}"></label>`).join("")
+      + `<button class="knopf hell">Eintragen</button>`;
+    f.onsubmit = async e=>{ e.preventDefault(); const fd = new FormData(f), tag = fd.get("tag"), w = {};
+      felder.forEach(([n])=>{ const v = fd.get(n); if(v !== "") w[n] = +v; });
+      if(!Object.keys(w).length){ toast("Erst eine Zahl eintragen"); return; }
+      f.querySelector("button").disabled = true;
+      try{ stat = await jsonAendern("daten/statistik.json", {website:{}, telegram:{}, x:{}}, d=>{ d[k] = d[k] || {}; d[k][tag] = Object.assign(d[k][tag] || {}, w); }, `Statistik: ${k === "x" ? "X" : "Telegram"} ${tag}`);
+        toast("Gespeichert"); statZeigen(); }
+      catch(err){ toast(fehler(err)); }
+      f.querySelector("button").disabled = false; };
+  }
+  function statZeigen(){
+    $("stForm").hidden = true; $("stForm").onsubmit = null;
+    if(stTab === "web"){
+      if(!web){ kachelZahlen([[null,"Besuche heute"],[null,"Aufrufe heute"],[null,"Besuche 7 Tage"],[null,"Aufrufe 14 Tage"]]); $("stHinweis").textContent = "Lädt …"; return; }
+      const sum = (L, k)=>L.reduce((t, x)=>t + (x[k] || 0), 0), h = web[web.length - 1];
+      kachelZahlen([[h.besuche, "Besuche heute"], [h.aufrufe, "Aufrufe heute"], [sum(web.slice(-7), "besuche"), "Besuche 7 Tage"], [sum(web, "aufrufe"), "Aufrufe 14 Tage"]]);
+      diagramm(web, "aufrufe", "besuche"); legende("Seitenaufrufe", "Besuche");
+      $("stHinweis").textContent = "Gezählt ohne Cookies: Aufruf = jede geöffnete Seite, Besuch = jemand kommt von außerhalb auf die Website.";
+      return;
+    }
+    const k = stTab === "x" ? "x" : "telegram", D = stat[k] || {}, L = tage(14).map(d=>Object.assign({d}, D[d] || {}));
+    const letzte = Object.keys(D).sort().pop(), z = letzte ? D[letzte] : {};
+    if(k === "x"){
+      kachelZahlen([[z.follower, "Follower"], [z.impressionen, "Impressionen"], [z.likes, "Likes"], [letzte ? datum(letzte) : null, "Letzter Eintrag"]]);
+      diagramm(L, "impressionen", "likes"); legende("Impressionen", "Likes");
+      formular("x", [["follower","Follower"], ["impressionen","Impressionen"], ["likes","Likes"], ["beitraege","Beiträge"]]);
+      $("stHinweis").innerHTML = `X gibt diese Zahlen nur über die kostenpflichtige Schnittstelle heraus. Trag sie aus <a href="https://analytics.x.com" target="_blank" rel="noopener" style="color:#fff">X Analytics</a> (@${esc(kanaele.x || "plyusmap")}) hier ein, dann entsteht der Verlauf.`;
+    } else {
+      kachelZahlen([[z.abonnenten, "Abonnenten"], [z.aufrufe, "Aufrufe (letzte Beiträge)"], [z.schnitt, "Aufrufe je Beitrag"], [letzte ? datum(letzte) : null, "Letzter Stand"]]);
+      diagramm(L, "aufrufe", "abonnenten"); legende("Aufrufe", "Abonnenten");
+      formular("telegram", [["abonnenten","Abonnenten"], ["aufrufe","Aufrufe"]]);
+      $("stHinweis").textContent = kanaele.telegram
+        ? `Wird jeden Morgen automatisch aus dem öffentlichen Kanal @${kanaele.telegram} gelesen. Fehlende Tage kannst du hier nachtragen.`
+        : "Noch kein Telegram-Kanal hinterlegt. Sobald der Kanalname in daten/kanaele.json steht, liest GitHub die Zahlen jeden Morgen automatisch. Bis dahin hier von Hand eintragen.";
+    }
+  }
+  $("stReiter").onclick = e=>{ const b = e.target.closest("[data-s]"); if(!b) return; stTab = b.dataset.s;
+    $("stReiter").querySelectorAll("button").forEach(x=>{ x.classList.toggle("on", x === b); x.setAttribute("aria-selected", x === b); }); statZeigen(); };
+  addEventListener("resize", ()=>{ if(!$("dash").hidden) statZeigen(); });
+  async function statLaden(){
+    statZeigen();
+    const [s, kc] = await Promise.all([ghGet("daten/statistik.json").catch(()=>({})), ghGet("daten/kanaele.json").catch(()=>({}))]);
+    if(s.text) stat = JSON.parse(s.text); if(kc.text) kanaele = JSON.parse(kc.text);
+    const get = (k, d)=>fetch(ZAEHLER + k + "-" + d).then(r=>r.ok ? r.json() : {value:0}).then(j=>j.value || 0).catch(()=>null);
+    web = await Promise.all(tage(14).map(async d=>{ const [a, b] = await Promise.all([get("aufrufe", d), get("besuche", d)]);
+      const alt = (stat.website || {})[d] || {};          // gesicherte Tageswerte, falls der Zähler nicht antwortet
+      return {d, aufrufe: a == null ? alt.aufrufe : a, besuche: b == null ? alt.besuche : b}; }));
+    statZeigen();
+  }
+
   function laden(){
+    statLaden();
     blogLaden();
     karteLaden().catch(()=>{ $("chgListe").innerHTML = '<div class="leer">Lagedaten konnten nicht geladen werden.</div>'; });
     logLaden().catch(err=>{ $("logListe").innerHTML = `<div class="leer">${fehler(err)}</div>`; });

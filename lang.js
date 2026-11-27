@@ -293,7 +293,8 @@
     "Datenschutz in Kürze":"Privacy in brief",
     "Diese Website wird über GitHub Pages bereitgestellt. Beim Aufruf verarbeitet der Anbieter technisch notwendige Daten wie deine IP-Adresse.":"This website is hosted on GitHub Pages. When you visit, the provider processes technically necessary data such as your IP address.",
     "Für Karten und Programmbibliotheken werden Inhalte von MapTiler, Esri, OpenFreeMap, OpenTopoMap, Amazon Web Services (Höhendaten) und jsDelivr geladen. Dabei wird deine IP-Adresse an diese Anbieter übertragen.":"Content for maps and code libraries is loaded from MapTiler, Esri, OpenFreeMap, OpenTopoMap, Amazon Web Services (elevation data) and jsDelivr. Your IP address is transmitted to these providers.",
-    "Wir setzen keine Cookies und keine Tracking-Werkzeuge ein. Deine Sprachwahl wird nur lokal in deinem Browser gespeichert.":"We use no cookies and no tracking tools. Your language choice is only stored locally in your browser.",
+    "Wir setzen keine Cookies und keine Tracking-Werkzeuge ein, die dich wiedererkennen. Deine Sprachwahl wird nur lokal in deinem Browser gespeichert.":"We use no cookies and no tracking tools that recognise you. Your language choice is only stored locally in your browser.",
+    "Für eine Besucherstatistik meldet jede Seite beim Aufruf einen Zählerstand an den freien Zähldienst Abacus (abacus.jasoncameron.dev). Gezählt werden nur Seitenaufrufe und Besuche pro Tag; dabei wird deine IP-Adresse an den Anbieter übertragen, es wird aber nichts in deinem Browser gespeichert.":"For visitor statistics, each page reports a count to the free counting service Abacus (abacus.jasoncameron.dev) when it is opened. Only page views and visits per day are counted; your IP address is transmitted to the provider, but nothing is stored in your browser.",
     "Eine ausführliche Datenschutzerklärung folgt.":"A full privacy policy will follow.",
     // Seitentitel
     "Blog · Plyus":"Blog · Plyus"
