@@ -16,13 +16,13 @@
 <link rel="preconnect" href="https://api.maptiler.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=202611271405">
+<link rel="stylesheet" href="style.css?v=202611271427">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611271405"></script>
-<script src="sicht.js?v=202611271405"></script>
-<script src="fz-bild.js?v=202611271405"></script>
-<script src="werkzeuge.js?v=202611271405"></script>
+<script src="karte.js?v=202611271427"></script>
+<script src="sicht.js?v=202611271427"></script>
+<script src="fz-bild.js?v=202611271427"></script>
+<script src="werkzeuge.js?v=202611271427"></script>
 <style>
 .item.chg .ic{width:22px}
 .item .cq{display:block;width:14px;height:14px}
@@ -59,7 +59,7 @@ body.wz-on .nato{pointer-events:none}
 /* ===== Bedienung: ruhige dunkle Flächen, dünne Ränder, kein Leuchten ===== */
 :root{--glow:255,255,255;--flaeche:rgba(14,15,18,.58);--rand:rgba(255,255,255,.16);--rund:12px}
 /* Bedienung leicht durchsichtig: Glas mit Unschärfe; auf Touch-Geräten (ohne Unschärfe) etwas dichter */
-.tools-knopf,.dock button,.wz-gruppe,.wz-zu,.an-bilder,.an-gruppe,.an-x,.an-jetzt,.pille,.panel,.card,.wz-box,.an-extra .seg,.tl,.maplibregl-ctrl-group{-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2)}
+.tools-knopf,.dock button,.wz-gruppe,.wz-zu,.an-bilder,.an-rund,.pille,.panel,.card,.wz-box,.tl,.maplibregl-ctrl-group{-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2)}
 @media (hover:none),(pointer:coarse){:root{--flaeche:rgba(14,15,18,.72)}}
 .maplibregl-map{font-family:var(--body)!important}
 /* Quellenangaben: klein unten links, aufklappbar über das „i“ */
@@ -72,7 +72,7 @@ body.wz-on .nato{pointer-events:none}
 .mt-logo{left:auto!important;right:max(8px,env(safe-area-inset-right))!important;bottom:calc(env(safe-area-inset-bottom) + 8px)!important;opacity:.7}
 .mt-logo img{width:62px!important}
 /* Knöpfe und Kästen */
-.maplibregl-ctrl-group,.wz-box,.an-extra .seg,.tl{background:var(--flaeche)!important;border:1px solid var(--rand)!important;border-radius:var(--rund)!important;overflow:hidden;box-shadow:0 8px 24px -12px rgba(0,0,0,.8)!important}
+.maplibregl-ctrl-group,.wz-box,.tl{background:var(--flaeche)!important;border:1px solid var(--rand)!important;border-radius:var(--rund)!important;overflow:hidden;box-shadow:0 8px 24px -12px rgba(0,0,0,.8)!important}
 .maplibregl-ctrl-group button{background:transparent!important;border-color:rgba(255,255,255,.07)!important;color:#d9d9d9!important}
 .maplibregl-ctrl-group button .maplibregl-ctrl-icon{filter:invert(1)!important;opacity:.85}
 .maplibregl-ctrl-group button:hover{background:rgba(255,255,255,.07)!important}
@@ -152,21 +152,19 @@ body.d-ansicht .ansicht{display:flex}
 .an-sym{display:none;align-items:center;gap:8px}
 .ansicht.gewaehlt .an-bilder{display:none}
 .ansicht.gewaehlt .an-sym{display:flex}
-.an-jetzt{width:44px;height:44px;padding:3px;border:1px solid var(--rand);border-radius:999px!important;background:var(--flaeche);cursor:pointer;animation:tEin .34s cubic-bezier(.2,.8,.2,1) both}
+.an-rund{position:relative;flex:none;width:44px;height:44px;display:grid;place-items:center;padding:0;border:1px solid var(--rand);border-radius:999px!important;background:var(--flaeche);color:#e2e2e2;cursor:pointer;box-shadow:0 10px 28px -14px rgba(0,0,0,.9);animation:tEin .34s cubic-bezier(.2,.8,.2,1) both}
+.an-rund[hidden]{display:none}
+.an-rund:hover{border-color:rgba(255,255,255,.4)}
+.an-rund.on{background:#fff;color:#000;border-color:#fff}
+.an-rund svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.an-sym .an-rund:nth-child(2){animation-delay:.05s}.an-sym .an-rund:nth-child(3){animation-delay:.1s}.an-sym .an-rund:nth-child(4){animation-delay:.15s}
+.an-jetzt{padding:3px}
 .an-jetzt img{display:block;width:100%;height:100%;border-radius:50%!important;object-fit:cover}
-.an-jetzt img:not([src]){visibility:hidden}
-.an-gruppe{display:flex;overflow:hidden;border:1px solid var(--rand);border-radius:999px!important;background:var(--flaeche);box-shadow:0 10px 28px -14px rgba(0,0,0,.9);animation:tEin .34s cubic-bezier(.2,.8,.2,1) .05s both}
-.an-gruppe + .an-gruppe{animation-delay:.1s}
-.an-gruppe button,.an-x{width:44px;height:44px;display:grid;place-items:center;padding:0;border:0;background:none;color:#e2e2e2;cursor:pointer}
-.an-gruppe button:hover{background:rgba(255,255,255,.08)}
-.an-gruppe button.on{background:#fff;color:#000}
-.an-gruppe svg,.an-x svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
-.an-x{flex:none;border:1px solid var(--rand);border-radius:999px!important;background:var(--flaeche);color:#9a9a9a;box-shadow:0 10px 28px -14px rgba(0,0,0,.9);animation:tEin .34s cubic-bezier(.2,.8,.2,1) .2s both}
-.an-extra{display:none;gap:8px}
-.ansicht.gewaehlt .an-extra{display:flex}
-.an-extra .seg button{padding:9px 13px;border:0;background:none;color:#cfcfcf;font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
-.an-extra .seg button.on{background:#fff;color:#000}
-@media (max-width:520px){.an-bilder{gap:4px;padding:5px;border-radius:16px!important}.an-bilder button{width:54px;font-size:7.5px;letter-spacing:0}.an-bild{height:54px;border-radius:12px!important}.an-zeile{gap:6px}.an-x{width:40px;height:40px}}
+.an-x{color:#9a9a9a;animation-delay:.2s}
+/* Ein Knopf je Umschalter: er zeigt, wohin man wechselt (Globus ↔ flach, Sonne ↔ Mond) */
+#view .i-globus,#view.flach .i-flach,#licht .i-sonne,#licht.dunkel .i-mond{display:none}
+#view.flach .i-globus,#licht.dunkel .i-sonne{display:block}
+@media (max-width:520px){.an-bilder{gap:4px;padding:5px;border-radius:16px!important}.an-bilder button{width:54px;font-size:7.5px;letter-spacing:0}.an-bild{height:54px;border-radius:12px!important}.an-zeile{gap:6px}}
 /* Zurück zur Startseite: oben links */
 .heim{position:fixed;z-index:9;left:max(14px,env(safe-area-inset-left));top:max(14px,env(safe-area-inset-top));width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--rand);border-radius:999px!important;background:var(--flaeche);color:#e2e2e2;box-shadow:0 10px 28px -14px rgba(0,0,0,.9);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 .heim:hover{border-color:rgba(255,255,255,.4)}
@@ -190,7 +188,6 @@ body.d-ansicht .ansicht{display:flex}
   *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 }
 .item.alt .cq{opacity:.35}.item.alt b{color:#a9a9a9}
-.an-extra .seg[hidden]{display:none!important}
 .fz-such{width:100%;margin:10px 0 8px;padding:10px 14px;border:1px solid var(--line-2);border-radius:999px!important;background:rgba(0,0,0,.35);color:#fff;font:inherit;font-size:14px;outline:none}
 .fz-wahl{max-height:min(240px,32vh);overflow:auto;display:flex;flex-direction:column;gap:2px;margin:0 -4px;padding:0 4px}
 .fz-w{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border:1px solid transparent;background:none;color:#ddd;font:inherit;font-size:13.5px;text-align:left;cursor:pointer;border-radius:10px!important}
@@ -225,7 +222,7 @@ body.d-ansicht .ansicht{display:flex}
 .wz-lbl.ring b{font-size:11px}
 .wz-lbl.ring.fahr{border-style:dashed}
 </style>
-<script src="lang.js?v=202611271405" defer></script>
+<script src="lang.js?v=202611271427" defer></script>
 </head>
 <body>
 <div id="map"></div>
@@ -248,19 +245,15 @@ body.d-ansicht .ansicht{display:flex}
   <div class="an-zeile">
     <div class="an-bilder" id="base"></div>
     <div class="an-sym">
-      <button class="an-jetzt" id="anJetzt" title="Andere Kartenart wählen" aria-label="Andere Kartenart wählen"><img alt=""></button>
-      <div class="an-gruppe" id="view"><button data-v="globe" title="Globus" aria-label="Globus"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/></svg></button><button data-v="flat" title="Flach" aria-label="Flach"><svg viewBox="0 0 24 24"><path d="M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></button></div>
-      <div class="an-gruppe" id="drei"><button data-d="3d" aria-pressed="false" title="3D-Gelände" aria-label="3D-Gelände"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg></button></div>
+      <button class="an-rund an-jetzt" id="anJetzt" title="Andere Kartenart wählen" aria-label="Andere Kartenart wählen"><img alt=""></button>
+      <button class="an-rund" id="view" title="Zur flachen Karte" aria-label="Zur flachen Karte"><svg viewBox="0 0 24 24" class="i-flach"><path d="M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg><svg viewBox="0 0 24 24" class="i-globus"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/></svg></button>
+      <button class="an-rund" id="drei" aria-pressed="false" title="3D-Gelände" aria-label="3D-Gelände"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg></button>
+      <button class="an-rund" id="licht" hidden title="Dunkel" aria-label="Dunkel"><svg viewBox="0 0 24 24" class="i-mond"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><svg viewBox="0 0 24 24" class="i-sonne"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12h2.5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg></button>
     </div>
-    <button class="an-x" data-x="zurueck" title="Zurück zu den Tools" aria-label="Zurück zu den Tools"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-  </div>
-  <div class="an-extra">
-    <div class="seg" id="deck" hidden title="Wie stark die Karte über dem Satellitenbild liegt"><button data-m="wenig" class="on">Wenig</button><button data-m="viel">Viel</button></div>
-    <div class="seg" id="mixfarbe" hidden><button data-f="hell" class="on">Hell</button><button data-f="dunkel">Dunkel</button></div>
+    <button class="an-rund an-x" data-x="zurueck" title="Zurück zu den Tools" aria-label="Zurück zu den Tools"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
 </div>
 <a class="heim" href="./" title="Zur Startseite" aria-label="Zur Startseite"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a>
-</div>
 
 <section class="panel" id="panel">
   <div class="ph"><h2 class="k-titel">Neueste Gewinne</h2></div>
@@ -301,7 +294,7 @@ function toolsAuf(on){ document.body.classList.toggle("t-auf", on); $("toolsKnop
 $("toolsKnopf").onclick = ()=>toolsAuf(true);
 $("dock").querySelector("[data-x=zu]").onclick = ()=>toolsAuf(false);
 $("dock").querySelectorAll("button[data-d]").forEach(b=>b.onclick=()=>{ const n = document.body.classList.contains("d-"+b.dataset.d) ? null : b.dataset.d;
-  if(n === "ansicht"){ $("ansicht").classList.remove("gewaehlt"); ansichtVorschau(); } setDock(n); });
+  if(n === "ansicht") $("ansicht").classList.remove("gewaehlt"); setDock(n); });
 /* Aufnahmefenster: zeigt nur die Karte (ohne Leisten und Werkzeuge) und folgt allem, was hier passiert */
 let aufnahme = null;
 $("dock").querySelector("[data-aufnahme]").onclick = ()=>{
@@ -309,45 +302,21 @@ $("dock").querySelector("[data-aufnahme]").onclick = ()=>{
   aufnahme = window.open("aufnahme.html", "plyus-aufnahme", "popup,width=1280,height=720");
   toast(aufnahme ? "Aufnahmefenster offen – im Aufnahmeprogramm das Fenster „Plyus · Aufnahme“ wählen" : "Das Fenster wurde blockiert – bitte Pop-ups für diese Seite erlauben");
 };
-/* Ansicht: Vorschaubilder der Kartenarten; nach der Wahl Globus/Flach/3D als Symbole */
-$("base").innerHTML = Object.entries(K.STYLES).map(([k,s])=>`<button data-b="${k}" class="${k==="sat"?"on":""}"><span class="an-bild"><img alt=""></span>${s.name}</button>`).join("");
-const ansichtBild = k=>$("base").querySelector(`[data-b="${k}"] img`);
+/* Ansicht: Vorschaubilder der Kartenarten (fertige Bilder, bild/ansicht); nach der Wahl Globus/Flach, 3D und bei Mix Hell/Dunkel als Symbole */
+$("base").innerHTML = Object.entries(K.STYLES).map(([k,s])=>`<button data-b="${k}" class="${k==="sat"?"on":""}"><span class="an-bild"><img src="bild/ansicht/${k}.jpg?v=1" alt="" loading="lazy"></span>${s.name}</button>`).join("");
+$("anJetzt").firstElementChild.src = "bild/ansicht/sat.jpg?v=1";
+const dunkelMix = ()=>$("licht").classList.contains("dunkel");
 $("base").querySelectorAll("button").forEach(b=>b.onclick=()=>{
-  $("base").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setBase(b.dataset.b);
-  document.body.classList.toggle("hell", b.dataset.b !== "sat"); $("deck").hidden = $("mixfarbe").hidden = b.dataset.b !== "mix";
-  if(b.dataset.b === "mix") document.body.classList.toggle("hell", !$("mixfarbe").querySelector("[data-f=dunkel]").classList.contains("on"));
-  const src = ansichtBild(b.dataset.b).getAttribute("src"); if(src) $("anJetzt").firstElementChild.src = src; else $("anJetzt").firstElementChild.removeAttribute("src");
-  $("ansicht").classList.add("gewaehlt"); });
+  const k = b.dataset.b; $("base").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setBase(k);
+  $("licht").hidden = k !== "mix"; document.body.classList.toggle("hell", k === "mix" ? !dunkelMix() : k !== "sat");
+  $("anJetzt").firstElementChild.src = b.querySelector("img").src; $("ansicht").classList.add("gewaehlt"); });
 $("anJetzt").onclick = ()=>$("ansicht").classList.remove("gewaehlt");
 $("ansicht").querySelector("[data-x=zurueck]").onclick = ()=>setDock(null);
-/* Vorschaubilder: einmal klein im Hintergrund aus den echten Kartenstilen gerendert und im Browser gemerkt */
-function ansichtVorschau(){
-  const fehlt = [...$("base").querySelectorAll("button")].filter(b=>{ let d = null; try{ d = localStorage.getItem("plyus-vorschau-1-" + b.dataset.b); }catch(e){}
-    if(d) ansichtBild(b.dataset.b).src = d; return !d; });
-  if(!fehlt.length || ansichtVorschau.laeuft) return; ansichtVorschau.laeuft = true;
-  const box = document.createElement("div"); box.setAttribute("aria-hidden", "true");
-  box.style.cssText = "position:fixed;left:-10000px;top:0;width:192px;height:128px;pointer-events:none";
-  document.body.appendChild(box);
-  let m = null;
-  const weiter = i=>{
-    if(i >= fehlt.length){ if(m) m.remove(); box.remove(); ansichtVorschau.laeuft = false; return; }
-    const k = fehlt[i].dataset.b, s = K.STYLES[k], stil = typeof s.url === "function" ? s.url() : s.url;
-    let fertig = false;
-    const ab = ()=>{ if(fertig) return; fertig = true; clearTimeout(t);
-      let d = ""; try{ d = m.getCanvas().toDataURL("image/jpeg", .82); }catch(e){}
-      if(d.length > 2000){ ansichtBild(k).src = d; try{ localStorage.setItem("plyus-vorschau-1-" + k, d); }catch(e){} }
-      weiter(i + 1); };
-    const t = setTimeout(ab, 15000);
-    if(!m) m = new maplibregl.Map({container:box, style:stil, center:[31.3,48.5], zoom:3.85, interactive:false, attributionControl:false, preserveDrawingBuffer:true, fadeDuration:0, pixelRatio:2});
-    else m.setStyle(stil, {diff:false});
-    m.once("idle", ab);
-  };
-  weiter(0);
-}
-$("deck").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("deck").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setMixDeck(b.dataset.m); });
-$("mixfarbe").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("mixfarbe").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); const d = b.dataset.f === "dunkel"; document.body.classList.toggle("hell", !d); map.setMixDunkel(d); });
-$("drei").firstElementChild.onclick = function(){ const on = !this.classList.contains("on"); this.classList.toggle("on", on); this.setAttribute("aria-pressed", on); map.set3D(on); };
-$("view").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("view").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setGlobe(b.dataset.v==="globe"); });
+$("licht").onclick = function(){ const d = !dunkelMix(); this.classList.toggle("dunkel", d); const t = d ? "Hell" : "Dunkel"; this.title = t; this.setAttribute("aria-label", t);
+  document.body.classList.toggle("hell", !d); map.setMixDunkel(d); };
+$("drei").onclick = function(){ const on = !this.classList.contains("on"); this.classList.toggle("on", on); this.setAttribute("aria-pressed", on); map.set3D(on); };
+function globusZeigen(an){ const v = $("view"), t = an ? "Zur flachen Karte" : "Zum Globus"; v.classList.toggle("flach", !an); v.title = t; v.setAttribute("aria-label", t); }
+$("view").onclick = function(){ const an = this.classList.contains("flach"); globusZeigen(an); map.setGlobe(an); };
 
 /* Lagedaten (Import): Liste und Auswahl-Ebenen nachziehen */
 const fzHash = location.hash;
@@ -357,7 +326,7 @@ function renderImp(){
     if(chgDeep){ const cid = decodeURIComponent(chgDeep[1]); chgDeep = null; if(K.changes().some(f=>f.properties.cid===cid)) setTimeout(()=>chgSelect(cid, true), 300); } }, 0);
 }
 const startGlobe = !window.matchMedia("(max-width:720px)").matches;
-document.querySelector(`#view [data-v="${startGlobe?"globe":"flat"}"]`).classList.add("on");
+globusZeigen(startGlobe);
 let introDone = false;
 const map = K.createMap({onImport: ()=>renderImp(), onNotice: t=>toast(t), globe:startGlobe, container:"map", style:"sat", onStyle: m=>{
   K.addDataLayers(m, "lage", K.toFeatures(visible()));

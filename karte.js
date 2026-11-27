@@ -167,18 +167,10 @@ function aus3D(map){
   if(map.getPitch() > 5) map.easeTo({pitch:0, duration:700});
 }
 
-/* „Mix“: die helle „Karte“ halb durchsichtig über den Satellitenbildern (Esri World Imagery, im freien Kontingent).
-   Straßen, Grenzen und Namen bleiben voll sichtbar, Flächen werden durchsichtig. */
-/* Mix: Satellitenbild, darüber ein gleichmäßiger grün-weißer Schleier (überall, ohne Lücken),
-   darauf Städte, Häuser, Wasser, Flüsse, Straßen, Grenzen und Namen. Stufe „wenig“/„viel“ = wie stark der Schleier deckt. */
-const MIX_DECK = {   /* dunkel */
-  wenig:{mixgrund:0.2, urban:0.75, water:0.75, building:0.85, "building-mt":0.85, "urban-edge":1},
-  viel: {mixgrund:0.45, urban:0.85, water:0.9, building:0.95, "building-mt":0.95, "urban-edge":1}
-};
-const MIX_DECK_HELL = {
-  wenig:{mixgrund:0.06, urban:0.62, water:0.65, building:0.8, "building-mt":0.8, "urban-edge":1},
-  viel: {mixgrund:0.22, urban:0.72, water:0.75, building:0.88, "building-mt":0.88, "urban-edge":1}
-};
+/* Mix: Satellitenbild, darüber ein leichter, gleichmäßiger Schleier (überall, ohne Lücken),
+   darauf Städte, Häuser, Wasser, Flüsse, Straßen, Grenzen und Namen. Deckkraft je Ebene, dunkel bzw. hell. */
+const MIX_DECK = {mixgrund:0.2, urban:0.75, water:0.75, building:0.85, "building-mt":0.85, "urban-edge":1};
+const MIX_DECK_HELL = {mixgrund:0.06, urban:0.62, water:0.65, building:0.8, "building-mt":0.8, "urban-edge":1};
 /* helle Variante: knallige Farben, damit sie auf dem Satellitenbild auffallen */
 function mixTag(st){
   const farbe = {urban:["fill-color","#ffc21a"], "urban-edge":["line-color","#e08a00"], building:["fill-color","#ffab00"], "building-mt":["fill-color","#ffab00"],
@@ -190,8 +182,8 @@ function mixTag(st){
   }
   return st;
 }
-const mixDeck = ()=>(mixDunkel ? MIX_DECK : MIX_DECK_HELL)[mixStufe];
-let mixStufe = "wenig", mixDunkel = false;
+const mixDeck = ()=>mixDunkel ? MIX_DECK : MIX_DECK_HELL;
+let mixDunkel = false;
 /* dunkle Variante: dunkler Schleier, helle Schrift mit dunklem Rand, gedämpfte Farben */
 function mixNacht(st){
   const farbe = {mixgrund:["background-color","#0d1014"], urban:["fill-color","#d39b12"], "urban-edge":["line-color","#ffc933"], building:["fill-color","#f0b62a"], "building-mt":["fill-color","#f0b62a"],
@@ -209,13 +201,6 @@ function mixNacht(st){
     if(/^road-(minor|service|track)-casing$/.test(l.id)) l.paint["line-color"] = "#3a3631";
   }
   return st;
-}
-function mixDeckAnwenden(map, stufe){
-  mixStufe = MIX_DECK[stufe] ? stufe : "wenig";
-  if(!map || !map.getLayer || !map.getLayer("mixsat")) return;
-  const deck = mixDeck();
-  for(const id in deck){ const l = map.getLayer(id); if(!l) continue;
-    try{ map.setPaintProperty(id, l.type === "line" ? "line-opacity" : l.type === "background" ? "background-opacity" : "fill-opacity", deck[id]); }catch(e){} }
 }
 function mixStyle(){
   const st = hellStyle(false);
@@ -810,7 +795,6 @@ function createMap(opts){
   });
   map.setBase = k=>{ if(free || !STYLES[k] || k===current) return; current = k; errs = 0; styleReady = false; map.setStyle(styleOf(k), {diff:false}); };
   map.setGlobe = g=>{ globe = g; try{ map.setProjection({type: g ? "globe" : "mercator"}); }catch(e){} if(drei && styleReady){ try{ map.setTerrain(g ? null : {source:"dem3d", exaggeration:1.5}); }catch(e){} } };
-  map.setMixDeck = st=>mixDeckAnwenden(map, st);
   map.setMixDunkel = on=>{ mixDunkel = !!on; if(current === "mix" && !free){ styleReady = false; map.setStyle(styleOf("mix"), {diff:false}); } };
   map.set3D = on=>{ drei = on; if(!styleReady) return; try{ on ? an3D(map, globe, true) : aus3D(map); }catch(e){ console.warn("3D:", e); } };
   map.currentBase = ()=>current;
