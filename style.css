@@ -23,9 +23,10 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 input,textarea,select{font:inherit;color:var(--fg)}
 :focus-visible{outline:2px solid var(--volt);outline-offset:2px}
 [hidden]{display:none!important}
-/* Karte bis unter die Leisten des Browsers. Nicht „fixed“: Safari (iOS 26) färbt sonst die Leisten
-   einfarbig in der Hintergrundfarbe der Seite ein, statt die Karte darunter zu zeigen. */
-#map{position:absolute;left:0;top:0;width:100%;height:100vh;height:100lvh}
+/* Karte bis unter die Leisten des Browsers und bis ganz an den unteren Bildschirmrand (iOS 26: 100lvh endet über dem
+   Home-Bereich, daher 120px Zugabe). Nicht „fixed“: Safari färbt sonst die Leisten in der Hintergrundfarbe der Seite.
+   Der verdeckte Teil wird in karte.html als Kartenrand-Abstand (padding) ausgeglichen. */
+#map{position:absolute;left:0;top:0;width:100%;height:calc(100vh + 120px);height:calc(100lvh + 120px)}
 
 .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 h1{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-height:1;letter-spacing:.02em}

@@ -557,12 +557,14 @@ function addImportIcon(map, id){
    "symbole" (Truppenzeichen), "formen" (Pfeile, Linien und sonstige Formen) */
 const ebenenAus = new Set();
 const UKR = ["any",["in",["get","ebene"],["literal",["ukraine-terr","gray-zone"]]],["==",["get","fuellung"],"#0070c0"]];
+/* russisch: Ebene „russian-terr“ oder rot gefüllt (MilX-Rottöne beginnen mit #f…/#e…, z. B. rote Basen) */
+const RUS = ["all", ["!", UKR], ["any", ["==",["get","ebene"],"russian-terr"], ["in", ["slice", ["coalesce",["get","fuellung"],""], 0, 2], ["literal",["#f","#e"]]]]];
 function importFilter(extra, id){
   const f = ["all", extra];
   if(importHidden.size) f.push(["!", ["in", ["get","ebene"], ["literal", [...importHidden]]]]);
   if(id === "imp-fill" || id === "imp-line"){
     if(ebenenAus.has("ukraine")) f.push(["!", UKR]);
-    if(ebenenAus.has("russland")) f.push(["any", UKR, ["!=",["get","ebene"],"russian-terr"]]);
+    if(ebenenAus.has("russland")) f.push(["!", RUS]);
     if(ebenenAus.has("formen")) f.push(["all", ["!=",["get","ebene"],"base"], ["!=",["get","art"],"linie"]]);
   }
   if((id === "imp-sym" || id === "imp-sym-small") && ebenenAus.has("symbole")) f.push(false);

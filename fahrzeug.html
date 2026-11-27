@@ -8,9 +8,9 @@
 <meta name="description" content="Steckbrief eines Fahrzeugs im Russland-Ukraine-Krieg: Bewaffnung, Reichweiten, Fahrdaten, Schutz, Modelle, Herkunft und Geberländer.">
 <link rel="icon" type="image/png" href="bild/favicon.png?v=3">
 <link rel="apple-touch-icon" href="bild/icon-180.png?v=3">
-<link rel="stylesheet" href="style.css?v=202611271811">
-<link rel="stylesheet" href="seiten.css?v=202611271811">
-<script src="lang.js?v=202611271811" defer></script>
+<link rel="stylesheet" href="style.css?v=202611271817">
+<link rel="stylesheet" href="seiten.css?v=202611271817">
+<script src="lang.js?v=202611271817" defer></script>
 <style>
 .fzs-zurueck{display:inline-flex;margin:0 0 22px;color:#cfcfcf;text-decoration:none;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 .fzs-zurueck:hover{color:#fff}
@@ -86,7 +86,7 @@
 </main>
 <footer class="sk-fuss"><a href="mitwirkende.html">Mitwirkende</a><a href="kontakt.html">Kontakt</a><a href="impressum.html">Impressum</a><a href="https://x.com/plyusmap" target="_blank" rel="noopener">X / Twitter</a><span class="r">© <span id="jahr">2026</span> Plyus</span></footer>
 
-<script src="fz-bild.js?v=202611271811"></script>
+<script src="fz-bild.js?v=202611271817"></script>
 <script>
 (function(){
   const nf = new Intl.NumberFormat("de-DE", {maximumFractionDigits:1});
@@ -166,13 +166,13 @@
       box.querySelectorAll(".fz-mod button").forEach(x=>{ x.classList.toggle("on", x === b); x.setAttribute("aria-pressed", x === b); });
       document.getElementById("fzsBild").innerHTML = bild(m); document.getElementById("fzsMod").innerHTML = modInfo(m); });
   }
-  fetch("daten/fahrzeuge.json?v=202611271811").then(r=>r.json()).then(D=>{
+  fetch("daten/fahrzeuge.json?v=202611271817").then(r=>r.json()).then(D=>{
     const f = D.fahrzeuge.find(x=>x.n === name);
     if(!f){ box.innerHTML = '<div class="fzs-leer">Fahrzeug nicht gefunden. <a href="fahrzeuge.html">Zur Liste →</a></div>'; return; }
     zeigen(D, f);
   }).catch(()=>{ box.innerHTML = '<div class="fzs-leer">Daten konnten nicht geladen werden.</div>'; });
 })();
 </script>
-<script src="seiten.js?v=202611271811"></script>
+<script src="seiten.js?v=202611271817"></script>
 </body>
 </html>

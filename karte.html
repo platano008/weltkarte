@@ -19,14 +19,14 @@
 <link rel="preconnect" href="https://api.maptiler.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=202611271811">
+<link rel="stylesheet" href="style.css?v=202611271817">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611271811"></script>
-<script src="sicht.js?v=202611271811"></script>
-<script src="fz-bild.js?v=202611271811"></script>
-<script src="werkzeuge.js?v=202611271811"></script>
-<script src="beta.js?v=202611271811"></script>
+<script src="karte.js?v=202611271817"></script>
+<script src="sicht.js?v=202611271817"></script>
+<script src="fz-bild.js?v=202611271817"></script>
+<script src="werkzeuge.js?v=202611271817"></script>
+<script src="beta.js?v=202611271817"></script>
 <style>
 .item.chg .ic{width:22px}
 .item .cq{display:block;width:14px;height:14px}
@@ -243,7 +243,7 @@ body.d-ebenen .ebenen{display:flex}
 .wz-lbl.ring b{font-size:11px}
 .wz-lbl.ring.fahr{border-style:dashed}
 </style>
-<script src="lang.js?v=202611271811" defer></script>
+<script src="lang.js?v=202611271817" defer></script>
 </head>
 <body>
 <div id="map"></div>
@@ -390,7 +390,10 @@ window.plyusMap = map;
 /* Die Karte reicht unter die Adressleiste: Maßstab und „i“ an den sichtbaren unteren Rand heben, damit sie antippbar bleiben */
 (function(){
   const vv = window.visualViewport;
-  const leiste = ()=>document.documentElement.style.setProperty("--unter-leiste", Math.max(0, Math.round(map.getContainer().clientHeight - (vv ? vv.height : innerHeight))) + "px");
+  const leiste = ()=>{ const u = Math.max(0, Math.round(map.getContainer().clientHeight - (vv ? vv.height : innerHeight)));
+    document.documentElement.style.setProperty("--unter-leiste", u + "px");
+    map.setPadding({top:0, right:0, left:0, bottom:u});        // Kartenmitte = Mitte des sichtbaren Bereichs
+  };
   leiste(); addEventListener("resize", leiste); if(vv) vv.addEventListener("resize", leiste);
 })();
 /* Aus der Fahrzeugliste: karte.html#fz=Name öffnet „Fahrzeug setzen“ mit diesem Fahrzeug */
