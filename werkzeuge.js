@@ -58,6 +58,7 @@ const ICONS = {
   radius: '<circle cx="12" cy="12" r="9"/><path d="M12 12h9"/><circle cx="12" cy="12" r="1.4"/>',
   punkt: '<circle cx="12" cy="12" r="6"/><path d="M12 1v5M12 18v5M1 12h5M18 12h5"/>',
   weg: '<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/>',
+  zurueck: '<path d="M15 5l-7 7 7 7"/>',
   sicht: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   fahrzeug: '<path d="M3 15h18l-2 4H5z"/><path d="M6 15v-3h9l2 3"/><path d="M9 12V9h5v3"/><path d="M14 10.5h7"/>'
 };
@@ -72,9 +73,13 @@ function init(map, opts){
   let sichtR = 1000, sichtH = 0, sichtRes = null, sichtLauf = 0, sichtInfo = null, sichtPunkt = null;
   const root = document.createElement("div");
   root.className = "wz";
+  /* Leiste: zurück · Messen (Lineal, Fläche, Radius, Koordinate) · Sichtfeld und Fahrzeug · Löschen – jeweils als eigenes Päckchen */
+  const knopf = k=>`<button data-t="${k}" title="${NAMES[k]}" aria-label="${NAMES[k]}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg></button>`;
   root.innerHTML = `<div class="wz-rail" role="toolbar" aria-label="Werkzeuge">
-      ${["lineal","flaeche","radius","punkt","sicht","fahrzeug"].map(k=>`<button data-t="${k}" title="${NAMES[k]}" aria-label="${NAMES[k]}"><svg viewBox="0 0 24 24">${ICONS[k]}</svg></button>`).join("")}
-      <button data-x="clear" title="Alle Messungen löschen" aria-label="Alle Messungen löschen" class="wz-clear"><svg viewBox="0 0 24 24">${ICONS.weg}</svg></button>
+      <button data-x="zurueck" class="wz-zurueck" title="Zurück zu den Tools" aria-label="Zurück zu den Tools"><svg viewBox="0 0 24 24">${ICONS.zurueck}</svg></button>
+      <div class="wz-gruppe">${["lineal","flaeche","radius","punkt"].map(knopf).join("")}</div>
+      <div class="wz-gruppe">${["sicht","fahrzeug"].map(knopf).join("")}</div>
+      <div class="wz-gruppe"><button data-x="clear" title="Alle Messungen löschen" aria-label="Alle Messungen löschen"><svg viewBox="0 0 24 24">${ICONS.weg}</svg></button></div>
     </div>
     <div class="wz-box" hidden></div>`;
   document.body.appendChild(root);
@@ -316,6 +321,7 @@ function init(map, opts){
   root.querySelector(".wz-rail").addEventListener("click", e=>{
     const b = e.target.closest("button"); if(!b) return;
     if(b.dataset.t){ if(tool===b.dataset.t) finish(); else start(b.dataset.t); }
+    if(b.dataset.x==="zurueck"){ if(opts.onZurueck) opts.onZurueck(); return; }
     if(b.dataset.x==="clear"){ done = []; pts = []; radiusKm = null; sichtRes = null; sichtPunkt = null; sichtInfo = null; sichtLauf++; if(window.Sicht) Sicht.entfernen(map); fzGesetzt = []; fzZeichnen(); refresh(true); }
   });
   box.addEventListener("click", e=>{

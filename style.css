@@ -106,14 +106,7 @@ h1{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-heigh
   .mt-logo{left:max(10px,env(safe-area-inset-left))}
 }
 
-/* Werkzeuge (Lineal, Fläche, Radius, Koordinate) */
-.wz-rail{position:fixed;z-index:5;right:max(16px,env(safe-area-inset-right));top:214px;display:flex;flex-direction:column;background:rgba(0,0,0,.97);border:1px solid var(--line-2)}
-.wz-rail button{width:44px;height:44px;display:grid;place-items:center;background:none;border:0;border-top:1px solid var(--line);color:var(--muted);cursor:pointer;padding:0}
-.wz-rail button:first-child{border-top:0}
-.wz-rail button:hover{color:var(--fg);background:var(--surface)}
-.wz-rail button.on{background:var(--volt);color:var(--ink)}
-.wz-rail svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
-.wz-rail .wz-clear{border-top:1px solid var(--line-2)}
+/* Werkzeuge: Optionsfeld und Beschriftungen (Leiste: karte.html) */
 .wz-box{position:fixed;z-index:6;right:calc(max(16px,env(safe-area-inset-right)) + 54px);top:214px;width:min(330px,calc(100vw - 100px));background:rgba(0,0,0,.97);border:1px solid var(--line-2);border-top:2px solid var(--volt);padding:12px 14px 14px}
 .wz-h{display:flex;align-items:center;justify-content:space-between}
 .wz-x{background:none;border:0;color:var(--muted);font-size:14px;cursor:pointer;padding:4px}
@@ -140,8 +133,6 @@ h1{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-heigh
 .wz-lbl.live{margin:0}
 body.wz-on .maplibregl-canvas{cursor:crosshair!important}
 @media (max-width:720px){
-  .wz-rail{top:auto;bottom:calc(var(--panel-h,0px) + 46px);right:12px}
-  .wz-rail button{width:42px;height:42px}
   .wz-box{left:12px;right:66px;width:auto;top:auto;bottom:calc(var(--panel-h,0px) + 46px);max-height:55vh;overflow:auto}
   .wz-big{font-size:22px}
   .wz-box{padding:10px 12px 12px}

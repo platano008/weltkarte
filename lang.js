@@ -5,6 +5,10 @@
 (function(){
   const W = {
     // Menü, Kopf, allgemein
+    "Neueste Gewinne":"Latest gains", "Plyus – neueste Gewinne":"Plyus – latest gains", "Alle Gewinne anzeigen":"Show all gains", "Alle Gewinne":"All gains",
+    "Tools schließen":"Close tools", "Zurück zu den Tools":"Back to tools", "Messen":"Measure", "Messen: Lineal, Fläche, Radius, Koordinate, Sichtfeld, Fahrzeug":"Measure: ruler, area, radius, coordinate, line of sight, vehicle",
+    "Kartenwerkzeuge":"Map tools", "Plyus · Frontverlauf":"Plyus · Front line", "Fläche gesamt":"Total area", "Keine Gewinne eingetragen.":"No gains recorded.", "Liste konnte nicht geladen werden.":"The list could not be loaded.",
+    "Jede eingetragene Gebietsänderung mit Datum, Seite und Fläche. Ein Klick öffnet die Stelle auf der Karte.":"Every recorded territorial change with date, side and area. A click opens the spot on the map.",
     "Karte":"Map", "Drohnenkarte":"Drone map", "in Arbeit":"in progress", "In Arbeit":"In progress", "folgt":"soon",
     "Plyus – Startseite":"Plyus – home", "Mitwirkende":"Contributors", "Kontakt":"Contact", "Impressum":"Legal notice", "Menü öffnen":"Open menu", "Menü schließen":"Close menu",
     "Nach unten":"Scroll down", "Sprache":"Language", "Zur Startseite":"Back to home", "Schließen":"Close",
@@ -303,6 +307,7 @@
     [/^(Russischer|Ukrainischer) Gewinn (.*)$/, (m, a, b)=>(a === "Russischer" ? "Russian" : "Ukrainian") + " gain " + b],
     [/^([^()]+) \((\d+|finanziert)\)$/, (m, a, b)=>(W[a] || a) + " (" + (b === "finanziert" ? "funded" : b) + ")"],
     [/^(Wikipedia – .+) \(Beispielfoto\)$/, "$1 (example photo)"],
+    [/^(\d+) Einträge · (.+) km²$/, "$1 entries · $2 km²"],
     [/^Foto: (.+)$/, "Photo: $1"],
     [/^(.+ km) zeigen$/, "show $1"], [/^Modelle \((\d+)\)$/, "Models ($1)"],
     [/^vor (\d+) Tagen$/, "$1 days ago"], [/^vor (\d+) Stunden$/, "$1 hours ago"], [/^gestern$/, "yesterday"], [/^heute$/, "today"]

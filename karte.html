@@ -16,99 +16,27 @@
 <link rel="preconnect" href="https://api.maptiler.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=202611261433">
+<link rel="stylesheet" href="style.css?v=202611271031">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611261433"></script>
-<script src="sicht.js?v=202611261433"></script>
-<script src="fz-bild.js?v=202611261433"></script>
-<script src="werkzeuge.js?v=202611261433"></script>
+<script src="karte.js?v=202611271031"></script>
+<script src="sicht.js?v=202611271031"></script>
+<script src="fz-bild.js?v=202611271031"></script>
+<script src="werkzeuge.js?v=202611271031"></script>
 <style>
 .item.chg .ic{width:22px}
-.card{right:calc(max(16px,env(safe-area-inset-right)) + 56px)!important}
 .item .cq{display:block;width:14px;height:14px}
-.grp em{font-style:normal;margin-right:6px}
-.grp em.ru{color:#ff6b7c}
-.grp em.ua{color:#6aa8ff}
-/* Menüs nur bei Bedarf: alles hängt an der Leiste oben rechts */
-.dock{position:fixed;z-index:7;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));display:flex;flex-direction:column;background:rgba(0,0,0,.97);border:1px solid var(--line-2)}
-.dock button{position:relative;width:44px;height:44px;display:grid;place-items:center;background:none;border:0;border-top:1px solid var(--line);color:var(--muted);cursor:pointer;padding:0}
-.dock button:first-child{border-top:0}
-.dock button:hover{color:var(--fg);background:var(--surface)}
-.dock button.on{background:var(--volt);color:var(--ink)}
-.dock svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:square}
-.dock .dot{position:absolute;right:7px;top:7px;width:7px;height:7px;background:#ffb800;display:none}
-body.tl-old .dock .dot{display:block}
 @media (max-width:720px),(hover:none){.dock [data-aufnahme]{display:none}}
-.switches{display:none!important;left:auto!important;right:calc(max(16px,env(safe-area-inset-right)) + 54px)!important;top:max(16px,env(safe-area-inset-top))!important;flex-direction:column!important;align-items:flex-end!important;gap:8px!important;justify-content:flex-start!important}
 body.d-ansicht .switches{display:flex!important}
-.maplibregl-ctrl-top-right{top:calc(max(16px,env(safe-area-inset-top)) + 190px)!important}
-@media (min-width:721px) and (hover:hover){.maplibregl-ctrl-top-right{top:calc(max(16px,env(safe-area-inset-top)) + 236px)!important}}
 /* Touch: Zoomen geht mit zwei Fingern – Zoom-Knöpfe weg, weniger auf dem Bildschirm */
 @media (hover:none),(pointer:coarse){.maplibregl-ctrl-top-right .maplibregl-ctrl-group{display:none}}
-.wz-rail{display:none!important;flex-direction:row!important;top:calc(max(16px,env(safe-area-inset-top)) + 45px)!important;bottom:auto!important;right:calc(max(16px,env(safe-area-inset-right)) + 54px)!important}
-.wz-rail button{border-top:0!important;border-left:1px solid var(--line)}
-.wz-rail button:first-child{border-left:0}
-.wz-rail .wz-clear{border-left:1px solid var(--line-2)!important}
-body.d-wz .wz-rail{display:flex!important}
-.wz-box{top:calc(max(16px,env(safe-area-inset-top)) + 100px)!important;bottom:auto!important;right:calc(max(16px,env(safe-area-inset-right)) + 54px)!important;left:auto!important;width:min(330px,calc(100vw - 90px))!important}
 #tl{display:none}
 body.d-tl #tl:not([hidden]){display:block}
 @media (max-width:720px){
   .switches .seg button{padding:9px 11px}
-  .wz-box{max-height:calc(100vh - var(--panel-h,0px) - 170px)!important;overflow:auto}
   .tl{right:12px!important}
-  /* Handy: nur ein Pfeil; Tippen auf Logo/Kopf klappt die Liste auf */
-  .hide-btn{display:none!important}
-  .brand .toggle{margin-left:auto!important;border:0;width:40px;height:32px;margin-right:-8px;color:var(--fg)}
-  .brand .toggle svg{width:18px;height:18px}
-  .panel.closed .ph{cursor:pointer}
-  /* Handy zugeklappt: nur das Logo unten in der Ecke; geöffnet geht die Liste weit hoch */
-  body.m-closed .panel{transform:translateY(calc(100% + 8px));opacity:0;pointer-events:none;visibility:hidden;transition:transform .28s cubic-bezier(.2,.7,.2,1),opacity .2s,visibility 0s .28s}
-  body.m-closed .reopen{opacity:1;transform:none;pointer-events:auto;transition-delay:.1s}
-  .panel:not(.closed){max-height:72%!important}
-  body.m-closed .tl{bottom:calc(env(safe-area-inset-bottom) + 100px)!important}
 }
-/* Besucher-Leiste schlank: keine Filter-Chips, keine Lagedaten-Schalter, keine Legende */
-#chips,#imp,#legend{display:none!important}
 body.wz-on .nato{pointer-events:none}
-@media (max-width:720px){
-  .panel{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-  .panel .list{overflow:visible;min-height:auto}
-  .panel .pf{display:none}
-  .panel .grp{position:static}
-}
-/* Leiste ein-/ausblenden */
-.hide-btn{display:grid;place-items:center;width:32px;height:32px;margin-left:auto;border:1px solid var(--line-2);background:none;color:var(--muted);cursor:pointer;padding:0;flex:none}
-.hide-btn:hover{color:var(--fg);border-color:var(--fg)}
-.hide-btn svg{width:16px;height:16px}
-.brand .toggle{margin-left:6px}
-.panel{transition:transform .28s cubic-bezier(.2,.7,.2,1),opacity .2s}
-body.panel-gone .panel{transform:translateX(calc(-100% - 28px));opacity:0;pointer-events:none;visibility:hidden;transition:transform .28s cubic-bezier(.2,.7,.2,1),opacity .2s,visibility 0s .28s}
-.reopen{position:fixed;z-index:6;left:max(16px,env(safe-area-inset-left));top:max(16px,env(safe-area-inset-top));display:flex;align-items:center;gap:10px;height:44px;padding:0 12px 0 14px;background:rgba(0,0,0,.97);border:1px solid var(--line-2);border-top:2px solid var(--volt);color:var(--fg);font-family:var(--display);font-size:19px;letter-spacing:.04em;cursor:pointer;opacity:0;transform:translateX(-12px);pointer-events:none;transition:opacity .2s,transform .2s}
-.reopen svg{width:20px;height:20px;flex:none}
-.reopen .chev{width:14px;height:14px;color:var(--muted)}
-.reopen:hover .chev{color:var(--fg)}
-body.panel-gone .reopen{opacity:1;transform:none;pointer-events:auto;transition-delay:.12s}
-@media (max-width:720px){
-  body.panel-gone .panel{transform:translateY(calc(100% + 8px))}
-  .reopen{top:auto;bottom:calc(env(safe-area-inset-bottom) + 46px);transform:translateY(12px)}
-  .reopen .chev{transform:rotate(-90deg)}
-}
-.home-link{color:inherit;text-decoration:none}
-.home-link:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
-.panel{border-top:2px solid var(--volt)}
-.search{position:relative}
-.search input{width:100%;background:var(--bg);border:1px solid var(--line-2);padding:8px 10px 8px 32px;font-size:14px}
-.search input:focus{border-color:var(--volt);outline:none}
-.search svg{position:absolute;left:10px;top:50%;width:14px;height:14px;transform:translateY(-50%);color:var(--muted)}
-.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.legend span{display:inline-flex;align-items:center;gap:5px}
-.legend i{width:9px;height:9px;display:block;border:1px solid rgba(0,0,0,.6)}
-.grp{position:sticky;top:0;z-index:1;padding:8px 18px 6px;background:rgba(21,23,26,.98);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
-.pf{display:flex;justify-content:space-between;gap:12px;padding:8px 18px;border-top:1px solid var(--line-2);font-family:var(--mono);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
-.pf a{color:var(--muted);text-decoration:none}
-.pf a:hover{color:var(--fg)}
 .card{animation:cardIn .22s cubic-bezier(.2,.9,.25,1)}
 @keyframes cardIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 .card .big{display:flex;align-items:center;justify-content:center;min-height:76px;background:var(--surface-2);border:1px solid var(--line)}
@@ -124,18 +52,17 @@ body.panel-gone .reopen{opacity:1;transform:none;pointer-events:auto;transition-
 .loading b{display:block;width:140px;height:2px;background:var(--line-2);position:relative;overflow:hidden}
 .loading b::after{content:"";position:absolute;inset:0;width:40%;background:var(--volt);animation:load 1s ease-in-out infinite}
 @keyframes load{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
-@media (max-width:720px){ .pf .cur{display:none} .panel.closed .search,.panel.closed .legend,.panel.closed .pf{display:none} }
 @media (prefers-reduced-motion:reduce){ .card{animation:none} .loading b::after{animation:none} }
-.imp{display:flex;flex-direction:column;gap:6px}
-.imp .eyebrow{display:flex;justify-content:space-between}
-.chip i{width:10px;height:10px;display:inline-block;border:1px solid rgba(0,0,0,.5)}
 .card{max-height:calc(100% - 100px);overflow-y:auto;overscroll-behavior:contain}
 .card .med{display:grid;gap:8px;margin:4px 0 2px}
 .card .med img,.card .med video,.card .med iframe{display:block;width:100%;height:auto;border:0;background:#111}
 .card .med iframe{aspect-ratio:16/9}
 
 /* ===== Bedienung: ruhige dunkle Flächen, dünne Ränder, kein Leuchten ===== */
-:root{--glow:255,255,255;--flaeche:rgba(16,16,18,.94);--rand:rgba(255,255,255,.1);--rund:12px}
+:root{--glow:255,255,255;--flaeche:rgba(14,15,18,.58);--rand:rgba(255,255,255,.16);--rund:12px}
+/* Bedienung leicht durchsichtig: Glas mit Unschärfe; auf Touch-Geräten (ohne Unschärfe) etwas dichter */
+.tools-knopf,.dock button,.wz-gruppe,.wz-zurueck,.pille,.panel,.card,.wz-box,.switches .seg,.tl,.maplibregl-ctrl-group{-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2)}
+@media (hover:none),(pointer:coarse){:root{--flaeche:rgba(14,15,18,.72)}}
 .maplibregl-map{font-family:var(--body)!important}
 /* Quellenangaben: klein unten links, aufklappbar über das „i“ */
 .maplibregl-ctrl-bottom-left{bottom:calc(env(safe-area-inset-bottom) + 4px)!important;left:max(6px,env(safe-area-inset-left))!important}
@@ -147,13 +74,11 @@ body.panel-gone .reopen{opacity:1;transform:none;pointer-events:auto;transition-
 .mt-logo{left:auto!important;right:max(8px,env(safe-area-inset-right))!important;bottom:calc(env(safe-area-inset-bottom) + 8px)!important;opacity:.7}
 .mt-logo img{width:62px!important}
 /* Knöpfe und Kästen */
-.dock,.maplibregl-ctrl-group,.wz-rail,.wz-box,.switches .seg,.tl{background:var(--flaeche)!important;border:1px solid var(--rand)!important;border-radius:var(--rund)!important;overflow:hidden;box-shadow:0 8px 24px -12px rgba(0,0,0,.8)!important}
-.dock button,.wz-rail button,.maplibregl-ctrl-group button{background:transparent!important;border-color:rgba(255,255,255,.07)!important;color:#d9d9d9!important}
+.maplibregl-ctrl-group,.wz-box,.switches .seg,.tl{background:var(--flaeche)!important;border:1px solid var(--rand)!important;border-radius:var(--rund)!important;overflow:hidden;box-shadow:0 8px 24px -12px rgba(0,0,0,.8)!important}
+.maplibregl-ctrl-group button{background:transparent!important;border-color:rgba(255,255,255,.07)!important;color:#d9d9d9!important}
 .maplibregl-ctrl-group button .maplibregl-ctrl-icon{filter:invert(1)!important;opacity:.85}
-.dock button:hover,.wz-rail button:hover,.maplibregl-ctrl-group button:hover{background:rgba(255,255,255,.07)!important}
-.dock button.on,.wz-rail button.on{background:#fff!important;color:#000!important}
+.maplibregl-ctrl-group button:hover{background:rgba(255,255,255,.07)!important}
 /* Liste der Veränderungen: Blatt über der Pille */
-.reopen,#hide,#toggle,.panel .ph h1,.panel .pf{display:none!important}
 body .panel{left:50%!important;right:auto!important;top:auto!important;bottom:calc(env(safe-area-inset-bottom) + 76px)!important;width:min(430px,calc(100vw - 24px))!important;max-height:min(56vh,540px)!important;
   border:1px solid var(--rand)!important;border-radius:16px!important;overflow:hidden;padding:0!important;background:var(--flaeche)!important;box-shadow:0 20px 50px -20px rgba(0,0,0,.85)!important;
   opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translate(-50%,12px)!important;
@@ -161,27 +86,60 @@ body .panel{left:50%!important;right:auto!important;top:auto!important;bottom:ca
 body.k-auf .panel{opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:translate(-50%,0)!important;transition:opacity .2s,transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s!important}
 .panel .ph{padding:14px 18px 10px!important;border-bottom:1px solid rgba(255,255,255,.07)!important;cursor:default!important}
 .panel .list{overflow-y:auto!important;display:block!important}
-.panel .grp{background:rgba(22,22,24,.98)!important;border-color:rgba(255,255,255,.06)!important}
 .panel .item{border-color:rgba(255,255,255,.06)!important}
 .panel .item:hover{background:rgba(255,255,255,.05)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 /* die Pille unten in der Mitte; die dünne Linie oben zeigt, wer zuletzt vorgerückt ist */
 .pille{position:fixed;z-index:8;left:50%;bottom:calc(env(safe-area-inset-bottom) + 16px);transform:translateX(-50%);display:flex;align-items:center;gap:10px;height:48px;padding:0 16px 0 15px;
   border:1px solid var(--rand);border-radius:999px!important;color:#fff;cursor:pointer;background:var(--flaeche);box-shadow:0 10px 30px -14px rgba(0,0,0,.9),inset 0 2px 0 -0.5px rgba(var(--glow),.85)}
-.pille img{height:20px;width:auto}
 .pille .szug-k{height:17px;width:auto;color:#fff}
 .pille .chev{width:13px;height:13px;opacity:.6;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
 body.k-auf .pille .chev{transform:rotate(180deg)}
 .tl{bottom:calc(env(safe-area-inset-bottom) + 92px)!important}
-body.k-auf .tl{opacity:0;pointer-events:none}
 @media (max-width:720px){
   .tl{left:12px!important;right:66px!important}
 }
-.k-sprache{position:absolute;right:14px;top:12px;z-index:2;display:flex;padding:2px;border:1px solid rgba(255,255,255,.16);border-radius:999px!important}
-.k-sprache button{border:0;background:none;color:#8d8d8d;font-family:var(--mono);font-size:10px;letter-spacing:.12em;padding:5px 9px;border-radius:999px!important;cursor:pointer}
-.k-sprache button.an{background:#fff;color:#000}
-.panel .ph{position:relative}
 
+/* ===== Tools oben mittig: ein Knopf, der sich in die Werkzeug-Symbole auffächert ===== */
+.tools{position:fixed;z-index:9;left:50%;top:max(14px,env(safe-area-inset-top));transform:translateX(-50%);display:flex;justify-content:center}
+.tools-knopf{height:42px;padding:0 22px;border:1px solid var(--rand);border-radius:999px!important;background:var(--flaeche);color:#fff;font:600 12px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;cursor:pointer;box-shadow:0 10px 28px -14px rgba(0,0,0,.9);animation:tEin .3s cubic-bezier(.2,.8,.2,1) both}
+.tools-knopf:hover{border-color:rgba(255,255,255,.4)}
+body.t-auf .tools-knopf,body:not(.t-auf) .dock,body.d-wz .dock{display:none}
+.dock{display:flex;gap:8px}
+.dock button{position:relative;width:44px;height:44px;display:grid;place-items:center;padding:0;border:1px solid var(--rand);border-radius:999px!important;background:var(--flaeche);color:#e2e2e2;cursor:pointer;box-shadow:0 10px 28px -14px rgba(0,0,0,.9);animation:tEin .34s cubic-bezier(.2,.8,.2,1) both}
+.dock button[hidden]{display:none}
+.dock button:nth-child(2){animation-delay:.05s}.dock button:nth-child(3){animation-delay:.1s}.dock button:nth-child(4){animation-delay:.15s}.dock button:nth-child(5){animation-delay:.2s}
+.dock button:hover{border-color:rgba(255,255,255,.4)}
+.dock button.on{background:#fff;color:#000;border-color:#fff}
+.dock svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.dock [data-x=zu]{color:#9a9a9a}
+.dock .dot{position:absolute;right:6px;top:6px;width:7px;height:7px;border-radius:50%!important;background:#ffb800;display:none}
+body.tl-old .dock .dot{display:block}
+@media (max-width:720px),(hover:none){.dock [data-aufnahme]{display:none}}
+@keyframes tEin{from{opacity:0;transform:translateY(-12px) scale(.85)}}
+/* Messen: oben mittig – vorne „zurück“, dann das Päckchen Lineal/Fläche/Radius/Koordinate, abgesetzt Sichtfeld/Fahrzeug, ganz rechts Löschen */
+.wz-rail{position:fixed;z-index:9;left:50%;top:max(14px,env(safe-area-inset-top));transform:translateX(-50%);display:none;align-items:center;gap:8px}
+body.d-wz .wz-rail{display:flex}
+.wz-zurueck,.wz-gruppe{border:1px solid var(--rand);border-radius:999px!important;background:var(--flaeche);box-shadow:0 10px 28px -14px rgba(0,0,0,.9);animation:tEin .34s cubic-bezier(.2,.8,.2,1) both}
+.wz-gruppe{display:flex;overflow:hidden}
+.wz-gruppe:nth-child(3){animation-delay:.06s}.wz-gruppe:nth-child(4){animation-delay:.12s}
+.wz-rail button{width:44px;height:44px;display:grid;place-items:center;padding:0;border:0;background:none;color:#e2e2e2;cursor:pointer}
+.wz-gruppe button:hover{background:rgba(255,255,255,.08)}
+.wz-gruppe button.on{background:#fff;color:#000}
+.wz-rail svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.wz-zurueck{color:#9a9a9a!important}
+@media (max-width:420px){.wz-rail{gap:5px}.wz-rail button{width:39px;height:40px}.wz-rail svg{width:18px;height:18px}}
+/* Optionen der Werkzeuge und Ansicht: mittig unter der Leiste */
+@media (min-width:721px){.wz-box{top:calc(max(14px,env(safe-area-inset-top)) + 56px)!important;bottom:auto!important;left:50%!important;right:auto!important;transform:translateX(-50%);width:min(340px,calc(100vw - 24px))!important}}
+.switches{display:none!important;left:50%!important;right:auto!important;top:calc(max(14px,env(safe-area-inset-top)) + 56px)!important;transform:translateX(-50%);flex-direction:column!important;align-items:center!important;gap:8px!important}
+body.d-ansicht .switches{display:flex!important}
+.maplibregl-ctrl-top-right{top:max(14px,env(safe-area-inset-top))!important}
+.card{background:var(--flaeche)!important;border-color:var(--rand)!important}
+@media (min-width:721px){.card{right:max(16px,env(safe-area-inset-right))!important;top:calc(max(14px,env(safe-area-inset-top)) + 56px)!important}}
+/* Leiste „Neueste Gewinne“ */
+.k-titel{margin:0;font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:.02em}
+.k-alle{display:block;margin:10px 14px 14px;padding:11px;border:1px solid var(--rand);border-radius:999px!important;color:#fff;text-align:center;text-decoration:none;font:600 11.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase}
+.k-alle:hover{background:rgba(255,255,255,.08)}
 /* ===== Ladeanimation: schwarz und schlicht, nur der Schriftzug bewegt sich ===== */
 .loading.done{opacity:0;transition:opacity .5s .2s}
 .ld-mitte{display:flex;flex-direction:column;align-items:center;gap:26px}
@@ -199,11 +157,6 @@ body.k-auf .tl{opacity:0;pointer-events:none}
 @media (hover:none),(pointer:coarse){
   *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 }
-/* Liste: Neu / Log */
-.k-tabs{display:flex;gap:4px;margin-top:10px}
-.k-tabs button{flex:1;border:1px solid rgba(255,255,255,.12);background:none;color:#9a9a9a;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:7px 0;border-radius:999px!important;cursor:pointer}
-.k-tabs button.an{background:#fff;color:#000;border-color:#fff}
-.panel .grp.mon{position:sticky;top:0;z-index:1}
 .item.alt .cq{opacity:.35}.item.alt b{color:#a9a9a9}
 @media (max-width:520px){#base button{padding:9px 7px!important;font-size:12px!important;letter-spacing:0!important}}
 .switches .seg[hidden]{display:none!important}
@@ -241,7 +194,7 @@ body.k-auf .tl{opacity:0;pointer-events:none}
 .wz-lbl.ring b{font-size:11px}
 .wz-lbl.ring.fahr{border-style:dashed}
 </style>
-<script src="lang.js?v=202611261433" defer></script>
+<script src="lang.js?v=202611271031" defer></script>
 </head>
 <body>
 <div id="map"></div>
@@ -250,12 +203,15 @@ body.k-auf .tl{opacity:0;pointer-events:none}
   <div class="ld-mitte"><div class="ld-wort"><svg class="ld-svg" viewBox="-20 -20 598.8 140" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><g class="k-weiss"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path class="lb l1" d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z"/><path class="lb l2" d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z"/><path class="lb l3" d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z"/><path class="lb l4" d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z"/><path class="lb l5" d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z"/></g></g></svg></div><div class="ld-info"><b></b></div></div>
 </div>
 
-<div class="dock" id="dock" role="toolbar" aria-label="Kartenmenüs">
-  <button data-d="ansicht" title="Ansicht: Satellit, Karte, Gelände" aria-label="Ansicht"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg></button>
-  <button data-d="wz" title="Werkzeuge: Lineal, Fläche, Radius, Koordinate" aria-label="Werkzeuge"><svg viewBox="0 0 24 24"><path d="M2.5 15.5L15.5 2.5l6 6-13 13z"/><path d="M6.5 11.5l2 2M9.5 8.5l2 2M12.5 5.5l2 2"/></svg></button>
-  <button data-link="fahrzeuge.html" title="Fahrzeuge: Panzer, Artillerie, Flugabwehr" aria-label="Fahrzeuge"><svg viewBox="0 0 24 24"><path d="M3 15h18l-2 4H5z"/><path d="M6 15v-3h9l2 3"/><path d="M9 12V9h5v3"/><path d="M14 10.5h7"/></svg></button>
-  <button data-d="tl" title="Verlauf: zwischen Updates spulen" aria-label="Verlauf" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg><i class="dot"></i></button>
-  <button data-aufnahme title="Aufnahmefenster: nur die Karte, ohne Leisten – zum Aufnehmen" aria-label="Aufnahmefenster öffnen"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2"/><circle cx="12" cy="12" r="3"/></svg></button>
+<div class="tools" id="tools">
+  <button class="tools-knopf" id="toolsKnopf" aria-expanded="false" aria-controls="dock">Tools</button>
+  <div class="dock" id="dock" role="toolbar" aria-label="Kartenwerkzeuge">
+    <button data-d="ansicht" title="Ansicht: Satellit, Karte, Gelände" aria-label="Ansicht"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg></button>
+    <button data-d="wz" title="Messen: Lineal, Fläche, Radius, Koordinate, Sichtfeld, Fahrzeug" aria-label="Messen"><svg viewBox="0 0 24 24"><path d="M2.5 15.5L15.5 2.5l6 6-13 13z"/><path d="M6.5 11.5l2 2M9.5 8.5l2 2M12.5 5.5l2 2"/></svg></button>
+    <button data-d="tl" title="Verlauf: zwischen Updates spulen" aria-label="Verlauf" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg><i class="dot"></i></button>
+    <button data-aufnahme title="Aufnahmefenster: nur die Karte, ohne Leisten – zum Aufnehmen" aria-label="Aufnahmefenster öffnen"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2"/><circle cx="12" cy="12" r="3"/></svg></button>
+    <button data-x="zu" title="Tools schließen" aria-label="Tools schließen"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
 </div>
 <div class="switches">
   <div class="seg" id="base"></div>
@@ -266,22 +222,11 @@ body.k-auf .tl{opacity:0;pointer-events:none}
 </div>
 
 <section class="panel" id="panel">
-  <div class="ph">
-    <div class="k-sprache" role="group" aria-label="Sprache"><button data-sprache="de" data-nolang>DE</button><button data-sprache="en" data-nolang>EN</button></div>
-    <div class="brand"><span class="eyebrow" id="stand">Lagekarte Ukraine</span><button class="hide-btn" id="hide" title="Leiste ausblenden" aria-label="Leiste ausblenden"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M3 4h18v16H3zM9 4v16M17 9l-3 3 3 3"/></svg></button><button class="toggle" id="toggle" aria-label="Liste ein- oder ausklappen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M6 9l6 6 6-6"/></svg></button></div>
-    <div class="k-tabs" id="kTabs"><button data-modus="neu" class="an">Neu</button><button data-modus="log">Log</button></div>
-    <h1><a href="./" class="home-link" title="Zur Startseite">Plyus</a></h1>
-    <div class="chips" id="chips"></div>
-    <div class="imp" id="imp" hidden><div class="eyebrow"><span>Lagedaten</span><span id="impSrc"></span></div><div class="chips" id="impChips"></div></div>
-    <div class="search" id="searchWrap" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM15 15l6 6"/></svg><input id="q" type="search" placeholder="Suchen …" autocomplete="off" aria-label="Einträge durchsuchen"></div>
-    <div class="legend" id="legend"></div>
-  </div>
+  <div class="ph"><h2 class="k-titel">Neueste Gewinne</h2></div>
   <div class="list" id="list"><div class="empty">Lädt …</div></div>
-  <div class="pf"><span class="cur" id="cur">Koordinaten: Maus über die Karte</span><span id="count"></span></div>
 </section>
 
-<button class="pille" id="pille" aria-expanded="false" aria-controls="panel" title="Neueste Veränderungen"><img src="bild/logo.svg" alt=""><svg class="szug-k" viewBox="0 0 558.8 100" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z"/></g></svg><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M6 15l6-6 6 6"/></svg><span class="sr">Plyus – neueste Veränderungen</span></button>
-<button class="reopen" id="reopen" title="Leiste einblenden" aria-label="Leiste einblenden"><img src="bild/logo.svg" alt="" width="40" height="22"><span>Plyus</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M9 6l6 6-6 6"/></svg></button>
+<button class="pille" id="pille" aria-expanded="false" aria-controls="panel" title="Neueste Gewinne"><svg class="szug-k" viewBox="0 0 558.8 100" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><g transform="matrix(1.22 0 -0.244 1 24.4 0)"><path d="M0.0 2.2Q0.0 0.0 2.2 0.0L81.8 0.0Q86.0 0.0 86.0 4.2L86.0 60.7Q86.0 64.3 82.4 64.3L35.4 64.3Q35.0 64.3 35.0 64.8L35.0 100.0L0.0 100.0ZM55.5 18.2L62.5 18.2L62.5 28.7L73.0 28.7L73.0 35.7L62.5 35.7L62.5 46.2L55.5 46.2L55.5 35.7L45.0 35.7L45.0 28.7L55.5 28.7Z"/><path d="M93.0 0.0L121.0 0.0L121.0 70.9Q121.0 71.3 121.4 71.3L177.2 71.3Q179.0 71.3 179.0 73.2L179.0 100.0L97.2 100.0Q93.0 100.0 93.0 95.8Z"/><path d="M128.0 0.0L156.0 0.0L156.0 35.3Q156.0 36.0 156.7 36.0L185.3 36.0Q186.0 36.0 186.0 35.3L186.0 0.0L214.0 0.0L214.0 100.0L186.0 100.0L186.0 64.8Q186.0 64.3 185.6 64.3L131.9 64.3Q128.0 64.3 128.0 60.4Z"/><path d="M221.0 0.0L249.0 0.0L249.0 63.5Q249.0 64.3 249.8 64.3L284.2 64.3Q285.0 64.3 285.0 63.5L285.0 0.0L313.0 0.0L313.0 95.8Q313.0 100.0 308.8 100.0L225.2 100.0Q221.0 100.0 221.0 95.8Z"/><path d="M320.0 3.4Q320.0 0.0 323.4 0.0L436.0 0.0Q438.0 0.0 438.0 2.0L438.0 26.7Q438.0 28.7 436.0 28.7L352.5 28.7Q352.0 28.7 352.0 29.2L352.0 35.2Q352.0 35.7 352.5 35.7L434.9 35.7Q438.0 35.7 438.0 38.7L438.0 96.1Q438.0 100.0 434.1 100.0L322.0 100.0Q320.0 100.0 320.0 98.0L320.0 73.3Q320.0 71.3 322.0 71.3L405.5 71.3Q406.0 71.3 406.0 70.8L406.0 64.8Q406.0 64.3 405.5 64.3L323.1 64.3Q320.0 64.3 320.0 61.3Z"/></g></svg><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M6 15l6-6 6 6"/></svg><span class="sr">Plyus – neueste Gewinne</span></button>
 <div class="tl" id="tl" hidden>
   <div class="tl-top"><span class="eyebrow" id="tlLbl">Verlauf</span><span class="tl-info" id="tlInfo"></span></div>
   <div class="tl-row">
@@ -298,21 +243,23 @@ body.k-auf .tl{opacity:0;pointer-events:none}
 <script>
 const K = Karte, $ = id => document.getElementById(id), esc = K.esc;
 const GROUPS = {symbol:"Symbole", linie:"Linien & Pfeile", flaeche:"Flächen"};
-const CHIP = {symbol:"Symbole", linie:"Linien", flaeche:"Flächen"};
 const groupOf = el => el.typ==="pfeil" ? "linie" : el.typ;
 const active = new Set(Object.keys(GROUPS));
-let DATA = K.emptyData(), sel = null, markers = [], query = "";
+let DATA = K.emptyData(), sel = null, markers = [];
 const mq = window.matchMedia("(max-width:720px)");
-if(mq.matches) $("panel").classList.add("closed");
 
-/* Menü-Leiste: immer nur ein Menü offen, damit nichts übereinander liegt */
+/* Tools oben mittig: der Knopf fächert sich in Ansicht, Messen, Verlauf (und am PC Aufnahme) auf.
+   Immer nur ein Menü offen, damit nichts übereinander liegt. */
 function setDock(name){
   ["ansicht","wz","tl"].forEach(n=>{ const on = n===name; document.body.classList.toggle("d-"+n, on);
     const b = $("dock").querySelector(`[data-d=${n}]`); if(b) b.classList.toggle("on", on); });
   if(name !== "wz" && window.WZ && WZ.active()) WZ.stop();
-  if(name){ select(null); document.body.classList.remove("k-auf"); }
+  if(name){ toolsAuf(true); select(null); document.body.classList.remove("k-auf"); }
 }
-$("dock").querySelectorAll("button[data-d],button[data-link]").forEach(b=>b.onclick=()=>b.dataset.link ? (location.href = b.dataset.link) : setDock(document.body.classList.contains("d-"+b.dataset.d) ? null : b.dataset.d));
+function toolsAuf(on){ document.body.classList.toggle("t-auf", on); $("toolsKnopf").setAttribute("aria-expanded", on); if(!on) setDock(null); }
+$("toolsKnopf").onclick = ()=>toolsAuf(true);
+$("dock").querySelector("[data-x=zu]").onclick = ()=>toolsAuf(false);
+$("dock").querySelectorAll("button[data-d]").forEach(b=>b.onclick=()=>setDock(document.body.classList.contains("d-"+b.dataset.d) ? null : b.dataset.d));
 /* Aufnahmefenster: zeigt nur die Karte (ohne Leisten und Werkzeuge) und folgt allem, was hier passiert */
 let aufnahme = null;
 $("dock").querySelector("[data-aufnahme]").onclick = ()=>{
@@ -327,31 +274,18 @@ $("deck").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("deck").queryS
 $("mixfarbe").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("mixfarbe").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); const d = b.dataset.f === "dunkel"; document.body.classList.toggle("hell", !d); map.setMixDunkel(d); });
 $("drei").firstElementChild.onclick = function(){ const on = !this.classList.contains("on"); this.classList.toggle("on", on); this.setAttribute("aria-pressed", on); map.set3D(on); };
 $("view").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("view").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); map.setGlobe(b.dataset.v==="globe"); });
-$("legend").innerHTML = Object.values(K.SIDES).map(s=>`<span><i style="background:${s.color}"></i>${s.short}</span>`).join("") + `<span>- - - vermutet</span>`;
 
-/* Lagedaten-Ebenen (Import) */
-const impOff = new Set();
+/* Lagedaten (Import): Liste und Auswahl-Ebenen nachziehen */
 const fzHash = location.hash;
 let chgDeep = /^#chg=(.+)$/.exec(location.hash);
-function renderImp(d){
+function renderImp(){
   setTimeout(()=>{ renderList(); ensureChgLayers();
     if(chgDeep){ const cid = decodeURIComponent(chgDeep[1]); chgDeep = null; if(K.changes().some(f=>f.properties.cid===cid)) setTimeout(()=>chgSelect(cid, true), 300); } }, 0);
-  const meta = d && d.meta; if(!meta || !meta.ebenen || !meta.ebenen.length) return;
-  const col = id=>{ if(id==="aenderungen") return "linear-gradient(135deg,#ff1f3d 50%,#1f8bff 50%)";
-    const fs = d.features.filter(x=>x.properties.ebene===id); if(!fs.length) return "#888";
-    const area = fs.find(x=>x.properties.art==="flaeche");
-    if(area && fs.every(x=>x.properties.art!=="symbol")) return area.properties.fuellung;
-    const sides = [...new Set(fs.filter(x=>x.properties.art==="symbol").map(x=>x.properties.sidc[1]))].map(k=>(K.SIDES[k]||K.SIDES.U).color);
-    return sides.length > 1 ? `linear-gradient(135deg,${sides[0]} 50%,${sides[1]} 50%)` : sides[0]; };
-  $("imp").hidden = false;
-  $("impSrc").textContent = meta.quelle || "";
-  $("impChips").innerHTML = meta.ebenen.map(l=>`<button class="chip${impOff.has(l.id)?"":" on"}" data-imp="${esc(l.id)}" aria-pressed="${!impOff.has(l.id)}"><i style="background:${esc(col(l.id))}"></i>${esc(l.name)}</button>`).join("");
-  $("impChips").querySelectorAll("[data-imp]").forEach(b=>b.onclick=()=>{ const id=b.dataset.imp; impOff.has(id)?impOff.delete(id):impOff.add(id); map.setImportHidden([...impOff]); renderImp(d); });
 }
 const startGlobe = !window.matchMedia("(max-width:720px)").matches;
 document.querySelector(`#view [data-v="${startGlobe?"globe":"flat"}"]`).classList.add("on");
 let introDone = false;
-const map = K.createMap({onImport: d=>renderImp(d), onNotice: t=>toast(t), globe:startGlobe, container:"map", style:"sat", onStyle: m=>{
+const map = K.createMap({onImport: ()=>renderImp(), onNotice: t=>toast(t), globe:startGlobe, container:"map", style:"sat", onStyle: m=>{
   K.addDataLayers(m, "lage", K.toFeatures(visible()));
   m.on("click","lage-hit", onHit); m.on("click","lage-area-fill", onHit);
   ["lage-hit","lage-area-fill"].forEach(l=>{ m.on("mouseenter",l,()=>m.getCanvas().style.cursor="pointer"); m.on("mouseleave",l,()=>m.getCanvas().style.cursor=""); });
@@ -369,7 +303,7 @@ map.on("click", e=>{
 window.plyusMap = map;
 /* Aus der Fahrzeugliste: karte.html#fz=Name öffnet „Fahrzeug setzen“ mit diesem Fahrzeug */
 setTimeout(()=>{ const m = /^#fz=(.+)$/.exec(fzHash); if(m && window.WZ && WZ.fahrzeug){ try{ setDock("wz"); }catch(e){} WZ.fahrzeug(decodeURIComponent(m[1])); } }, 600);
-window.WZ = window.Werkzeuge ? Werkzeuge.init(map, {onStart: ()=>{ select(null); if(mq.matches){ $("panel").classList.add("closed"); panelOffset(); } }}) : null;
+window.WZ = window.Werkzeuge ? Werkzeuge.init(map, {onStart: ()=>{ select(null); document.body.classList.remove("k-auf"); }, onZurueck: ()=>setDock(null)}) : null;
 const hideLoading = ()=>{ const rest = Math.max(0, 1400 - performance.now()); setTimeout(()=>{ $("loading").classList.add("done"); setTimeout(()=>{ $("loading").hidden = true; }, 900); }, rest); };
 
 map.on("load", hideLoading); setTimeout(hideLoading, 8000);
@@ -381,12 +315,9 @@ map.on("click", e=>{
   if(!map.queryRenderedFeatures(e.point,{layers:["lage-hit","lage-area-fill"]}).length) select(null);
 });
 const fmtLL = (lat,lng)=>`${Math.abs(lat).toFixed(4)}° ${lat>=0?"N":"S"}  ${Math.abs(lng).toFixed(4)}° ${lng>=0?"O":"W"}`;
-let curLL = null; map.on("mousemove", e=>{ if(!curLL) requestAnimationFrame(()=>{ $("cur").textContent = fmtLL(curLL.lat, curLL.lng); curLL = null; }); curLL = e.lngLat; });
 
 fetch("karte.json", {cache:"no-cache"}).then(r=>r.ok?r.json():K.emptyData()).catch(()=>K.emptyData()).then(d=>{
   DATA = d && d.elemente ? d : K.emptyData();
-  if(DATA.aktualisiert) $("stand").textContent = "Lagekarte Ukraine · Stand " + new Date(DATA.aktualisiert).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
-  $("searchWrap").hidden = DATA.elemente.length < 6;
   render();
   const id = decodeURIComponent(location.hash.slice(1));
   const at = /^@(-?[\d.]+),(-?[\d.]+)(?:,([\d.]+))?$/.exec(id);
@@ -394,20 +325,14 @@ fetch("karte.json", {cache:"no-cache"}).then(r=>r.ok?r.json():K.emptyData()).cat
   else if(id){ const el = DATA.elemente.find(x=>x.id===id); if(el){ const go = ()=>select(el, true); map.loaded() ? go() : map.once("load", go); } }
 });
 
-const matches = el => !query || ((el.name||"")+" "+(el.text||"")+" "+K.describe(el)+" "+(el.zusatz||"")).toLowerCase().includes(query);
 function visible(){ return DATA.elemente.filter(el=>active.has(groupOf(el))); }
 function render(){
   let src = null; try{ src = map.getSource("lage"); }catch(e){}
   if(src) src.setData(K.toFeatures(visible()));
   markers.forEach(m=>m.remove());
   markers = visible().filter(el=>el.typ==="symbol").map(el=>{ const m = K.symbolMarker(map, el, {onClick:select}); m._id = el.id; return m; });
-  renderChips(); renderList(); highlight();
+  renderList(); highlight();
   if(!introDone){ introDone = true; K.introRings(map, DATA.elemente); }
-}
-function renderChips(){
-  const n = g => DATA.elemente.filter(el=>groupOf(el)===g).length;
-  $("chips").innerHTML = Object.entries(CHIP).map(([k,v])=>`<button class="chip${active.has(k)?" on":""}" data-k="${k}" aria-pressed="${active.has(k)}">${v} <b>${n(k)}</b></button>`).join("");
-  $("chips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{ const k=b.dataset.k; active.has(k)?active.delete(k):active.add(k); if(sel && !active.has(groupOf(sel))) select(null); render(); });
 }
 function icon(el){
   if(el.typ==="symbol") return `<span class="ic">${K.symbolSVG(el,18).svg}</span>`;
@@ -425,37 +350,21 @@ const nfA = new Intl.NumberFormat("de-DE",{maximumFractionDigits:1});
 const CCOL = {ru:"#d8344a", ua:"#2f7fe0", grau:"#c9c9c9"};
 const dirLabel = x=>/richtung/i.test(x) ? x : x + "-Richtung";
 function chgTitle(p){ return p.name || K.SEITE[p.richtung] || "Veränderung"; }
-function chgMatch(f, gname){ if(!query) return true; const p = f.properties;
-  return [p.name, p.direktion, gname, K.SEITE[p.richtung], fmtDate(p.datum)].some(v=>v && String(v).toLowerCase().includes(query)); }
-let listModus = "neu";
-document.querySelectorAll("#kTabs [data-modus]").forEach(b=>b.onclick = e=>{ e.stopPropagation(); listModus = b.dataset.modus; document.querySelectorAll("#kTabs [data-modus]").forEach(x=>x.classList.toggle("an", x === b)); renderList(); });
+const LISTE_MAX = 8;
 function renderList(){
   const d = K.importData(); if(d && K.ensureCids(d)) K.refreshImport(map);
-  const all = K.changes(d).slice().sort((a,b)=>(b.properties.datum||"").localeCompare(a.properties.datum||""));
-  const groups = K.gruppen(d), gName = id=>{ const g = groups.find(x=>x.id===id); return g ? g.name : ""; };
-  const shown = all.filter(f=>chgMatch(f, gName(f.properties.gruppe)) && (listModus === "log" || !f.properties.alt));
-  let secs;
-  if(listModus === "log"){                                       // Log: jede Änderung, nach Monat sortiert
-    secs = []; for(const f of shown){ const m = (f.properties.datum||"").slice(0,7); let s = secs[secs.length-1];
-      if(!s || s.m !== m){ const dt = new Date(m + "-01T12:00:00"); s = {m, mon:true, name: isNaN(dt) ? "Ohne Datum" : dt.toLocaleDateString(document.documentElement.lang === "en" ? "en-GB" : "de-DE", {month:"long", year:"numeric"}), items:[]}; secs.push(s); }
-      s.items.push(f); }
-  } else {
-    secs = groups.map(g=>({name:g.name, items: shown.filter(f=>f.properties.gruppe===g.id)}));
-    secs.push({name: groups.length ? "Weitere Veränderungen" : "Veränderungen", items: shown.filter(f=>!groups.some(g=>g.id===f.properties.gruppe))});
-  }
-  let html = "";
-  for(const sec of secs){ if(!sec.items.length) continue;
-    const ru = sec.items.filter(f=>f.properties.richtung==="ru").reduce((t,f)=>t+K.changeArea(f),0), ua = sec.items.filter(f=>f.properties.richtung==="ua").reduce((t,f)=>t+K.changeArea(f),0);
-    html += `<div class="grp${sec.mon ? " mon" : ""}"><span>${esc(sec.name)}</span><span>${ru?`<em class="ru">+${nfA.format(ru)}</em>`:""}${ua?`<em class="ua">+${nfA.format(ua)}</em>`:""}${ru||ua?" km²":""} · ${sec.items.length}</span></div>`;
-    html += sec.items.map(f=>{ const p = f.properties;
-      const sub = [p.direktion ? dirLabel(p.direktion) : "", fmtDate(p.datum)].filter(Boolean).join(" · ");
-      return `<button class="item chg${chgSel===p.cid?" sel":""}${p.alt?" alt":""}" data-cid="${esc(p.cid)}"><span class="ic"><i class="cq" style="background:${CCOL[p.richtung]||CCOL.grau}"></i></span><span><b>${esc(chgTitle(p))}</b><span class="c">${esc(sub)}</span></span><span class="km">${nfA.format(K.changeArea(f))} km²</span></button>`; }).join("");
-  }
-  $("list").innerHTML = html || `<div class="empty">${!all.length ? "In diesem Stand gibt es noch keine eingetragenen Veränderungen." : "Nichts gefunden."}</div>`;
-  $("list").querySelectorAll(".item[data-cid]").forEach(b=>b.onclick=()=>{ chgSelect(chgSel===b.dataset.cid ? null : b.dataset.cid, true); });
-  $("count").textContent = `${all.length} Veränderung${all.length===1?"":"en"}`;
-  $("searchWrap").hidden = all.length < 6;
+  const all = K.changes(d).filter(f=>!f.properties.alt).sort((a,b)=>(b.properties.datum||"").localeCompare(a.properties.datum||""));
+  const html = all.slice(0, LISTE_MAX).map(f=>{ const p = f.properties;
+    const sub = [p.direktion ? dirLabel(p.direktion) : "", fmtDate(p.datum)].filter(Boolean).join(" · ");
+    return `<button class="item chg${chgSel===p.cid?" sel":""}" data-cid="${esc(p.cid)}"><span class="ic"><i class="cq" style="background:${CCOL[p.richtung]||CCOL.grau}"></i></span><span><b>${esc(chgTitle(p))}</b><span class="c">${esc(sub)}</span></span><span class="km">${nfA.format(K.changeArea(f))} km²</span></button>`; }).join("");
+  $("list").innerHTML = html ? html + '<a class="k-alle" href="gewinne.html">Alle Gewinne anzeigen</a>'
+    : '<div class="empty">In diesem Stand gibt es noch keine eingetragenen Veränderungen.</div>';
+  $("list").querySelectorAll(".item[data-cid]").forEach(b=>b.onclick=()=>chgSelect(b.dataset.cid, true, true));
+  farbe(all[0]);
 }
+/* Pille: die dünne Leuchtlinie oben zeigt, wer zuletzt vorgerückt ist */
+function farbe(f){ const r = f && f.properties.richtung;
+  document.documentElement.style.setProperty("--glow", r === "ru" ? "255,70,90" : r === "ua" ? "70,150,255" : "255,255,255"); }
 function ensureChgLayers(m){
   m = m || map;
   try{
@@ -465,10 +374,11 @@ function ensureChgLayers(m){
     const f = ["==",["get","cid"], chgSel || "__none"]; m.setFilter("chg-sel-fill", f); m.setFilter("chg-sel-line", f);
   }catch(e){}
 }
-function chgSelect(cid, fly){
+function chgSelect(cid, fly, ohneKarte){
   if(cid && sel) select(null);
   chgSel = cid || null; ensureChgLayers(); renderList();
   const card = $("card"), f = cid ? K.changes().find(x=>x.properties.cid===cid) : null;
+  if(f && ohneKarte){ card.hidden = true; if(mq.matches) document.body.classList.remove("k-auf"); if(fly) flyChg(f); return; }
   try{ history.replaceState(null, "", f ? "#chg=" + encodeURIComponent(cid) : location.pathname + (location.hash.startsWith("#stand=") ? location.hash : "")); }catch(e){}
   if(!f){ if(!sel) card.hidden = true; return; }
   const p = f.properties, g = K.gruppen().find(x=>x.id===p.gruppe);
@@ -484,12 +394,12 @@ function chgSelect(cid, fly){
     if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(()=>toast("Link kopiert"), ()=>prompt("Link:", url)); else prompt("Link:", url); };
   if(fly) flyChg(f);
 }
+/* Hinzoomen so, dass der Gewinn frei zwischen Tools oben und Pille/Liste unten liegt – auch am Handy */
 function flyChg(f){
-  if(mq.matches){ $("panel").classList.add("closed"); panelOffset(); }
-  const pad = mq.matches ? {top:200, bottom:110, left:40, right:70} : {top:80, bottom:80, left: document.body.classList.contains("panel-gone") ? 80 : 400, right:90};
-  try{ map.fitBounds(K.changeBounds(f), {padding:pad, maxZoom:11.5, duration:900}); }catch(e){}
+  const unten = document.body.classList.contains("k-auf") ? $("panel").offsetHeight + 100 : 90;
+  const pad = mq.matches ? {top:80, bottom:unten, left:28, right:28} : {top:90, bottom:unten, left:90, right:90};
+  try{ map.fitBounds(K.changeBounds(f), {padding:pad, maxZoom:12.5, duration:1100}); }catch(e){}
 }
-$("q").oninput = e=>{ query = e.target.value.trim().toLowerCase(); renderList(); };
 function highlight(){
   if(map.getLayer && map.getLayer("lage-sel")) map.setFilter("lage-sel",["==",["get","id"], sel && sel.typ!=="symbol" ? sel.id : "__none"]);
   markers.forEach(m=>m.getElement().classList.toggle("sel", !!sel && sel.id===m._id));
@@ -532,35 +442,12 @@ function select(el, fly){
 }
 document.addEventListener("keydown", e=>{ if(e.key==="Escape" && sel) select(null); });
 
-$("toggle").onclick = e=>{ e.stopPropagation(); $("panel").classList.toggle("closed"); panelOffset(); };
-/* Handy: Tippen auf Logo oder Kopf öffnet die zugeklappte Liste */
-$("panel").querySelector(".ph").addEventListener("click", e=>{
-  if(!mq.matches || !$("panel").classList.contains("closed")) return;
-  if(e.target.closest("input,#hide")) return;
-  e.preventDefault(); $("panel").classList.remove("closed"); panelOffset();
-});
-/* Leiste ganz ausblenden (bleibt gemerkt) */
-function setGone(on){ document.body.classList.toggle("panel-gone", on); try{ localStorage.setItem("plyus-leiste", on ? "aus" : "an"); }catch(e){} panelOffset(); }
-$("hide").onclick = ()=>setGone(true);
-$("reopen").onclick = ()=>{ if(mq.matches){ document.body.classList.remove("panel-gone"); $("panel").classList.remove("closed"); } else setGone(false); };
-/* Handy: Zustand "zugeklappt" an den Body spiegeln, damit statt der Leiste nur das Logo erscheint */
-function syncClosed(){ document.body.classList.toggle("m-closed", mq.matches && $("panel").classList.contains("closed")); panelOffset(); }
-new MutationObserver(syncClosed).observe($("panel"), {attributes:true, attributeFilter:["class"]});
-mq.addEventListener ? mq.addEventListener("change", syncClosed) : mq.addListener(syncClosed);
-syncClosed();
-try{ if(localStorage.getItem("plyus-leiste")==="aus" && !mq.matches) document.body.classList.add("panel-gone"); }catch(e){}
-function panelOffset(){ document.documentElement.style.setProperty("--panel-h", mq.matches && !document.body.classList.contains("panel-gone") && !document.body.classList.contains("m-closed") ? $("panel").offsetHeight+"px" : "0px"); }
-try{ new ResizeObserver(panelOffset).observe($("panel")); }catch(e){}
-mq.addEventListener ? mq.addEventListener("change", panelOffset) : mq.addListener(panelOffset);
-panelOffset();
-
 /* ===== Verlauf: zwischen den Updates spulen ===== */
 (function(){
   const TL = {list:[], i:-1, cache:{}, live:null, req:0, timer:0};
   const fmtDT = d=>new Date(d).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
   const fmtD = d=>new Date(d).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"2-digit"});
   const nfx = new Intl.NumberFormat("de-DE",{maximumFractionDigits:1});
-  const standText = $("stand").textContent;
   function sumText(s){ if(!s || !s.n) return "keine Frontänderung";
     const p = []; if(s.ru) p.push("+" + nfx.format(s.ru) + " km² ru"); if(s.ua) p.push("+" + nfx.format(s.ua) + " km² ua"); if(s.grau) p.push(nfx.format(s.grau) + " km² Grauzone");
     return p.join(" · ") || s.n + " Änderungen"; }
@@ -575,12 +462,11 @@ panelOffset();
     $("tlLbl").innerHTML = last ? "Aktueller Stand" : 'Älterer Stand';
     $("tlInfo").innerHTML = `<b>${TL.i+1}/${n}</b> · ${fmtDT(st.datum)}${st.titel ? " · " + esc(st.titel) : ""} · ${sumText(st.sum)}`;
     $("tlInfo").title = $("tlInfo").textContent;
-    $("stand").textContent = last ? standText : "Lagekarte Ukraine · Stand " + new Date(st.datum).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
     setHash();
   }
   function setHash(){ const st = TL.list[TL.i]; try{ history.replaceState(null, "", TL.i === TL.list.length-1 ? location.pathname : "#stand=" + st.id); }catch(e){} }
   function apply(lage, karte, datum){
-    K.setImportData(map, lage); renderImp(lage); K.setRefDate(map, datum);
+    K.setImportData(map, lage); renderImp(); K.setRefDate(map, datum);
     DATA = karte && karte.elemente ? karte : K.emptyData(); select(null); render(); setHash();
   }
   function go(i){
@@ -623,23 +509,13 @@ panelOffset();
   });
 })();
 
-/* ===== Pille unten: klappt die neuesten Veränderungen auf; Leuchtfarbe folgt der jüngsten Veränderung ===== */
+/* ===== Pille unten: klappt die neuesten Gewinne auf ===== */
 (function(){
-  const P = $("panel"), Pi = $("pille");
-  P.classList.remove("closed"); document.body.classList.add("panel-gone"); document.body.classList.remove("m-closed");
-  new MutationObserver(()=>{ if(P.classList.contains("closed")) P.classList.remove("closed"); if(!document.body.classList.contains("panel-gone")) document.body.classList.add("panel-gone"); }).observe(P, {attributes:true, attributeFilter:["class"]});
+  const Pi = $("pille");
   const auf = on=>{ if(on) setDock(null); document.body.classList.toggle("k-auf", on); Pi.setAttribute("aria-expanded", on); };
   Pi.onclick = e=>{ e.stopPropagation(); auf(!document.body.classList.contains("k-auf")); };
   map.on("click", ()=>auf(false));
   document.addEventListener("keydown", e=>{ if(e.key === "Escape") auf(false); });
-  const FARBE = {ru:"255,70,90", ua:"70,150,255", neutral:"255,255,255"};
-  function farbe(){
-    const g = $("list").querySelector(".grp"); let f = "neutral";
-    if(g){ const z = c=>{ const e = g.querySelector("em."+c); return e ? parseFloat(e.textContent.replace(/[^\d,]/g,"").replace(",", ".")) || 0 : 0; };
-      const ru = z("ru"), ua = z("ua"); if(ru || ua) f = ru >= ua ? "ru" : "ua"; }
-    document.documentElement.style.setProperty("--glow", FARBE[f]);
-  }
-  new MutationObserver(farbe).observe($("list"), {childList:true, subtree:true}); farbe();
 })();
 </script>
 </body>
