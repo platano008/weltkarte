@@ -9,3 +9,6 @@ npx -y mapshaper@0.6.102 /tmp/admin1.geojson \
   -simplify 6% keep-shapes \
   -o daten/russland.geojson precision=0.001 format=geojson
 ls -l daten/russland.geojson
+pip install --quiet shapely
+python3 tools/russland.py
+ls -l daten/russland.geojson
