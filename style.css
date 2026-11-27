@@ -63,8 +63,6 @@ h1{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-heigh
 .x:hover{color:var(--fg);border-color:var(--fg)}
 .x svg{width:14px;height:14px}
 
-/* Top-right switches */
-.switches{position:fixed;z-index:5;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .seg{display:flex;border:1px solid var(--line-2);background:rgba(0,0,0,.94)}
 .seg button{padding:7px 11px;font-size:13px;font-weight:600;color:var(--muted);border-right:1px solid var(--line-2)}
 .seg button:last-child{border-right:0}
@@ -100,7 +98,6 @@ h1{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-heigh
   .toggle svg{width:14px;height:14px;transition:transform .2s}
   .panel.closed .toggle svg{transform:rotate(180deg)}
   h1{font-size:24px}
-  .switches{left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));flex-direction:row;justify-content:space-between}
   .maplibregl-ctrl-top-right{top:52px}
   .card{left:12px;right:12px;width:auto;top:max(60px,calc(env(safe-area-inset-top) + 60px))}
   .mt-logo{left:max(10px,env(safe-area-inset-left))}

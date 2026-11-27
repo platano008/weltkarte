@@ -17,7 +17,7 @@
 <script>/* alte geteilte Links (index.html#…) führen weiter zur Karte */
 if(location.hash.length > 1 && !/^#(lage|zeigt|arsenal)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611271031">
+<link rel="stylesheet" href="style.css?v=202611271405">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -165,16 +165,11 @@ section.blk{padding:72px 0 8px}
 .k-kopf .w-titel svg{display:inline-block;width:.85em;height:.85em;margin-left:.2em;vertical-align:-.08em}
 /* jede Veränderung in einem runden Rahmen wie die Berichte-Karten */
 .chg{display:grid;gap:12px}
-.chg .row{padding:18px 22px;border:1px solid rgba(255,255,255,.75);border-radius:22px!important;overflow:hidden;background:rgba(0,0,0,.62);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.chg .row{padding:18px 22px;border:1px solid rgba(255,255,255,.75);border-radius:22px!important;overflow:hidden;background:#000}
 .chg .row:hover{background:rgba(20,20,20,.72)}
 /* Satellitenbild (Esri) unter den neuesten Veränderungen, über die ganze Breite, zu den Rändern ins Schwarze verblendet */
 #lage{position:relative;isolation:isolate}
 #lage .chg{margin-bottom:34px}
-.sat-bg{position:absolute;top:0;bottom:0;left:calc(50% - 50vw);width:100vw;z-index:-1;overflow:hidden;pointer-events:none}
-.sat-bg .kacheln{position:absolute;left:50%;top:50%;display:grid;grid-template-columns:repeat(6,256px);transform:translate(-50%,-50%) scale(var(--sat-s,1.25))}
-.sat-bg img{display:block;width:256px;height:256px}
-.sat-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(#000,rgba(0,0,0,.45) 22%,rgba(0,0,0,.45) 78%,#000)}
-.sat-quelle{position:absolute;right:16px;bottom:8px;font-size:10px;color:rgba(255,255,255,.45)}
 /* Veränderungen wie ein Level-up: Zeilen fliegen ein, XP-Leiste füllt sich, Fläche zählt hoch und springt kurz auf */
 .row{position:relative}
 .row .xp{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.06);overflow:hidden;pointer-events:none}
@@ -217,13 +212,15 @@ footer a{color:var(--muted)}
   .stat:nth-child(3){border-left:0;padding-left:0}
   .stat:nth-child(n+3){border-top:1px solid var(--line)}
   .feat{grid-template-columns:1fr}
-  .row{grid-template-columns:72px minmax(0,1fr) auto;row-gap:4px;column-gap:12px}
-  .chg .row{padding:14px 16px}
-  .chg .tag{display:block;line-height:1.35}
+  /* Handy: links Flagge + Titel, darunter das Datum; rechts groß die Fläche */
+  .row{grid-template-columns:minmax(0,1fr) auto;row-gap:6px;column-gap:14px}
+  .chg .row{padding:16px 18px}
+  .chg .tag{display:block;grid-row:1;line-height:1.3}
   .chg .tag i{vertical-align:-2px;margin-right:8px}
   .chg .tag .neu{display:inline-block;margin-left:6px;vertical-align:1px}
-  .row .c{grid-column:2/4}
-  .row .go{display:none}
+  .row .d{grid-row:2;grid-column:1;font-size:12px;padding-left:22px}
+  .row .a{grid-row:1/3;grid-column:2}
+  .row .c,.row .go{display:none}
 }
 @media (max-width:640px){
   .hero{min-height:88vh}
@@ -355,8 +352,6 @@ a.gate:hover .gv svg{transform:scale(1.035)}
 .gd-n.ru{fill:#d06a75}
 .gd-b{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-dasharray:1;animation:gdb 12s linear var(--w) infinite both}
 @keyframes gdb{0%{stroke-dashoffset:1;opacity:1}22%{stroke-dashoffset:0;opacity:1}30%{stroke-dashoffset:0;opacity:.25}36%,100%{stroke-dashoffset:0;opacity:0}}
-.gd-f{animation:gdf 12s linear var(--w) infinite both}
-@keyframes gdf{0%{offset-distance:0%;opacity:1}22%{offset-distance:100%;opacity:1}24%,100%{offset-distance:100%;opacity:0}}
 .gd-z{fill:none;stroke-width:2;transform-box:fill-box;transform-origin:center;animation:gdz 12s ease-out var(--w) infinite both}
 @keyframes gdz{0%,21%{opacity:0;transform:scale(.2)}23%{opacity:1}36%,100%{opacity:0;transform:scale(1.6)}}
 /* Blog-Bild: Bericht, der sich schreibt */
@@ -623,7 +618,6 @@ a.gate:hover .gv .eb{transform:translateZ(var(--z))}
 .gd-ru{fill:rgba(194,29,46,.16);stroke:#b23a47}
 .gd-s{fill:none;stroke:rgba(255,255,255,.08);stroke-width:2;stroke-dasharray:1;animation:gdb 15s linear var(--w) infinite both}
 .gd-b{stroke-width:2.6;animation-duration:15s}
-.gd-f{animation-duration:15s}
 .gd-z{animation-duration:15s;stroke-width:2.5}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.v-front,.v-ua{stroke-dasharray:none}.ov .run,.radar{display:none}.rv,.tilt{opacity:1;transform:none}}
 
@@ -782,9 +776,9 @@ html.lite .tick div{animation-duration:70s}
 @media (max-width:699px){.gate.breit,.gates .gate.breit{--rh:calc(clamp(320px,96vw,440px)*.76)}.gate.breit .grahmen,.gate.breit .gt{inset:45px 3%}}
 
 /* ===== Weiße Berichte-Fläche ===== */
-.weiss{position:relative;z-index:4;background:#fff;color:#0a0a0a;margin-top:clamp(150px,16vw,220px);padding:clamp(10px,2vw,30px) 0 clamp(70px,9vw,120px)}
+.weiss{position:relative;z-index:4;background:#fff;color:#0a0a0a;margin:clamp(150px,16vw,220px) 0 clamp(44px,6vw,72px);padding:clamp(10px,2vw,30px) 0 clamp(36px,5vw,64px)}
 .w-kante{position:absolute;left:0;right:0;bottom:100%;width:100%;height:clamp(150px,16vw,220px);display:block;margin-bottom:-1px}
-.w-kante.unten{top:100%;bottom:auto;height:24px;margin:0 0 0;margin-top:-1px}
+.w-kante.unten{top:100%;bottom:auto;height:clamp(44px,6vw,72px);margin:-1px 0 0}
 .w-flaeche{fill:#fff}
 .w-rand{fill:none;stroke:#8f8f8f;stroke-width:5;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 .w-kante.unten .w-rand{stroke-width:4}
@@ -871,16 +865,10 @@ html.lite .tick div{animation-duration:70s}
 .be-bild::after{box-shadow:inset 0 0 10px 9px #fff,inset 0 0 4px 4px #fff!important}
 /* Telegram / X auf Weiß */
 .w-sozial{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:clamp(30px,5vw,56px)}
-.w-sozial span{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#7a7a7a;margin-right:6px}
 .wb{width:54px;height:54px;display:grid;place-items:center;border-radius:50%!important;background:#0a0a0a;color:#fff;text-decoration:none;transition:transform .3s cubic-bezier(.2,.7,.2,1),background .3s}
 .wb svg{width:22px;height:22px;fill:currentColor}
 .wb:hover{transform:translateY(-3px)}
-.w-sozial.unten .wb{border:1px solid rgba(255,255,255,.55);background:linear-gradient(rgba(0,0,0,.28),rgba(0,0,0,.28)),var(--sat) center/cover}
-.w-sozial.unten .wb[data-sozial=telegram]{--sat:url("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/2827/4961")}
-.w-sozial.unten .wb[data-sozial=twitter]{--sat:url("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/2830/4966")}
-.w-sozial.unten .wb svg{filter:drop-shadow(0 1px 3px rgba(0,0,0,.7))}
 .wb.bald{cursor:default}
-.weiss{padding-bottom:clamp(90px,12vw,150px)!important}
 .w-pfeil{position:absolute;z-index:200;left:50%;top:-38px;width:34px;height:38px;pointer-events:none;opacity:0}
 .w-jet{position:absolute;inset:0}
 .w-jet svg{position:absolute;inset:0;width:100%;height:100%;fill:#8f8f8f}
@@ -889,21 +877,9 @@ html.lite .tick div{animation-duration:70s}
 .w-pfeil.los .w-spur{animation:wSpur 3.2s cubic-bezier(.5,0,.75,.4) .2s forwards}
 @keyframes wJet{0%{transform:translateY(0) scale(1);opacity:1}12%{transform:translateY(6px) scale(1)}75%{opacity:1}100%{transform:translateY(-460px) scale(.5);opacity:0}}
 @keyframes wSpur{0%{height:0;opacity:0}12%{opacity:1}75%{opacity:.9}100%{height:300px;opacity:0}}
-/* Ende der weißen Fläche: Front, dahinter rote Zone; Telegram/X untereinander auf der Front */
-.w-kante.unten{height:clamp(220px,22vw,280px)!important}
-.w-front{fill:none;stroke:#ff3550;stroke-width:3;vector-effect:non-scaling-stroke;stroke-linejoin:round}
-/* Stoßpfeile wie auf der Karte: schieben die Front an einzelnen Stellen vor */
-.w-pfeile{position:absolute;left:0;right:0;top:100%;height:clamp(220px,22vw,280px);margin-top:-1px;pointer-events:none;z-index:2}
-.w-pfeile svg{display:block;width:100%;height:100%;overflow:visible}
-.w-pfeile path{fill:#ff3550;stroke:#5c0012;stroke-width:1.5;vector-effect:non-scaling-stroke;stroke-linejoin:round;filter:drop-shadow(0 5px 8px rgba(0,0,0,.4))}
-.weiss{padding-bottom:clamp(60px,8vw,90px)!important;margin-bottom:clamp(220px,22vw,280px)}
-.w-sozial.unten{position:absolute;left:50%;top:100%;z-index:3;margin:0;transform:translate(-50%,calc(clamp(220px,22vw,280px)*.36 - 50%));flex-direction:column;gap:12px}
-.w-sozial.unten .wb{box-shadow:0 10px 26px -8px rgba(0,0,0,.5)}
-/* Übergang ins Rote beginnt direkt unter den Punkten; Telegram/X nebeneinander und breiter */
-.weiss{padding-bottom:14px!important}
-.w-sozial.unten{flex-direction:row;gap:14px}
-.w-sozial.unten .wb{width:96px;height:52px;border-radius:999px!important}
-.w-sozial.unten .wb svg{width:24px;height:24px}
+/* Ende der weißen Fläche: ruhige Wellenkante mit grauem Rand wie oben; Telegram/X als schwarze Pillen unter den Berichten */
+.w-sozial .wb{width:96px;height:52px;border-radius:999px!important}
+.w-sozial .wb svg{width:24px;height:24px}
 /* Jet wird über dem Schwarz weiß */
 .w-pfeil.los .w-jet svg{animation:wJetFarbe 3.2s cubic-bezier(.5,0,.75,.4) .2s forwards}
 @keyframes wJetFarbe{0%,30%{fill:#8f8f8f}40%,100%{fill:#fff}}
@@ -928,7 +904,7 @@ html.lite .tick div{animation-duration:70s}
 #chg .row.getroffen,#chg.xp-an .row.getroffen{animation:getroffen .7s cubic-bezier(.3,.7,.4,1)}
 @keyframes getroffen{0%{background:rgba(255,150,60,.35);transform:translateY(3px)}30%{transform:translateY(-2px)}100%{background:transparent;transform:none}}
 </style>
-<script src="lang.js?v=202611271031" defer></script>
+<script src="lang.js?v=202611271405" defer></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -986,17 +962,13 @@ html.lite .tick div{animation-duration:70s}
     <div class="wrap">
       <div class="w-kopf"><a class="w-titel" href="blog.html"><h2>Berichte</h2><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a></div>
       <div class="be-liste" id="beListe"></div>
-    </div>
-    <svg class="w-kante unten" viewBox="0 0 1200 260" preserveAspectRatio="none" aria-hidden="true">
-      <defs><linearGradient id="wRot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".06" stop-color="#fbe3e6"/><stop offset=".36" stop-color="#e64a5c"/><stop offset=".7" stop-color="#c8102e"/><stop offset="1" stop-color="#a50e26"/></linearGradient>
-      <linearGradient id="wGlut" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c8102e" stop-opacity=".45"/><stop offset="1" stop-color="#c8102e" stop-opacity="0"/></linearGradient></defs>
-      <path id="wuRot" fill="url(#wRot)"/><path id="wuGlut" fill="url(#wGlut)"/><path id="wuFront" class="w-front"/>
-    </svg>
-    <div class="w-pfeile" id="wPfeile" aria-hidden="true"></div>
-      <div class="w-sozial unten">
+      <div class="w-sozial">
         <a class="wb" data-sozial="telegram" href="#" target="_blank" rel="noopener" aria-label="Telegram"><svg viewBox="0 0 24 24"><path d="M21.5 4.2L2.9 11.4c-.9.4-.9 1.6.1 1.9l4.6 1.4 1.8 5.6c.3.8 1.3 1 1.9.4l2.6-2.5 4.7 3.5c.7.5 1.7.1 1.9-.7L23 5.4c.2-.9-.7-1.6-1.5-1.2zM9.8 14.6l-.4 3.6-1.3-4.3 9.6-6.3-7.9 7z"/></svg></a>
         <a class="wb" data-sozial="twitter" href="#" target="_blank" rel="noopener" aria-label="X / Twitter"><svg viewBox="0 0 24 24"><path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.9 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg></a>
       </div>
+    </div>
+    <svg class="w-kante unten" viewBox="0 0 1200 60" preserveAspectRatio="none" aria-hidden="true"><path class="w-flaeche" d="M0 40.8L20 42.2L40 43.5L60 44.5L80 45.3L100 45.8L120 46.0L140 45.9L160 45.5L180 44.8L200 43.9L220 42.7L240 41.3L260 39.7L280 38.0L300 36.2L320 34.3L340 32.5L360 30.6L380 28.9L400 27.2L420 25.8L440 24.5L460 23.5L480 22.7L500 22.2L520 22.0L540 22.1L560 22.5L580 23.2L600 24.1L620 25.3L640 26.7L660 28.3L680 30.0L700 31.8L720 33.7L740 35.5L760 37.4L780 39.1L800 40.8L820 42.2L840 43.5L860 44.5L880 45.3L900 45.8L920 46.0L940 45.9L960 45.5L980 44.8L1000 43.9L1020 42.7L1040 41.3L1060 39.7L1080 38.0L1100 36.2L1120 34.3L1140 32.5L1160 30.6L1180 28.9L1200 27.2L1200 0L0 0Z"/><path class="w-rand" d="M0 40.8L20 42.2L40 43.5L60 44.5L80 45.3L100 45.8L120 46.0L140 45.9L160 45.5L180 44.8L200 43.9L220 42.7L240 41.3L260 39.7L280 38.0L300 36.2L320 34.3L340 32.5L360 30.6L380 28.9L400 27.2L420 25.8L440 24.5L460 23.5L480 22.7L500 22.2L520 22.0L540 22.1L560 22.5L580 23.2L600 24.1L620 25.3L640 26.7L660 28.3L680 30.0L700 31.8L720 33.7L740 35.5L760 37.4L780 39.1L800 40.8L820 42.2L840 43.5L860 44.5L880 45.3L900 45.8L920 46.0L940 45.9L960 45.5L980 44.8L1000 43.9L1020 42.7L1040 41.3L1060 39.7L1080 38.0L1100 36.2L1120 34.3L1140 32.5L1160 30.6L1180 28.9L1200 27.2"/></svg>
+
 
   </section>
   <div class="wrap">
@@ -1010,8 +982,6 @@ html.lite .tick div{animation-duration:70s}
   <section class="blk" id="lage">
     <div class="k-kopf rv"><a class="w-titel" href="karte.html"><h2>Neueste Veränderungen</h2><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a></div>
     <div class="chg rv" id="chg"><div class="empty-l">Lädt …</div></div>
-    <div class="sat-bg" id="satBg" aria-hidden="true"><div class="kacheln"></div></div>
-    <small class="sat-quelle">Satellitenbild: Esri, Maxar, Earthstar Geographics</small>
   </section>
 
   <section class="blk ars" id="arsenal">
@@ -1304,7 +1274,7 @@ function drawViz(imp, recent){
       ["kursk","charkiw","ru"], ["sumy","tula","ua"], ["millerowo","krywyjrih","ru"], ["tschernihiw","lipezk","ua"], ["primorsko","winnyzja","ru"], ["krywyjrih","tuapse","ua"],
       ["belgorod","kyiv","ru"], ["kyiv","moskau","ua"], ["kursk","riwne","ru"], ["charkiw","saratow","ua"]];
     if(document.documentElement.classList.contains("lite")) B.splice(10); else if(matchMedia("(hover:none),(pointer:coarse)").matches) B.splice(16);           // Tablet/Handy: weniger gleichzeitig
-    const N = B.length, T = 15;
+    const N = B.length, T = 15, t0 = gF.getCurrentTime ? gF.getCurrentTime() : 0;        // SVG-Uhr läuft seit dem Laden: Drohnen zeitgleich mit ihren Bahnen starten
     B.forEach(([sa, sb, k], i)=>{
       const a = O[sa], b = O[sb];
       const x0 = X(a[0]), y0 = Y(a[1]), x1 = X(b[0]), y1 = Y(b[1]), bend = 30 + (i%4)*14 + Math.hypot(x1-x0, y1-y0)*0.08;
@@ -1312,8 +1282,11 @@ function drawViz(imp, recent){
       const c = k === "ru" ? "#ff1a3c" : "#2f95ff", w = `--w:${(i*T/N).toFixed(2)}s`;
       el("path", {class:"gd-s", d, pathLength:1, style:w}, boden);                                   // Schatten der Bahn auf dem Boden
       el("path", {class:"gd-b", d, pathLength:1, stroke:c, style:w}, gF);
-      const kopf = el("g", {class:"gd-f", style:`offset-path:path("${d}");${w}`}, gF);
+      /* Drohne fliegt per SVG-Bewegung genau auf der Bahn (in Kartenkoordinaten – auch in Safari exakt Start → Ziel) */
+      const kopf = el("g", {opacity:0}, gF), beg = (t0 + i*T/N).toFixed(2) + "s";
       el("circle", {r:9, fill:c, opacity:.22}, kopf); el("circle", {r:3.6, fill:"#fff"}, kopf);
+      el("animateMotion", {path:d, dur:T + "s", begin:beg, repeatCount:"indefinite", calcMode:"linear", keyPoints:"0;1;1", keyTimes:"0;.22;1"}, kopf);
+      el("animate", {attributeName:"opacity", values:"1;1;0;0", keyTimes:"0;.22;.24;1", dur:T + "s", begin:beg, repeatCount:"indefinite"}, kopf);
       // Einschlag: Blitz, Feuerball, zwei Druckringe, Funken, Glut
       el("circle", {class:"gx-blitz", cx:x1, cy:y1, r:16, style:w}, gF);
       el("circle", {class:"gx-feuer", cx:x1, cy:y1, r:11, fill:c, style:w}, gF);
@@ -1342,9 +1315,9 @@ function drawViz(imp, recent){
   });
   if("IntersectionObserver" in window){
     new IntersectionObserver(es=>es.forEach(e=>{
-      e.target.classList.toggle("ruht", !e.isIntersecting); frontSicht = e.isIntersecting;
-      e.target.querySelectorAll("svg.eb").forEach(gf=>{ if(!gf.pauseAnimations) return; if(e.isIntersecting && !TOUCH_G) gf.unpauseAnimations(); else gf.pauseAnimations(); });
-      if(TOUCH_G && e.isIntersecting && !frontIv){ let t = 0, l = performance.now(); const svs = [...e.target.querySelectorAll("svg.eb")];
+      e.target.classList.toggle("ruht", !e.isIntersecting); const istFront = e.target.id === "g1"; if(istFront) frontSicht = e.isIntersecting;
+      e.target.querySelectorAll("svg.eb").forEach(gf=>{ if(!gf.pauseAnimations) return; if(e.isIntersecting && (!TOUCH_G || !istFront)) gf.unpauseAnimations(); else gf.pauseAnimations(); });
+      if(TOUCH_G && istFront && e.isIntersecting && !frontIv){ let t = 0, l = performance.now(); const svs = [...e.target.querySelectorAll("svg.eb")];
         frontIv = setInterval(()=>{ if(!frontSicht || document.hidden){ clearInterval(frontIv); frontIv = 0; return; } const n = performance.now(); t += Math.min(0.2, (n - l)/1000); l = n; svs.forEach(v=>{ try{ v.setCurrentTime(t); }catch(_){} }); }, 50); }
       const sv = e.target.querySelector("svg[id]");
       if(e.target.id === "g2" && e.isIntersecting) drohnen();
@@ -1518,12 +1491,20 @@ function flimmern(root){
     sv.style.width = W + "px"; sv.style.height = DH + "px";
     document.body.appendChild(sv); pf._luft = sv;
     const el = (tag, at, in_) => { const n = document.createElementNS(SVGNS, tag); for(const k in at) n.setAttribute(k, at[k]); (in_ || sv).appendChild(n); return n; };
-    /* Bahn: kurz hoch aus dem Vorstoß, Kurve zur Seite, dann im Sturzflug auf die neueste Veränderung (ohne Ziel: oben hinaus) */
-    const f = n => n.toFixed(1), seite = T && T.x < x0 ? -1 : 1, A = {x: x0 + seite*W*0.28, y: y0 - H*0.14};
+    /* Bahn: kurz hoch aus dem Vorstoß, dann ein runder Halbkreis zur Seite (Radius passt sich der Bildschirmbreite an)
+       und im weiten Sturzflug auf die neueste Veränderung (ohne Ziel: oben hinaus). Kein Punkt kommt dem Rand näher als RAND,
+       die Richtung ändert sich überall gleichmäßig – keine Knicke, kein „Abprallen“. */
+    const f = n => n.toFixed(1), RAND = Math.min(48, W*0.1), K4 = 0.5523;
+    const raum = s => s > 0 ? W - RAND - x0 : x0 - RAND;
+    let seite = T && T.x < x0 ? -1 : 1; if(raum(seite) < 90 && raum(-seite) > raum(seite)) seite = -seite;
+    const R = Math.max(24, Math.min(raum(seite)/2, W*0.16, 190)), y1 = y0 - Math.min(H*0.08, 70), cx = x0 + seite*R, xE = x0 + 2*seite*R;
+    const bogen = `M${f(x0)} ${f(y0)}L${f(x0)} ${f(y1)}`
+      + `C${f(x0)} ${f(y1 - K4*R)} ${f(cx - seite*K4*R)} ${f(y1 - R)} ${f(cx)} ${f(y1 - R)}`
+      + `C${f(cx + seite*K4*R)} ${f(y1 - R)} ${f(xE)} ${f(y1 - K4*R)} ${f(xE)} ${f(y1)}`;
+    const D = T ? Math.max(140, T.y - y1) : 0;
     const bahn = T
-      ? `M${f(x0)} ${f(y0)}C${f(x0)} ${f(y0 - H*0.14)} ${f(A.x - seite*W*0.14)} ${f(A.y)} ${f(A.x)} ${f(A.y)}`
-        + `C${f(A.x + seite*W*0.16)} ${f(A.y)} ${f(T.x + seite*W*0.12)} ${f(T.y - H*0.5)} ${f(T.x)} ${f(T.y)}`
-      : `M${f(x0)} ${f(y0)}C${f(x0)} ${f(y0 - H*0.4)} ${f(A.x)} ${f(A.y)} ${f(A.x + seite*W*0.1)} ${f(y0 - H*1.3)}`;
+      ? bogen + `C${f(xE)} ${f(y1 + D*0.42)} ${f(T.x)} ${f(T.y - D*0.42)} ${f(T.x)} ${f(T.y)}`
+      : `M${f(x0)} ${f(y0)}C${f(x0)} ${f(y0 - H*0.4)} ${f(cx)} ${f(y0 - H*0.6)} ${f(cx)} ${f(y0 - H*1.3)}`;
     const unter = el("path", {d:bahn, fill:"none", stroke:"rgba(0,0,0,.28)", "stroke-width":"4", "stroke-linecap":"round"});
     const sp2 = el("path", {d:bahn, fill:"none", stroke:"rgba(255,255,255,.85)", "stroke-width":"2", "stroke-linecap":"round"});
     const L = sp2.getTotalLength(), SL = Math.min(170, L*0.12), DAUER = Math.max(2800, Math.min(5200, L*1.5)), RAK = 900;
@@ -1592,68 +1573,6 @@ function flimmern(root){
   let raf = 0; addEventListener("scroll", ()=>{ if(!raf) raf = requestAnimationFrame(()=>{ raf = 0; malen(); }); }, {passive:true});
   addEventListener("resize", malen); malen();
 })();
-/* ===== Front unter Telegram/X: schlichte Linie; drei geschwungene Stoßpfeile wie auf der Karte schieben sie beim Hinscrollen
-   in breiten Bögen vor. Die Front liegt in der gestreckten Kante (viewBox 1200 × 260), die Pfeile in einer eigenen Ebene in
-   echten Pixeln, damit sie nicht verzerren. ===== */
-(function(){
-  const rot = $("wuRot"), glut = $("wuGlut"), fr = $("wuFront"), box = $("wPfeile"); if(!fr || !box) return;
-  const NS = "http://www.w3.org/2000/svg", Y0 = 187, BREITE = 150;
-  const B = [{x:200, d:40, bog:1}, {x:860, d:52, bog:-1}, {x:1080, d:30, bog:1}], k = B.map(()=>0);
-  const sv = document.createElementNS(NS, "svg"); box.appendChild(sv);
-  const pfade = B.map(()=>{ const p = document.createElementNS(NS, "path"); sv.appendChild(p); return p; });
-  const welle = x=>Y0 + 5*Math.sin(x/1200*Math.PI*3);
-  const frontY = x=>B.reduce((y, b, i)=>y + b.d*k[i]*Math.exp(-Math.pow((x - b.x)/BREITE, 2)), welle(x));
-  /* Stoßpfeil entlang einer Kurve: schmaler Schwalbenschwanz, Körper wird zur Spitze breiter, große Spitze */
-  function pfeil(P0, P1, P2, w){
-    const pt = t=>[(1-t)*(1-t)*P0[0] + 2*(1-t)*t*P1[0] + t*t*P2[0], (1-t)*(1-t)*P0[1] + 2*(1-t)*t*P1[1] + t*t*P2[1]];
-    const tan = t=>{ const x = 2*(1-t)*(P1[0]-P0[0]) + 2*t*(P2[0]-P1[0]), y = 2*(1-t)*(P1[1]-P0[1]) + 2*t*(P2[1]-P1[1]), l = Math.hypot(x, y) || 1; return [x/l, y/l]; };
-    const lang = Math.hypot(P2[0]-P0[0], P2[1]-P0[1]), kopf = Math.min(0.42, w*2.2/Math.max(lang, 1)), th = 1 - kopf, N = 18, L = [], R = [];
-    for(let i = 0; i <= N; i++){ const t = th*i/N, p = pt(t), d = tan(t), h = w*(0.32 + 0.38*t/th);
-      L.push([p[0] - d[1]*h, p[1] + d[0]*h]); R.push([p[0] + d[1]*h, p[1] - d[0]*h]); }
-    const pk = pt(th), dk = tan(th), sp = P2, hk = w*1.15;
-    const k1 = [pk[0] - dk[1]*hk, pk[1] + dk[0]*hk], k2 = [pk[0] + dk[1]*hk, pk[1] - dk[0]*hk], d0 = tan(0), kerbe = [P0[0] + d0[0]*w*0.5, P0[1] + d0[1]*w*0.5];
-    const z = q=>q[0].toFixed(1) + " " + q[1].toFixed(1);
-    return "M" + z(kerbe) + "L" + L.map(z).join("L") + "L" + z(k1) + "L" + z(sp) + "L" + z(k2) + "L" + R.reverse().map(z).join("L") + "Z";
-  }
-  /* g = Wachstum je Pfeil (0–1): der ganze Pfeil wird größer – Länge, Breite und Spitze. Erreicht die Spitze die Front,
-     schiebt sie diese vor sich her; die Spitze bleibt immer knapp hinter der Linie. */
-  const g = B.map(()=>0), RAND = 5;
-  function zeichnen(){
-    const Wp = box.clientWidth, Hp = box.clientHeight, px = y=>y/260*Hp, vb = y=>y/Hp*260;
-    sv.setAttribute("viewBox", `0 0 ${Wp} ${Hp}`);
-    const w = Math.max(10, Math.min(20, Wp*0.015)), sy = Hp*0.52;
-    const lage = B.map((b, i)=>{ const ex = b.x/1200*Wp, ziel = px(welle(b.x) + b.d) - RAND, spitze = sy + (ziel - sy)*g[i];
-      k[i] = Math.min(1, Math.max(0, (vb(spitze + RAND) - welle(b.x))/b.d)); return {ex, ziel}; });
-    let d = "";
-    for(let x = 0; x <= 1200; x += 10) d += (x ? "L" : "M") + x + " " + frontY(x).toFixed(1);
-    fr.setAttribute("d", d); rot.setAttribute("d", d + "L1200 0L0 0Z"); glut.setAttribute("d", d + "L1200 260L0 260Z");
-    B.forEach((b, i)=>{ const q = g[i], p = pfade[i];
-      if(q <= 0.01){ p.setAttribute("d", ""); return; }
-      const {ex, ziel} = lage[i], sx = ex - b.bog*Math.max(16, Wp*0.04);
-      const P0 = [sx, sy], P2 = [ex, ziel], P1 = [ex, sy + (ziel - sy)*0.45];
-      p.setAttribute("d", pfeil(P0, P1, P2, w));
-      p.setAttribute("transform", `translate(${sx.toFixed(1)} ${sy.toFixed(1)}) scale(${q.toFixed(4)}) translate(${(-sx).toFixed(1)} ${(-sy).toFixed(1)})`);
-      p.style.opacity = Math.min(1, q*5).toFixed(2); });
-  }
-  zeichnen(); addEventListener("resize", zeichnen);
-  if(matchMedia("(prefers-reduced-motion: reduce)").matches){ g.fill(1); zeichnen(); return; }
-  const ease = t=>1 - Math.pow(1 - t, 3);
-  const io = new IntersectionObserver(es=>{ if(!es.some(e=>e.isIntersecting)) return; io.disconnect();
-    const t0 = performance.now();
-    (function schritt(now){ let fertig = true;
-      B.forEach((b, i)=>{ const t = Math.min(1, Math.max(0, (now - t0 - i*420)/1900)); g[i] = ease(t); if(t < 1) fertig = false; });
-      zeichnen(); if(!fertig) requestAnimationFrame(schritt); })(t0);
-  }, {threshold:0.5});
-  io.observe(box);
-})();
-/* ===== Satellitenbild unter den neuesten Veränderungen: 6 × 4 Esri-Kacheln (Donbas, Zoom 12) ===== */
-(function(){
-  const k = document.querySelector("#satBg .kacheln"); if(!k) return;
-  let h = "";
-  for(let y = 1412; y < 1416; y++) for(let x = 2478; x < 2484; x++)
-    h += `<img src="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/12/${y}/${x}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">`;
-  k.innerHTML = h;
-})();
 /* ===== Berichte: die neuesten Beiträge, sonst gesperrte Akten ===== */
 (function(){
   const box = $("beListe"); if(!box) return;
@@ -1712,7 +1631,7 @@ function flimmern(root){
   document.querySelectorAll("[data-sozial]").forEach(a=>{ const u = SOZIAL[a.dataset.sozial];
     if(u){ a.href = u; } else { a.removeAttribute("href"); a.classList.add("bald"); } }); }
 </script>
-<script src="fz-bild.js?v=202611271031"></script>
+<script src="fz-bild.js?v=202611271405"></script>
 <script>
 /* Arsenal: je sechs Beispiele für die Ukraine und Russland, umschaltbar. Erst die gezeichnete Ansicht, dann – wenn frei lizenziert vorhanden –
    das Titelbild des Wikipedia-Artikels (Fotograf und Lizenz im Steckbrief). */
@@ -1761,7 +1680,7 @@ function flimmern(root){
   }));
   const io = new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ box.classList.add("an"); io.disconnect(); } }, {threshold:0.15});
   io.observe(box);
-  fetch("daten/fahrzeuge.json?v=202611271031").then(r=>r.json()).then(d=>{ D = d; zeigen(); })
+  fetch("daten/fahrzeuge.json?v=202611271405").then(r=>r.json()).then(d=>{ D = d; zeigen(); })
     .catch(()=>{ sek.hidden = true; });
 })();
 </script>
