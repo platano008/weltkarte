@@ -89,7 +89,7 @@ h1{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-heigh
 .maplibregl-ctrl-attrib a{color:var(--fg)!important}
 .maplibregl-ctrl-scale{background:rgba(0,0,0,.7)!important;color:var(--fg)!important;border-color:var(--fg)!important}
 .maplibregl-ctrl-top-right{top:96px}
-.maplibregl-ctrl-bottom-right{bottom:var(--panel-h,0px)}
+.maplibregl-ctrl-bottom-right{bottom:var(--unter-leiste,0px)}
 .mt-logo{position:fixed;z-index:4;left:calc(max(16px,env(safe-area-inset-left)) + 356px);bottom:calc(10px + var(--panel-h,0px));display:block;line-height:0}
 .mt-logo img{width:90px;height:auto;display:block}
 

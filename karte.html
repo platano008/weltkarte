@@ -19,14 +19,14 @@
 <link rel="preconnect" href="https://api.maptiler.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=202611271553">
+<link rel="stylesheet" href="style.css?v=202611271615">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611271553"></script>
-<script src="sicht.js?v=202611271553"></script>
-<script src="fz-bild.js?v=202611271553"></script>
-<script src="werkzeuge.js?v=202611271553"></script>
-<script src="beta.js?v=202611271553"></script>
+<script src="karte.js?v=202611271615"></script>
+<script src="sicht.js?v=202611271615"></script>
+<script src="fz-bild.js?v=202611271615"></script>
+<script src="werkzeuge.js?v=202611271615"></script>
+<script src="beta.js?v=202611271615"></script>
 <style>
 .item.chg .ic{width:22px}
 .item .cq{display:block;width:14px;height:14px}
@@ -67,7 +67,7 @@ body.wz-on .nato{pointer-events:none}
 @media (hover:none),(pointer:coarse){:root{--flaeche:rgba(14,15,18,.72)}}
 .maplibregl-map{font-family:var(--body)!important}
 /* Quellenangaben: klein unten links, aufklappbar über das „i“ */
-.maplibregl-ctrl-bottom-left{bottom:calc(env(safe-area-inset-bottom) + 4px)!important;left:max(6px,env(safe-area-inset-left))!important}
+.maplibregl-ctrl-bottom-left{bottom:calc(var(--unter-leiste,0px) + env(safe-area-inset-bottom) + 4px)!important;left:max(6px,env(safe-area-inset-left))!important}
 .maplibregl-ctrl-attrib{font-family:var(--mono)!important;font-size:9.5px!important;letter-spacing:.02em;background:var(--flaeche)!important;color:#8a8a8a!important;border-radius:var(--rund)!important;margin:0 0 4px!important}
 .maplibregl-ctrl-attrib a{color:#b5b5b5!important}
 .maplibregl-ctrl-attrib.maplibregl-compact{min-height:22px}
@@ -230,7 +230,7 @@ body.d-ansicht .ansicht{display:flex}
 .wz-lbl.ring b{font-size:11px}
 .wz-lbl.ring.fahr{border-style:dashed}
 </style>
-<script src="lang.js?v=202611271553" defer></script>
+<script src="lang.js?v=202611271615" defer></script>
 </head>
 <body>
 <div id="map"></div>
@@ -364,9 +364,14 @@ window.plyusMap = map;
       const w = gl.drawingBufferWidth, h = gl.drawingBufferHeight, px = new Uint8Array(4);
       const mittel = y=>{ let r = 0, g = 0, b = 0; for(let i = 1; i <= 7; i++){ gl.readPixels(Math.round(w*i/8), y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); r += px[0]; g += px[1]; b += px[2]; }
         return `rgb(${Math.round(r/7)},${Math.round(g/7)},${Math.round(b/7)})`; };
-      oben.style.background = mittel(h - 2); unten.style.background = document.body.style.backgroundColor = mittel(1);
+      /* unten: genau die Kartenzeile am unteren Rand des sichtbaren Bereichs, damit der Streifen nicht auffällt */
+      const k = h/c.clientHeight, yU = Math.max(1, Math.round(h - unten.getBoundingClientRect().top*k) - 2);
+      oben.style.background = mittel(h - 2); unten.style.background = document.body.style.backgroundColor = mittel(yU);
     }catch(e){}
   }
+  /* Die Karte reicht unter die Adressleiste: Maßstab und „i“ an den sichtbaren unteren Rand heben, damit sie antippbar bleiben */
+  const leiste = ()=>document.documentElement.style.setProperty("--unter-leiste", Math.max(0, Math.round(map.getContainer().clientHeight - unten.getBoundingClientRect().bottom)) + "px");
+  leiste(); addEventListener("resize", leiste); if(window.visualViewport) visualViewport.addEventListener("resize", leiste);
   const bald = ()=>{ if(offen) return; offen = true; map.once("render", ()=>{ offen = false; lesen(); }); map.triggerRepaint(); };
   map.on("moveend", bald); map.on("styledata", ()=>setTimeout(bald, 400)); map.once("idle", bald);
 })();
