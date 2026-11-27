@@ -1,0 +1,13 @@
+/* Gemeinsamer Stil der Verwaltung (Dashboard, Karten-Editor, Blog-Editor) – wie die Werkzeuge auf der Karte:
+   dunkles, leicht durchsichtiges Glas, weiche Ränder, runde Ecken. style.css macht alles eckig (border-radius:0!important),
+   deshalb tragen die Rundungen hier ebenfalls !important. */
+:root{--glas:rgba(16,17,20,.62);--glas-2:rgba(255,255,255,.06);--rand:rgba(255,255,255,.14);--rund:22px}
+.glas{border:1px solid var(--rand);border-radius:var(--rund)!important;background:var(--glas);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 18px 44px -22px rgba(0,0,0,.9)}
+.btn{text-decoration:none;border-color:var(--rand)!important;border-radius:999px!important;background:var(--glas-2);color:#fff;transition:background .2s,border-color .2s}
+.btn:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3)!important}
+.btn.volt{background:#fff;color:#000;border-color:#fff!important}
+.btn.volt:hover{background:#dcdcdc}
+.f{border-color:var(--rand)!important;border-radius:12px!important;background:rgba(0,0,0,.35)}
+.f:focus{border-color:#fff!important}
+.toast{border-radius:999px!important;padding:11px 18px}
+.hint b{color:#fff}

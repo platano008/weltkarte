@@ -17,7 +17,7 @@
 <script>/* alte geteilte Links (index.html#…) führen weiter zur Karte */
 if(location.hash.length > 1 && !/^#(lage|zeigt|arsenal)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611271817">
+<link rel="stylesheet" href="style.css?v=202611271830">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -901,8 +901,8 @@ html.lite .tick div{animation-duration:70s}
 #chg .row.getroffen,#chg.xp-an .row.getroffen{animation:getroffen .7s cubic-bezier(.3,.7,.4,1)}
 @keyframes getroffen{0%{background:rgba(255,150,60,.35);transform:translateY(3px)}30%{transform:translateY(-2px)}100%{background:transparent;transform:none}}
 </style>
-<script src="lang.js?v=202611271817" defer></script>
-<script src="beta.js?v=202611271817"></script>
+<script src="lang.js?v=202611271830" defer></script>
+<script src="beta.js?v=202611271830"></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -1672,7 +1672,7 @@ function flimmern(root){
   document.querySelectorAll("[data-sozial]").forEach(a=>{ const u = SOZIAL[a.dataset.sozial];
     if(u){ a.href = u; } else { a.removeAttribute("href"); a.classList.add("bald"); } }); }
 </script>
-<script src="fz-bild.js?v=202611271817"></script>
+<script src="fz-bild.js?v=202611271830"></script>
 <script>
 /* Arsenal: je sechs Beispiele für die Ukraine und Russland, umschaltbar. Erst die gezeichnete Ansicht, dann – wenn frei lizenziert vorhanden –
    das Titelbild des Wikipedia-Artikels (Fotograf und Lizenz im Steckbrief). */
@@ -1721,7 +1721,7 @@ function flimmern(root){
   }));
   const io = new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ box.classList.add("an"); io.disconnect(); } }, {threshold:0.15});
   io.observe(box);
-  fetch("daten/fahrzeuge.json?v=202611271817").then(r=>r.json()).then(d=>{ D = d; zeigen(); })
+  fetch("daten/fahrzeuge.json?v=202611271830").then(r=>r.json()).then(d=>{ D = d; zeigen(); })
     .catch(()=>{ sek.hidden = true; });
 })();
 </script>

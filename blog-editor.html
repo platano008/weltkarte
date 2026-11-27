@@ -6,7 +6,8 @@
 <meta name="robots" content="noindex">
 <title>Blog schreiben · Plyus</title>
 <link rel="icon" type="image/png" href="bild/favicon.png?v=3">
-<link rel="stylesheet" href="style.css?v=202611271817">
+<link rel="stylesheet" href="style.css?v=202611271830">
+<link rel="stylesheet" href="verwaltung.css?v=202611271830">
 <style>
 .status{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--muted)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 14px;font-weight:600;font-size:14px;border:1px solid var(--line-2)}
@@ -21,7 +22,7 @@
 .hint{font-size:13px;color:var(--muted)}
 .toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:50;background:var(--fg);color:var(--bg);font-weight:600;font-size:14px;padding:10px 16px;transition:.2s;pointer-events:none;box-shadow:inset 3px 0 0 var(--volt);max-width:calc(100% - 32px)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
-html,body{height:auto;overflow:auto;background:#000}
+html,body{height:auto;overflow:auto}
 body{min-height:100vh}
 .be{width:min(820px,100%);margin:0 auto;padding:22px 16px 140px}
 .be-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:26px}
@@ -62,11 +63,25 @@ body{min-height:100vh}
 .werkz button:hover{border-color:#fff}
 .werkz button i{display:block;width:14px;height:14px;border-radius:50%}
 .werkz .hint{font-size:11px;color:#777;margin-left:4px}
+/* ===== Glas-Stil wie Dashboard und Karte ===== */
+body::before{content:"";position:fixed;inset:-40px;z-index:-1;background:#000 url(bild/ansicht/sat.jpg) center/cover;filter:blur(38px) saturate(1.2) brightness(.42);transform:scale(1.1)}
+html{background:#000}
+body{background:transparent!important}
+.liste button.eintrag,.block,.schluessel{border:1px solid var(--rand)!important;border-radius:18px!important;background:var(--glas)!important;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.liste button.eintrag:hover{border-color:rgba(255,255,255,.3)!important}
+.block{border-left:1px solid var(--rand)!important}
+.block:focus-within{border-color:rgba(255,255,255,.4)!important}
+.block .kopf span button,.werkz button{border-color:var(--rand)!important;border-radius:999px!important}
+.block img,.block video{border-radius:12px!important}
+.cover{border-color:var(--rand)!important;border-radius:var(--rund)!important;background:var(--glas)}
+.leiste{left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));padding:12px;border:1px solid var(--rand)!important;border-radius:var(--rund)!important;background:var(--glas)!important;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.be-top a{display:inline-flex;align-items:center;min-height:38px;padding:0 16px;border:1px solid var(--rand);border-radius:999px!important;background:var(--glas);color:#fff}
+.btn.rot{border-color:rgba(255,107,107,.35)!important;color:#ff8b98}
 </style>
 </head>
 <body>
 <div class="be">
-  <div class="be-top"><a href="editor.html" id="back">← Zurück</a><a href="blog.html" target="_blank" rel="noopener">Blog ansehen</a></div>
+  <div class="be-top"><a href="dashboard.html" id="back">← Dashboard</a><a href="blog.html" target="_blank" rel="noopener">Blog ansehen</a></div>
 
   <div class="schluessel" id="schl" hidden>
     <b>GitHub-Schlüssel fehlt</b>
@@ -97,7 +112,7 @@ body{min-height:100vh}
 
 <div class="leiste" id="leiste" hidden>
   <div class="status" id="status"></div>
-  <button class="btn" id="zurueck">Zur Übersicht</button>
+  <button class="btn" id="zurueck">Zum Dashboard</button>
   <button class="btn" id="kopieren">Text kopieren</button>
   <button class="btn" id="entwurf">Entwurf speichern</button>
   <button class="btn volt" id="pub">Veröffentlichen</button>
@@ -265,7 +280,7 @@ async function speichern(ziel){
 $("entwurf").onclick = ()=>speichern("entwurf");
 $("pub").onclick = ()=>speichern("veroeffentlicht");
 $("neu").onclick = neu;
-$("zurueck").onclick = ()=>{ if(dirty && !confirm("Ungespeicherte Änderungen verwerfen?")) return; zeigeEdit(false); };
+$("zurueck").onclick = ()=>{ if(dirty && !confirm("Ungespeicherte Änderungen verwerfen?")) return; dirty = false; location.href = "dashboard.html"; };
 $("loeschen").onclick = async ()=>{
   if(!confirm("Diesen Beitrag wirklich löschen?")) return;
   if(B.status === "neu"){ zeigeEdit(false); return; }
@@ -275,7 +290,9 @@ $("loeschen").onclick = async ()=>{
 };
 addEventListener("beforeunload", e=>{ if(dirty){ e.preventDefault(); e.returnValue = ""; } });
 document.getElementById("back").onclick = e=>{ if(!document.getElementById("vEdit").hidden){ e.preventDefault(); document.getElementById("zurueck").click(); } };
-ladeListe(); if(location.hash === "#neu") neu();
+ladeListe();
+const bId = /^#b=([\w-]+)$/.exec(location.hash);      // vom Dashboard: #neu = neuer Beitrag, #b=<id> = Beitrag öffnen
+if(location.hash === "#neu") neu(); else if(bId) oeffnen(bId[1]);
 </script>
 </body>
 </html>

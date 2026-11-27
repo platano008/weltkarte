@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Plyus · Dashboard</title>
+<link rel="icon" type="image/png" href="bild/favicon.png?v=3">
+<link rel="apple-touch-icon" href="bild/icon-180.png?v=3">
+<link rel="stylesheet" href="style.css?v=202611271830">
+<link rel="stylesheet" href="verwaltung.css?v=202611271830">
+<style>
+/* Dashboard: Glas-Kacheln (verwaltung.css) über einem unscharfen Satellitenbild */
+html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
+.grund{position:fixed;inset:-40px;z-index:-1;background:#000 url(bild/ansicht/sat.jpg) center/cover;filter:blur(38px) saturate(1.2) brightness(.42);transform:scale(1.1)}
+.knopf{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border:1px solid var(--rand);border-radius:999px!important;background:var(--glas-2);color:#fff;font-size:13.5px;font-weight:600;text-decoration:none;cursor:pointer;transition:background .2s,border-color .2s}
+.knopf:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3)}
+.knopf.hell{background:#fff;color:#000;border-color:#fff}
+.knopf.hell:hover{background:#dcdcdc}
+.knopf.rot{color:#ff8b98;border-color:rgba(255,107,107,.35)}
+.knopf.klein{min-height:32px;padding:0 12px;font-size:12.5px}
+.knopf:disabled{opacity:.4;cursor:default}
+.rund{width:44px;height:44px;padding:0;flex:none}
+.knopf svg,.zeile svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.klein svg{width:16px;height:16px}
+.augen{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#9a9a9a}
+.f{width:100%;min-height:46px;padding:0 16px;border:1px solid var(--rand);border-radius:14px!important;background:rgba(0,0,0,.35);color:#fff;font-size:15px}
+.f:focus{outline:none;border-color:#fff}
+.leer{padding:18px 4px;color:#8d8d8d;font-size:13.5px}
+.fehler{color:#ff8b98;font-size:13.5px;min-height:1.3em;margin:0}
+
+/* ----- Schlüssel ----- */
+.tor{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:24px 16px}
+.tor-box{width:min(440px,100%);padding:30px 26px 26px;display:grid;gap:16px;animation:rein .5s cubic-bezier(.2,.8,.2,1) both}
+.tor-box img{height:34px;width:auto}
+.tor-box h1{margin:0;font-family:var(--korn);font-size:30px;line-height:1.05}
+.tor-box p{margin:0;color:#bdbdbd;font-size:14px}
+.tor-box form{display:grid;gap:10px}
+.tor-box details{font-size:13px;color:#a8a8a8}
+.tor-box summary{cursor:pointer;color:#d8d8d8}
+.tor-box ol{margin:10px 0 0;padding-left:18px;display:grid;gap:4px}
+.tor-box a{color:#fff}
+
+/* ----- Dashboard ----- */
+.kopf-d{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:max(14px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 14px max(16px,env(safe-area-inset-left))}
+.kopf-d h1{flex:1;margin:0;font-family:var(--korn);font-size:clamp(22px,3.4vw,30px);line-height:1}
+.kopf-d h1 small{display:block;margin-top:4px;font:500 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#9a9a9a}
+.plus{background:#fff;color:#000;border-color:#fff}
+.plus:hover{background:#dcdcdc}
+.plus svg{transition:transform .25s}
+.plus[aria-expanded=true] svg{transform:rotate(45deg)}
+.neu-menue{position:absolute;left:max(16px,env(safe-area-inset-left));top:calc(max(14px,env(safe-area-inset-top)) + 54px);width:min(340px,calc(100vw - 32px));padding:8px;display:grid;gap:4px;animation:rein .25s cubic-bezier(.2,.8,.2,1) both}
+.zeile{display:flex;align-items:center;gap:14px;padding:12px;border-radius:16px!important;color:#fff;text-decoration:none;transition:background .15s}
+.zeile:hover{background:rgba(255,255,255,.08)}
+.zeile i{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:13px!important;background:rgba(255,255,255,.08)}
+.zeile b{display:block;font-size:15px}
+.zeile small{display:block;color:#9a9a9a;font-size:12.5px}
+.inhalt{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px;padding:0 max(16px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));max-width:1280px;margin:0 auto}
+.kachel{padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0;animation:rein .5s cubic-bezier(.2,.8,.2,1) both}
+.kachel:nth-child(2){animation-delay:.05s}.kachel:nth-child(3){animation-delay:.1s}.kachel:nth-child(4){animation-delay:.15s}
+.kachel-k{display:flex;align-items:center;gap:10px}
+.kachel-k h2{flex:1;margin:0;font-family:var(--korn);font-size:22px;line-height:1}
+.k-karte{grid-column:span 5}.k-blog{grid-column:span 7}.k-chg{grid-column:span 6}.k-log{grid-column:span 6}
+.vorschau{position:relative;display:block;aspect-ratio:16/9;border-radius:16px!important;overflow:hidden;background:#111 url(bild/ansicht/sat.jpg) center/cover;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.vorschau span{position:absolute;left:12px;bottom:12px;padding:6px 11px;border-radius:999px!important;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#fff}
+.zahlen{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.zahlen div{padding:10px 12px;border-radius:14px!important;background:var(--glas-2)}
+.zahlen b{display:block;font-family:var(--korn);font-size:20px;line-height:1.1}
+.zahlen span{font-size:11.5px;color:#9a9a9a}
+.reihe{display:flex;flex-wrap:wrap;gap:8px}
+.reiter{align-self:flex-start;display:inline-flex;padding:3px;border:1px solid var(--rand);border-radius:999px!important;background:rgba(0,0,0,.25)}
+.reiter button{padding:7px 13px;border-radius:999px!important;font-size:12.5px;font-weight:600;color:#a8a8a8}
+.reiter button.on{background:#fff;color:#000}
+.liste{display:grid;gap:6px;max-height:420px;overflow-y:auto;overscroll-behavior:contain;margin-right:-6px;padding-right:6px}
+.eintrag{display:flex;align-items:center;gap:12px;padding:10px;border-radius:16px!important;background:var(--glas-2);min-width:0}
+.eintrag .bild{width:56px;height:42px;flex:none;border-radius:10px!important;background:#222 center/cover}
+.eintrag .txt{flex:1;min-width:0}
+.eintrag .txt b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eintrag .txt small{display:block;font-size:12px;color:#9a9a9a}
+.eintrag .acts{display:flex;gap:6px;flex:none}
+.gew{text-decoration:none;color:#fff}
+.gew .fl{width:22px;height:15px;flex:none;border-radius:3px!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+.fl.ru{background:linear-gradient(#fff 33.3%,#1c3fbf 33.3% 66.6%,#d52b1e 66.6%)}
+.fl.ua{background:linear-gradient(#1f63d6 50%,#ffd200 50%)}
+.fl.grau{background:#9a9a9a}
+.gew .km{font-family:var(--korn);font-size:17px;white-space:nowrap}
+.gew .km span{margin-left:3px;font:500 11px var(--mono);color:#9a9a9a}
+.log .txt b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.log .punkt{width:8px;height:8px;flex:none;border-radius:50%!important;background:#fff;opacity:.6}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));z-index:50;transform:translate(-50%,20px);opacity:0;background:#fff;color:#000;font-weight:600;font-size:14px;transition:.25s;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@keyframes rein{from{opacity:0;transform:translateY(14px)}}
+@media (max-width:900px){.k-karte,.k-blog,.k-chg,.k-log{grid-column:1/-1}}
+@media (max-width:520px){.kachel{padding:14px}.eintrag .acts .knopf span{display:none}.zahlen b{font-size:17px}}
+@media (prefers-reduced-motion:reduce){.tor-box,.kachel,.neu-menue{animation:none}}
+</style>
+</head>
+<body>
+<div class="grund" aria-hidden="true"></div>
+
+<main class="tor" id="tor" hidden>
+  <div class="tor-box glas">
+    <img src="bild/logo.svg?v=3" alt="Plyus">
+    <h1>Bearbeiten</h1>
+    <p>Gib deinen GitHub-Schlüssel ein. Er bleibt nur in diesem Browser gespeichert.</p>
+    <form id="torForm">
+      <input class="f" id="torSchl" type="password" placeholder="github_pat_…" autocomplete="off" required aria-label="GitHub-Schlüssel">
+      <button class="knopf hell" id="torOk">Weiter</button>
+      <p class="fehler" id="torFehler" role="alert"></p>
+    </form>
+    <details>
+      <summary>Wo bekomme ich den Schlüssel?</summary>
+      <ol>
+        <li>Öffne <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a>.</li>
+        <li>Name z. B. „Plyus“, Ablaufdatum wählen.</li>
+        <li>Repository access: <b>Only select repositories</b> → <b>weltkarte</b>.</li>
+        <li>Permissions → Repository → <b>Contents: Read and write</b>.</li>
+        <li>„Generate token“, kopieren und hier einfügen.</li>
+      </ol>
+    </details>
+    <a class="knopf" href="./">Zur Website</a>
+  </div>
+</main>
+
+<div id="dash" hidden>
+  <header class="kopf-d">
+    <button class="knopf rund plus" id="plus" aria-expanded="false" aria-controls="neuMenue" title="Neu" aria-label="Neu"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+    <h1>Dashboard<small>Plyus · Bearbeiten</small></h1>
+    <a class="knopf rund glas" href="./" title="Zur Website" aria-label="Zur Website"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg></a>
+    <button class="knopf rund glas" id="abmelden" title="Schlüssel entfernen" aria-label="Schlüssel entfernen"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/></svg></button>
+    <nav class="neu-menue glas" id="neuMenue" hidden>
+      <a class="zeile" href="blog-editor.html#neu"><i><svg viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8.5 12h7M8.5 16h5"/></svg></i><span><b>Neuer Blog-Eintrag</b><small>Leer anfangen</small></span></a>
+      <a class="zeile" href="editor.html#visuals"><i><svg viewBox="0 0 24 24"><path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13.5" r="3.5"/></svg></i><span><b>Neue Visuals</b><small>Bild oder Wochenvideo der Karte</small></span></a>
+      <a class="zeile" href="editor.html#front"><i><svg viewBox="0 0 24 24"><path d="M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></i><span><b>Karte ändern</b><small>Front, Symbole, Pfeile, Veränderungen</small></span></a>
+    </nav>
+  </header>
+
+  <main class="inhalt">
+    <section class="kachel glas k-karte">
+      <div class="kachel-k"><h2>Karte</h2><span class="augen" id="kStand"></span></div>
+      <a class="vorschau" href="karte.html" target="_blank" rel="noopener"><span>Karte öffnen ↗</span></a>
+      <div class="zahlen"><div><b id="kGew">–</b><span>Gewinne</span></div><div><b id="kSym">–</b><span>Symbole</span></div><div><b id="kEig">–</b><span>Eigene Elemente</span></div></div>
+      <div class="reihe"><a class="knopf hell" href="editor.html#front">Karte bearbeiten</a><a class="knopf" href="editor.html#visuals">Visuals</a><a class="knopf" href="gewinne.html" target="_blank" rel="noopener">Alle Gewinne</a></div>
+    </section>
+
+    <section class="kachel glas k-blog">
+      <div class="kachel-k"><h2>Blog</h2><a class="knopf klein" href="blog-editor.html#neu"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Neu</a></div>
+      <div class="reiter" id="blogReiter" role="tablist"><button data-r="pub" class="on" role="tab" aria-selected="true">Veröffentlicht <span id="nPub"></span></button><button data-r="ent" role="tab" aria-selected="false">Entwürfe <span id="nEnt"></span></button></div>
+      <div class="liste" id="blogListe"><div class="leer">Lädt …</div></div>
+    </section>
+
+    <section class="kachel glas k-chg">
+      <div class="kachel-k"><h2>Veränderungen</h2><span class="augen" id="chgSumme"></span></div>
+      <div class="liste" id="chgListe"><div class="leer">Lädt …</div></div>
+    </section>
+
+    <section class="kachel glas k-log">
+      <div class="kachel-k"><h2>Log</h2><a class="knopf klein" href="https://github.com/platano008/weltkarte/commits/main" target="_blank" rel="noopener">GitHub ↗</a></div>
+      <div class="liste log" id="logListe"><div class="leer">Lädt …</div></div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* Dashboard: erst der GitHub-Schlüssel, dann alles auf einen Blick – Karte, Blog, Veränderungen und Log.
+   Über „+“ geht es zu einem neuen Blog-Eintrag, neuen Visuals oder in den Karten-Editor. */
+(function(){
+  const $ = id=>document.getElementById(id);
+  const GH = {owner:"platano008", repo:"weltkarte", branch:"main"}, LS_TOKEN = "lage-gh-token";
+  const IDX = "blog/index.json", ENT = "blog/entwuerfe.json";
+  const nf = new Intl.NumberFormat("de-DE", {maximumFractionDigits:1});
+  const esc = s=>String(s == null ? "" : s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const datum = d=>{ const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ""); return m ? `${m[3]}.${m[2]}.${m[1]}` : "–"; };
+  const token = ()=>{ try{ return localStorage.getItem(LS_TOKEN); }catch(e){ return null; } };
+  let toastT; const toast = t=>{ const n = $("toast"); n.textContent = t; n.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(()=>n.classList.remove("on"), 2600); };
+
+  /* ---------- GitHub ---------- */
+  const API = `https://api.github.com/repos/${GH.owner}/${GH.repo}`;
+  const hdr = ()=>({Authorization:"Bearer " + token(), Accept:"application/vnd.github+json"});
+  const b64ToText = b=>new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\n/g, "")), c=>c.charCodeAt(0)));
+  const textToB64 = t=>{ const by = new TextEncoder().encode(t); let s = ""; for(let i = 0; i < by.length; i += 0x8000) s += String.fromCharCode.apply(null, by.subarray(i, i + 0x8000)); return btoa(s); };
+  async function ghGet(path){
+    const r = await fetch(`${API}/contents/${path}?ref=${GH.branch}`, {headers:hdr(), cache:"no-store"});
+    if(r.status === 404) return {sha:null, text:null};
+    if(!r.ok) throw {status:r.status};
+    const j = await r.json();
+    return {sha:j.sha, text: j.content ? b64ToText(j.content) : await (await fetch(j.download_url, {cache:"no-store"})).text()};
+  }
+  async function ghSchreib(path, method, body){
+    const r = await fetch(`${API}/contents/${path}`, {method, headers:Object.assign({"Content-Type":"application/json"}, hdr()), body:JSON.stringify(Object.assign({branch:GH.branch}, body))});
+    if(!r.ok && !(method === "DELETE" && r.status === 404)) throw {status:r.status};
+  }
+  /* Liste lesen, ändern, schreiben; bei gleichzeitiger Änderung einmal neu versuchen (wie im Blog-Editor) */
+  async function listeAendern(path, fn, msg){
+    for(let v = 0; v < 2; v++){
+      const r = await ghGet(path), d = r.text ? JSON.parse(r.text) : {beitraege:[]}; d.beitraege = fn(d.beitraege || []);
+      try{ await ghSchreib(path, "PUT", {message:msg, content:textToB64(JSON.stringify(d, null, 1) + "\n"), sha:r.sha || undefined}); return; }
+      catch(e){ if(v || (e.status !== 409 && e.status !== 422)) throw e; }
+    }
+  }
+  const fehler = e=>e && e.status === 401 ? "Schlüssel ungültig oder abgelaufen." : e && (e.status === 403 || e.status === 404) ? "Der Schlüssel hat keinen Zugriff auf weltkarte." : "Hat nicht geklappt. Internet prüfen und noch einmal versuchen.";
+
+  /* ---------- Schlüssel ---------- */
+  function zeige(dash){ $("tor").hidden = dash; $("dash").hidden = !dash; if(dash) laden(); else setTimeout(()=>$("torSchl").focus(), 50); }
+  $("torForm").onsubmit = async e=>{
+    e.preventDefault(); const v = $("torSchl").value.trim(); if(!v) return;
+    $("torOk").disabled = true; $("torFehler").textContent = "Prüfe …";
+    try{
+      const r = await fetch(API, {headers:{Authorization:"Bearer " + v, Accept:"application/vnd.github+json"}, cache:"no-store"});
+      if(!r.ok) throw {status:r.status};
+      const j = await r.json(); if(j.permissions && !j.permissions.push) throw {status:403};
+      try{ localStorage.setItem(LS_TOKEN, v); }catch(err){}
+      $("torSchl").value = ""; $("torFehler").textContent = ""; zeige(true);
+    }catch(err){ $("torFehler").textContent = err && err.status === 403 ? "Der Schlüssel darf nur lesen. Er braucht „Contents: Read and write“." : fehler(err); }
+    $("torOk").disabled = false;
+  };
+  $("abmelden").onclick = ()=>{ if(!confirm("Schlüssel aus diesem Browser entfernen?")) return; try{ localStorage.removeItem(LS_TOKEN); }catch(e){} zeige(false); };
+
+  /* ---------- „+“-Menü ---------- */
+  const plus = $("plus"), menue = $("neuMenue");
+  const menueAuf = an=>{ menue.hidden = !an; plus.setAttribute("aria-expanded", an); };
+  plus.onclick = e=>{ e.stopPropagation(); menueAuf(menue.hidden); };
+  document.addEventListener("click", e=>{ if(!menue.hidden && !menue.contains(e.target)) menueAuf(false); });
+  document.addEventListener("keydown", e=>{ if(e.key === "Escape") menueAuf(false); });
+
+  /* ---------- Blog ---------- */
+  let blog = {pub:[], ent:[]}, reiter = "pub";
+  function blogZeichnen(){
+    $("nPub").textContent = blog.pub.length; $("nEnt").textContent = blog.ent.length;
+    const L = blog[reiter], box = $("blogListe");
+    if(!L.length){ box.innerHTML = `<div class="leer">${reiter === "pub" ? "Noch nichts veröffentlicht." : "Keine Entwürfe."}</div>`; return; }
+    box.innerHTML = L.map(b=>{ const bild = /^blog\/medien\/[\w.-]+$/.test(b.cover || b.bild || "") ? b.cover || b.bild : "";
+      return `<div class="eintrag"><i class="bild"${bild ? ` style="background-image:url('${esc(bild)}')"` : ""}></i>
+        <span class="txt"><b>${esc(b.titel || "Ohne Titel")}</b><small>${datum(b.datum)}${reiter === "ent" ? " · Entwurf" : ""}</small></span>
+        <span class="acts">${reiter === "pub" ? `<a class="knopf klein" href="blog.html#${encodeURIComponent(b.id)}" target="_blank" rel="noopener" title="Ansehen" aria-label="Ansehen"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></a>` : ""}
+          <a class="knopf klein" href="blog-editor.html#b=${encodeURIComponent(b.id)}"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg><span>Bearbeiten</span></a>
+          <button class="knopf klein rot" data-weg="${esc(b.id)}" title="Löschen" aria-label="Löschen"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></span></div>`; }).join("");
+  }
+  $("blogReiter").onclick = e=>{ const b = e.target.closest("[data-r]"); if(!b) return; reiter = b.dataset.r;
+    $("blogReiter").querySelectorAll("button").forEach(x=>{ x.classList.toggle("on", x === b); x.setAttribute("aria-selected", x === b); }); blogZeichnen(); };
+  $("blogListe").onclick = async e=>{
+    const k = e.target.closest("[data-weg]"); if(!k) return;
+    const id = k.dataset.weg, b = blog.pub.concat(blog.ent).find(x=>x.id === id);
+    if(!confirm(`„${b && b.titel || "Ohne Titel"}“ wirklich löschen? Das lässt sich nicht rückgängig machen.`)) return;
+    k.disabled = true;
+    try{
+      const r = await ghGet("blog/b/" + id + ".json"); if(r.sha) await ghSchreib("blog/b/" + id + ".json", "DELETE", {message:"Blog: gelöscht", sha:r.sha});
+      const raus = L=>L.filter(x=>x.id !== id);
+      await listeAendern(ENT, raus, "Blog: Entwürfe"); await listeAendern(IDX, raus, "Blog: Übersicht");
+      blog.pub = raus(blog.pub); blog.ent = raus(blog.ent); blogZeichnen(); toast("Gelöscht");
+    }catch(err){ k.disabled = false; toast(fehler(err)); }
+  };
+  async function blogLaden(){
+    try{ const [p, e] = await Promise.all([ghGet(IDX), ghGet(ENT)]);
+      blog = {pub: p.text ? JSON.parse(p.text).beitraege || [] : [], ent: e.text ? JSON.parse(e.text).beitraege || [] : []}; blogZeichnen(); }
+    catch(err){ if(err && err.status === 401){ zeige(false); $("torFehler").textContent = fehler(err); return; } $("blogListe").innerHTML = `<div class="leer">${fehler(err)}</div>`; }
+  }
+
+  /* ---------- Karte und Veränderungen (Kennung und Fläche wie auf der Karte) ---------- */
+  const SEITE = {ru:"Russischer Gewinn", ua:"Ukrainischer Gewinn", grau:"Neue Grauzone"};
+  function flaeche(ring){ if(ring.length < 3) return 0; const r = Math.PI/180, R = 6371; let s = 0;
+    for(let i = 0; i < ring.length; i++){ const [x1,y1] = ring[i], [x2,y2] = ring[(i+1) % ring.length]; s += (x2-x1)*r*(2 + Math.sin(y1*r) + Math.sin(y2*r)); }
+    return Math.abs(s*R*R/2); }
+  const polys = g=>g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
+  function cid(f){ if(f.properties.cid) return f.properties.cid;
+    const r = f.geometry.type === "Polygon" ? f.geometry.coordinates[0] : f.geometry.coordinates[0][0];
+    let h = 0; const s = (f.properties.datum || "") + JSON.stringify(r[0]) + r.length; for(let i = 0; i < s.length; i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
+    return "c" + h.toString(36); }
+  async function karteLaden(){
+    const [lage, eigen] = await Promise.all([fetch("import/lage.geojson", {cache:"no-cache"}).then(r=>r.json()), fetch("karte.json", {cache:"no-cache"}).then(r=>r.json()).catch(()=>({elemente:[]}))]);
+    const F = lage.features || [];
+    const gew = F.filter(f=>f.properties && f.properties.art === "aenderung" && f.geometry && !f.properties.alt).map(f=>{ const p = f.properties, r = SEITE[p.richtung] ? p.richtung : "grau";
+      return {cid:cid(f), r, d:p.datum || "", name:p.name || SEITE[r], km2:polys(f.geometry).reduce((t,q)=>t + flaeche(q[0]), 0)}; }).sort((a,b)=>b.d.localeCompare(a.d));
+    $("kGew").textContent = gew.length; $("kSym").textContent = F.filter(f=>f.properties && f.properties.art === "symbol").length;
+    $("kEig").textContent = (eigen.elemente || []).length;
+    const stand = (lage.meta && lage.meta.bearbeitet) || eigen.aktualisiert || "";
+    $("kStand").textContent = stand ? "Stand " + datum(stand) : "";
+    $("chgSumme").textContent = gew.length ? `${gew.length} · ${nf.format(gew.reduce((t,x)=>t + x.km2, 0))} km²` : "";
+    $("chgListe").innerHTML = gew.length ? gew.map(x=>`<a class="eintrag gew" href="karte.html#chg=${encodeURIComponent(x.cid)}" target="_blank" rel="noopener"><i class="fl ${x.r}" aria-hidden="true"></i>
+      <span class="txt"><b>${esc(x.name)}</b><small>${datum(x.d)}</small></span><span class="km">${nf.format(x.km2)}<span>km²</span></span></a>`).join("") : '<div class="leer">Noch keine Veränderungen eingetragen.</div>';
+  }
+
+  /* ---------- Log: die letzten Änderungen an der Website ---------- */
+  function wann(iso){ const s = (Date.now() - new Date(iso))/1000;
+    return s < 60 ? "gerade eben" : s < 3600 ? `vor ${Math.round(s/60)} Min.` : s < 86400 ? `vor ${Math.round(s/3600)} Std.` : s < 7*86400 ? `vor ${Math.round(s/86400)} Tagen` : datum(iso); }
+  async function logLaden(){
+    const r = await fetch(`${API}/commits?sha=${GH.branch}&per_page=20`, {headers:hdr(), cache:"no-store"}); if(!r.ok) throw {status:r.status};
+    const L = await r.json();
+    $("logListe").innerHTML = L.length ? L.map(c=>`<a class="eintrag gew" href="${esc(c.html_url)}" target="_blank" rel="noopener"><i class="punkt" aria-hidden="true"></i>
+      <span class="txt"><b>${esc(c.commit.message.split("\n")[0])}</b><small>${esc(wann(c.commit.author.date))} · ${esc(c.author ? c.author.login : c.commit.author.name)}</small></span></a>`).join("") : '<div class="leer">Keine Einträge.</div>';
+  }
+
+  function laden(){
+    blogLaden();
+    karteLaden().catch(()=>{ $("chgListe").innerHTML = '<div class="leer">Lagedaten konnten nicht geladen werden.</div>'; });
+    logLaden().catch(err=>{ $("logListe").innerHTML = `<div class="leer">${fehler(err)}</div>`; });
+  }
+  zeige(!!token());
+})();
+</script>
+</body>
+</html>
