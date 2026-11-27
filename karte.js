@@ -587,6 +587,16 @@ function applyImportFilters(map){
     "imp-sym":["all",["==",["get","art"],"symbol"],["!=",["get","ebene"],"units-lower"]], "imp-sym-small":["all",["==",["get","art"],"symbol"],["==",["get","ebene"],"units-lower"]]};
   for(const id of IMP_LAYERS) if(map.getLayer(id)) map.setFilter(id, importFilter(base[id]));
 }
+/* Ganz Russland rot wie die russisch kontrollierten Gebiete an der Front, mit den Grenzen der Föderationssubjekte
+   (daten/russland.geojson aus Natural Earth, ohne Krim). Liegt unter den Lagedaten. */
+function addRussland(map){
+  if(map.getSource("russland")) return;
+  const before = map.getLayer("lage-area-fill") ? "lage-area-fill" : undefined;
+  map.addSource("russland", {type:"geojson", data:"daten/russland.geojson"});
+  map.addLayer({id:"ru-fill", type:"fill", source:"russland", paint:{"fill-color":"#ff7676", "fill-opacity":0.32}}, before);
+  map.addLayer({id:"ru-line", type:"line", source:"russland", layout:{"line-join":"round"},
+    paint:{"line-color":"#fb3838", "line-opacity":0.75, "line-width":["interpolate",["linear"],["zoom"],3,0.4,6,0.9,10,1.6]}}, before);
+}
 function addImportLayers(map){
   if(!importData || map.getSource("imp")) return;
   const before = map.getLayer("lage-area-fill") ? "lage-area-fill" : undefined;
@@ -792,6 +802,7 @@ function createMap(opts){
     if(th){ try{ applyTheme(map, th); }catch(e){ console.warn("Farbschema:", e); } }
     if(!free && current==="sat") addEsri(map);
     if(drei){ try{ an3D(map, globe); }catch(e){ console.warn("3D:", e); } }
+    try{ addRussland(map); }catch(e){ console.warn("Russland:", e); }
     if(importData){ try{ addImportLayers(map); }catch(e){ console.warn("Lagedaten:", e); } }
     if(opts.onStyle) opts.onStyle(map);
   });
