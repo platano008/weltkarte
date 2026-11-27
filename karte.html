@@ -19,14 +19,14 @@
 <link rel="preconnect" href="https://api.maptiler.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=202611271615">
+<link rel="stylesheet" href="style.css?v=202611271617">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611271615"></script>
-<script src="sicht.js?v=202611271615"></script>
-<script src="fz-bild.js?v=202611271615"></script>
-<script src="werkzeuge.js?v=202611271615"></script>
-<script src="beta.js?v=202611271615"></script>
+<script src="karte.js?v=202611271617"></script>
+<script src="sicht.js?v=202611271617"></script>
+<script src="fz-bild.js?v=202611271617"></script>
+<script src="werkzeuge.js?v=202611271617"></script>
+<script src="beta.js?v=202611271617"></script>
 <style>
 .item.chg .ic{width:22px}
 .item .cq{display:block;width:14px;height:14px}
@@ -171,8 +171,6 @@ body.d-ansicht .ansicht{display:flex}
 @media (max-width:520px){.an-bilder{gap:4px;padding:5px;border-radius:16px!important}.an-bilder button{width:54px;font-size:7.5px;letter-spacing:0}.an-bild{height:54px;border-radius:12px!important}.an-zeile{gap:6px}}
 /* Beta-Hinweis am Handy oben unter der Leiste – unten liegt dort das Werkzeugfeld */
 @media (max-width:720px){.beta{top:calc(max(14px,env(safe-area-inset-top)) + 56px);bottom:auto!important}}
-.rand-farbe{position:fixed;left:0;right:0;height:3px;z-index:1;pointer-events:none}
-.rand-farbe.oben{top:0}.rand-farbe.unten{bottom:0}
 /* Zurück zur Startseite: oben links */
 .heim{position:fixed;z-index:9;left:max(14px,env(safe-area-inset-left));top:max(14px,env(safe-area-inset-top));width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--rand);border-radius:999px!important;background:var(--flaeche);color:#e2e2e2;box-shadow:0 10px 28px -14px rgba(0,0,0,.9);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 .heim:hover{border-color:rgba(255,255,255,.4)}
@@ -230,7 +228,7 @@ body.d-ansicht .ansicht{display:flex}
 .wz-lbl.ring b{font-size:11px}
 .wz-lbl.ring.fahr{border-style:dashed}
 </style>
-<script src="lang.js?v=202611271615" defer></script>
+<script src="lang.js?v=202611271617" defer></script>
 </head>
 <body>
 <div id="map"></div>
@@ -352,28 +350,11 @@ map.on("click", e=>{
   if(h.length && h[0].properties.cid){ chgSelect(h[0].properties.cid); const it = $("list").querySelector(`[data-cid="${h[0].properties.cid}"]`); if(it && !mq.matches) it.scrollIntoView({block:"nearest"}); }
 });
 window.plyusMap = map;
-/* iPhone-Safari färbt Status- und Adressleiste in der Farbe fester Leisten am Bildschirmrand ein.
-   Zwei schmale Streifen oben und unten bekommen deshalb die Farbe des Kartenrands – so wirken die Leisten wie Teil der Karte. */
+/* Die Karte reicht unter die Adressleiste: Maßstab und „i“ an den sichtbaren unteren Rand heben, damit sie antippbar bleiben */
 (function(){
-  const streifen = seite=>{ const d = document.createElement("div"); d.className = "rand-farbe " + seite; d.setAttribute("aria-hidden", "true"); document.body.appendChild(d); return d; };
-  const oben = streifen("oben"), unten = streifen("unten");
-  let offen = false;
-  function lesen(){
-    try{
-      const c = map.getCanvas(), gl = c.getContext("webgl2") || c.getContext("webgl"); if(!gl) return;
-      const w = gl.drawingBufferWidth, h = gl.drawingBufferHeight, px = new Uint8Array(4);
-      const mittel = y=>{ let r = 0, g = 0, b = 0; for(let i = 1; i <= 7; i++){ gl.readPixels(Math.round(w*i/8), y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); r += px[0]; g += px[1]; b += px[2]; }
-        return `rgb(${Math.round(r/7)},${Math.round(g/7)},${Math.round(b/7)})`; };
-      /* unten: genau die Kartenzeile am unteren Rand des sichtbaren Bereichs, damit der Streifen nicht auffällt */
-      const k = h/c.clientHeight, yU = Math.max(1, Math.round(h - unten.getBoundingClientRect().top*k) - 2);
-      oben.style.background = mittel(h - 2); unten.style.background = document.body.style.backgroundColor = mittel(yU);
-    }catch(e){}
-  }
-  /* Die Karte reicht unter die Adressleiste: Maßstab und „i“ an den sichtbaren unteren Rand heben, damit sie antippbar bleiben */
-  const leiste = ()=>document.documentElement.style.setProperty("--unter-leiste", Math.max(0, Math.round(map.getContainer().clientHeight - unten.getBoundingClientRect().bottom)) + "px");
-  leiste(); addEventListener("resize", leiste); if(window.visualViewport) visualViewport.addEventListener("resize", leiste);
-  const bald = ()=>{ if(offen) return; offen = true; map.once("render", ()=>{ offen = false; lesen(); }); map.triggerRepaint(); };
-  map.on("moveend", bald); map.on("styledata", ()=>setTimeout(bald, 400)); map.once("idle", bald);
+  const vv = window.visualViewport;
+  const leiste = ()=>document.documentElement.style.setProperty("--unter-leiste", Math.max(0, Math.round(map.getContainer().clientHeight - (vv ? vv.height : innerHeight))) + "px");
+  leiste(); addEventListener("resize", leiste); if(vv) vv.addEventListener("resize", leiste);
 })();
 /* Aus der Fahrzeugliste: karte.html#fz=Name öffnet „Fahrzeug setzen“ mit diesem Fahrzeug */
 setTimeout(()=>{ const m = /^#fz=(.+)$/.exec(fzHash); if(m && window.WZ && WZ.fahrzeug){ try{ setDock("wz"); }catch(e){} WZ.fahrzeug(decodeURIComponent(m[1])); } }, 600);
