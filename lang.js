@@ -6,7 +6,7 @@
   const W = {
     // Menü, Kopf, allgemein
     "Neueste Gewinne":"Latest gains", "Plyus – neueste Gewinne":"Plyus – latest gains", "Alle Gewinne anzeigen":"Show all gains", "Alle Gewinne":"All gains",
-    "Tools schließen":"Close tools", "Andere Kartenart wählen":"Choose another map type", "Zur flachen Karte":"Flat map", "Zum Globus":"Globe", "3D-Gelände":"3D terrain", "Topo":"Topo", "Zurück zu den Tools":"Back to tools", "Messen":"Measure", "Messen: Lineal, Fläche, Radius, Koordinate, Sichtfeld, Fahrzeug":"Measure: ruler, area, radius, coordinate, line of sight, vehicle",
+    "Tools schließen":"Close tools", "Andere Kartenart wählen":"Choose another map type", "Diese Seite ist in Beta":"This site is in beta", "Dieses Werkzeug ist in Beta":"This tool is in beta", "Hinweis schließen":"Close notice", "Zur flachen Karte":"Flat map", "Zum Globus":"Globe", "3D-Gelände":"3D terrain", "Topo":"Topo", "Zurück zu den Tools":"Back to tools", "Messen":"Measure", "Messen: Lineal, Fläche, Radius, Koordinate, Sichtfeld, Fahrzeug":"Measure: ruler, area, radius, coordinate, line of sight, vehicle",
     "Kartenwerkzeuge":"Map tools", "Plyus · Frontverlauf":"Plyus · Front line", "Fläche gesamt":"Total area", "Keine Gewinne eingetragen.":"No gains recorded.", "Liste konnte nicht geladen werden.":"The list could not be loaded.",
     "Jede eingetragene Gebietsänderung mit Datum, Seite und Fläche. Ein Klick öffnet die Stelle auf der Karte.":"Every recorded territorial change with date, side and area. A click opens the spot on the map.",
     "Karte":"Map", "Drohnenkarte":"Drone map", "in Arbeit":"in progress", "In Arbeit":"In progress", "folgt":"soon",

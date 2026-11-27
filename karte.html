@@ -16,13 +16,14 @@
 <link rel="preconnect" href="https://api.maptiler.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=202611271511">
+<link rel="stylesheet" href="style.css?v=202611271535">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
-<script src="karte.js?v=202611271511"></script>
-<script src="sicht.js?v=202611271511"></script>
-<script src="fz-bild.js?v=202611271511"></script>
-<script src="werkzeuge.js?v=202611271511"></script>
+<script src="karte.js?v=202611271535"></script>
+<script src="sicht.js?v=202611271535"></script>
+<script src="fz-bild.js?v=202611271535"></script>
+<script src="werkzeuge.js?v=202611271535"></script>
+<script src="beta.js?v=202611271535"></script>
 <style>
 .item.chg .ic{width:22px}
 .item .cq{display:block;width:14px;height:14px}
@@ -165,6 +166,8 @@ body.d-ansicht .ansicht{display:flex}
 #view .i-globus,#view.flach .i-flach,#licht .i-sonne,#licht.dunkel .i-mond{display:none}
 #view.flach .i-globus,#licht.dunkel .i-sonne{display:block}
 @media (max-width:520px){.an-bilder{gap:4px;padding:5px;border-radius:16px!important}.an-bilder button{width:54px;font-size:7.5px;letter-spacing:0}.an-bild{height:54px;border-radius:12px!important}.an-zeile{gap:6px}}
+/* Beta-Hinweis am Handy oben unter der Leiste – unten liegt dort das Werkzeugfeld */
+@media (max-width:720px){.beta{top:calc(max(14px,env(safe-area-inset-top)) + 56px);bottom:auto!important}}
 /* Zurück zur Startseite: oben links */
 .heim{position:fixed;z-index:9;left:max(14px,env(safe-area-inset-left));top:max(14px,env(safe-area-inset-top));width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--rand);border-radius:999px!important;background:var(--flaeche);color:#e2e2e2;box-shadow:0 10px 28px -14px rgba(0,0,0,.9);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 .heim:hover{border-color:rgba(255,255,255,.4)}
@@ -222,7 +225,7 @@ body.d-ansicht .ansicht{display:flex}
 .wz-lbl.ring b{font-size:11px}
 .wz-lbl.ring.fahr{border-style:dashed}
 </style>
-<script src="lang.js?v=202611271511" defer></script>
+<script src="lang.js?v=202611271535" defer></script>
 </head>
 <body>
 <div id="map"></div>
@@ -287,7 +290,7 @@ const mq = window.matchMedia("(max-width:720px)");
 function setDock(name){
   ["ansicht","wz","tl"].forEach(n=>{ const on = n===name; document.body.classList.toggle("d-"+n, on);
     const b = $("dock").querySelector(`[data-d=${n}]`); if(b) b.classList.toggle("on", on); });
-  if(name !== "wz" && window.WZ && WZ.active()) WZ.stop();
+  if(name !== "wz"){ if(window.WZ && WZ.active()) WZ.stop(); Beta.verstecken(); }
   if(name){ toolsAuf(true); select(null); document.body.classList.remove("k-auf"); }
 }
 function toolsAuf(on){ document.body.classList.toggle("t-auf", on); $("toolsKnopf").setAttribute("aria-expanded", on); if(!on) setDock(null); }
@@ -346,7 +349,8 @@ map.on("click", e=>{
 window.plyusMap = map;
 /* Aus der Fahrzeugliste: karte.html#fz=Name öffnet „Fahrzeug setzen“ mit diesem Fahrzeug */
 setTimeout(()=>{ const m = /^#fz=(.+)$/.exec(fzHash); if(m && window.WZ && WZ.fahrzeug){ try{ setDock("wz"); }catch(e){} WZ.fahrzeug(decodeURIComponent(m[1])); } }, 600);
-window.WZ = window.Werkzeuge ? Werkzeuge.init(map, {onStart: ()=>{ select(null); document.body.classList.remove("k-auf"); }, onZurueck: ()=>setDock(null)}) : null;
+window.WZ = window.Werkzeuge ? Werkzeuge.init(map, {onStart: t=>{ select(null); document.body.classList.remove("k-auf");
+  if(t === "sicht" || t === "fahrzeug") Beta.zeigen("werkzeug", "Dieses Werkzeug ist in Beta", {unten:74}); else Beta.verstecken(); }, onZurueck: ()=>setDock(null)}) : null;
 const hideLoading = ()=>{ const rest = Math.max(0, 1400 - performance.now()); setTimeout(()=>{ $("loading").classList.add("done"); setTimeout(()=>{ $("loading").hidden = true; }, 900); }, rest); };
 
 map.on("load", hideLoading); setTimeout(hideLoading, 8000);

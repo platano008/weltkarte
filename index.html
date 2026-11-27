@@ -17,7 +17,7 @@
 <script>/* alte geteilte Links (index.html#…) führen weiter zur Karte */
 if(location.hash.length > 1 && !/^#(lage|zeigt|arsenal)$/.test(location.hash)) location.replace("karte.html" + location.hash);</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="stylesheet" href="style.css?v=202611271511">
+<link rel="stylesheet" href="style.css?v=202611271535">
 <script defer src="https://cdn.jsdelivr.net/npm/milsymbol@2.0.0/dist/milsymbol.js"></script>
 <style>
 html,body{height:auto;overflow:visible}
@@ -901,7 +901,8 @@ html.lite .tick div{animation-duration:70s}
 #chg .row.getroffen,#chg.xp-an .row.getroffen{animation:getroffen .7s cubic-bezier(.3,.7,.4,1)}
 @keyframes getroffen{0%{background:rgba(255,150,60,.35);transform:translateY(3px)}30%{transform:translateY(-2px)}100%{background:transparent;transform:none}}
 </style>
-<script src="lang.js?v=202611271511" defer></script>
+<script src="lang.js?v=202611271535" defer></script>
+<script src="beta.js?v=202611271535"></script>
 </head>
 <body>
 <script>/* schwache Geräte früh erkennen: wenige Kerne oder wenig Speicher → sparsamer Modus */
@@ -1352,7 +1353,7 @@ function drawViz(imp, recent){
   } else drohnen();
 })();
 if("IntersectionObserver" in window){
-  new IntersectionObserver(es=>es.forEach(e=>{ $("hero").classList.toggle("paused", !e.isIntersecting); document.querySelector("section.hero").classList.toggle("paused", !e.isIntersecting); (window.__kreis || []).forEach(a=>{ try{ e.isIntersecting ? a.play() : a.pause(); }catch(_){} }); })).observe($("hero"));
+  new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting) Beta.verstecken(); else Beta.zeigen("seite", "Diese Seite ist in Beta"); $("hero").classList.toggle("paused", !e.isIntersecting); document.querySelector("section.hero").classList.toggle("paused", !e.isIntersecting); (window.__kreis || []).forEach(a=>{ try{ e.isIntersecting ? a.play() : a.pause(); }catch(_){} }); })).observe($("hero"));
   const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }), {rootMargin:"0px 0px -8% 0px"});
   document.querySelectorAll(".rv").forEach(n=>io.observe(n));
 } else document.querySelectorAll(".rv").forEach(n=>n.classList.add("in"));
@@ -1671,7 +1672,7 @@ function flimmern(root){
   document.querySelectorAll("[data-sozial]").forEach(a=>{ const u = SOZIAL[a.dataset.sozial];
     if(u){ a.href = u; } else { a.removeAttribute("href"); a.classList.add("bald"); } }); }
 </script>
-<script src="fz-bild.js?v=202611271511"></script>
+<script src="fz-bild.js?v=202611271535"></script>
 <script>
 /* Arsenal: je sechs Beispiele für die Ukraine und Russland, umschaltbar. Erst die gezeichnete Ansicht, dann – wenn frei lizenziert vorhanden –
    das Titelbild des Wikipedia-Artikels (Fotograf und Lizenz im Steckbrief). */
@@ -1720,7 +1721,7 @@ function flimmern(root){
   }));
   const io = new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ box.classList.add("an"); io.disconnect(); } }, {threshold:0.15});
   io.observe(box);
-  fetch("daten/fahrzeuge.json?v=202611271511").then(r=>r.json()).then(d=>{ D = d; zeigen(); })
+  fetch("daten/fahrzeuge.json?v=202611271535").then(r=>r.json()).then(d=>{ D = d; zeigen(); })
     .catch(()=>{ sek.hidden = true; });
 })();
 </script>
