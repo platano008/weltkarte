@@ -553,9 +553,19 @@ function addImportIcon(map, id){
   if(!id || id.indexOf("imp-")!==0 || map.hasImage(id)) return;
   try{ map.addImage(id, importIcon(id.slice(4)), {pixelRatio:2}); }catch(e){}
 }
-function importFilter(extra){
+/* Ebenen-Schalter (Tools → Ebenen): "ukraine" (blaue Flächen), "russland" (rote Flächen und Russland),
+   "symbole" (Truppenzeichen), "formen" (Pfeile, Linien und sonstige Formen) */
+const ebenenAus = new Set();
+const UKR = ["any",["in",["get","ebene"],["literal",["ukraine-terr","gray-zone"]]],["==",["get","fuellung"],"#0070c0"]];
+function importFilter(extra, id){
   const f = ["all", extra];
   if(importHidden.size) f.push(["!", ["in", ["get","ebene"], ["literal", [...importHidden]]]]);
+  if(id === "imp-fill" || id === "imp-line"){
+    if(ebenenAus.has("ukraine")) f.push(["!", UKR]);
+    if(ebenenAus.has("russland")) f.push(["any", UKR, ["!=",["get","ebene"],"russian-terr"]]);
+    if(ebenenAus.has("formen")) f.push(["all", ["!=",["get","ebene"],"base"], ["!=",["get","art"],"linie"]]);
+  }
+  if((id === "imp-sym" || id === "imp-sym-small") && ebenenAus.has("symbole")) f.push(false);
   return f;
 }
 const IMP_LAYERS = ["imp-fill","imp-line","imp-change-fill","imp-change-line","imp-change-label","imp-sym","imp-sym-small"];
@@ -585,7 +595,7 @@ function applyImportFilters(map){
   const base = {"imp-fill":["==",["get","art"],"flaeche"], "imp-line":["in",["get","art"],["literal",["flaeche","linie"]]],
     "imp-change-fill":isRecentChange(), "imp-change-line":isRecentChange(), "imp-change-label":isRecentChange(),
     "imp-sym":["all",["==",["get","art"],"symbol"],["!=",["get","ebene"],"units-lower"]], "imp-sym-small":["all",["==",["get","art"],"symbol"],["==",["get","ebene"],"units-lower"]]};
-  for(const id of IMP_LAYERS) if(map.getLayer(id)) map.setFilter(id, importFilter(base[id]));
+  for(const id of IMP_LAYERS) if(map.getLayer(id)) map.setFilter(id, importFilter(base[id], id));
 }
 /* Ganz Russland rot wie die russisch kontrollierten Gebiete an der Front, mit den Grenzen der Föderationssubjekte
    (daten/russland.geojson aus Natural Earth, ohne Krim). Liegt unter den Lagedaten. */
@@ -593,9 +603,10 @@ function addRussland(map){
   if(map.getSource("russland")) return;
   const before = map.getLayer("lage-area-fill") ? "lage-area-fill" : undefined;
   map.addSource("russland", {type:"geojson", data:"daten/russland.geojson"});
-  map.addLayer({id:"ru-fill", type:"fill", source:"russland", paint:{"fill-color":"#ff7676", "fill-opacity":0.32}}, before);
-  map.addLayer({id:"ru-line", type:"line", source:"russland", layout:{"line-join":"round"},
-    paint:{"line-color":"#fb3838", "line-opacity":0.75, "line-width":["interpolate",["linear"],["zoom"],3,0.4,6,0.9,10,1.6]}}, before);
+  const v = ebenenAus.has("russland") ? "none" : "visible";      /* etwas heller als die besetzten Gebiete der Ukraine */
+  map.addLayer({id:"ru-fill", type:"fill", source:"russland", layout:{visibility:v}, paint:{"fill-color":"#ffa0a0", "fill-opacity":0.26}}, before);
+  map.addLayer({id:"ru-line", type:"line", source:"russland", layout:{"line-join":"round", visibility:v},
+    paint:{"line-color":"#ff8585", "line-opacity":0.6, "line-width":["interpolate",["linear"],["zoom"],3,0.4,6,0.9,10,1.6]}}, before);
 }
 function addImportLayers(map){
   if(!importData || map.getSource("imp")) return;
@@ -806,6 +817,8 @@ function createMap(opts){
     if(importData){ try{ addImportLayers(map); }catch(e){ console.warn("Lagedaten:", e); } }
     if(opts.onStyle) opts.onStyle(map);
   });
+  map.setEbene = (k, an)=>{ an ? ebenenAus.delete(k) : ebenenAus.add(k); if(!styleReady) return;
+    applyImportFilters(map); if(k === "russland") ["ru-fill","ru-line"].forEach(l=>{ if(map.getLayer(l)) map.setLayoutProperty(l, "visibility", an ? "visible" : "none"); }); };
   map.setBase = k=>{ if(free || !STYLES[k] || k===current) return; current = k; errs = 0; styleReady = false; map.setStyle(styleOf(k), {diff:false}); };
   map.setGlobe = g=>{ globe = g; try{ map.setProjection({type: g ? "globe" : "mercator"}); }catch(e){} if(drei && styleReady){ try{ map.setTerrain(g ? null : {source:"dem3d", exaggeration:1.5}); }catch(e){} } };
   map.setMixDunkel = on=>{ mixDunkel = !!on; if(current === "mix" && !free){ styleReady = false; map.setStyle(styleOf("mix"), {diff:false}); } };
